@@ -11,7 +11,7 @@ const calistoga = Calistoga({
 });
 
 export const metadata: Metadata = {
-  title: "Anas Dev | Full-Stack Web Developer Portfolio",
+  title: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
   description:
     "Explore the portfolio of Anas ERRAKIBI, a skilled full-stack developer specializing in modern web applications, user-friendly interfaces, and cutting-edge technologies.",
   keywords:
