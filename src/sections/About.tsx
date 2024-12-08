@@ -123,7 +123,7 @@ export const AboutSection = () => {
         <HeaderSection
           eyebrow="ABOUT ME"
           title="Where Every Moment Tells a Story"
-          description="Greetings! I’m Anas ER-RAKIBI, a Full Stack Web Developer located in Morocco."
+          description="Greetings! I’m Abderrahmane Raquibi, a Full Stack Web Developer located in Morocco."
         />
         <div className="mt-20 flex flex-col gap-8">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-5 lg:grid-cols-3">
