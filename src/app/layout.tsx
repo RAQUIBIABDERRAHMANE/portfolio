@@ -13,14 +13,14 @@ const calistoga = Calistoga({
 export const metadata: Metadata = {
   title: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
   description:
-    "Explore the portfolio of Anas ERRAKIBI, a skilled full-stack developer specializing in modern web applications, user-friendly interfaces, and cutting-edge technologies.",
+    "Explore the portfolio of Abdo Raquibi, a skilled full-stack developer specializing in modern web applications, user-friendly interfaces, and cutting-edge technologies.",
   keywords:
     "Anas ER-RAKIBI, Full-Stack Web Developer, Web Development, Portfolio, Frontend Developer, Backend Developer, PHP, Laravel, React, Next.js, Node.js, JavaScript, Tailwind Css, Bootstrap",
   openGraph: {
     title: "Anas Dev | Full-Stack Web Developer Portfolio",
     description:
-      "Dive into the portfolio of Anas ER-RAKIBI, showcasing expertise in full-stack development, modern web technologies, and innovative project solutions.",
-    url: "https://anas-dev.vercel.app/",
+      "Dive into the portfolio of Abderrahmane Raquibi, showcasing expertise in full-stack development, modern web technologies, and innovative project solutions.",
+    url: "https://abdoraquibi.icu/",
     type: "website",
   },
 };

@@ -13,7 +13,7 @@ const testimonials = [
   {
     name: "AKZIZ Zakaria",
     position: "Full Stack Web Developer @ FreeLancer",
-    text: "I had the pleasure of working with Anas ERRAKIBI, and their expertise truly transformed our project. Their timely delivery and excellent communication made the process smooth and efficient. I highly recommend him for any web development needs.",
+    text: "I had the pleasure of working with Abdo Raquibi, and their expertise truly transformed our project. Their timely delivery and excellent communication made the process smooth and efficient. I highly recommend him for any web development needs.",
     avatar: memojiAvatar1,
   },
   // {
@@ -25,7 +25,7 @@ const testimonials = [
   {
     name: "BELAID Abderrahim",
     position: "Full Stack Web Developer @ FreeLancer",
-    text: "Working with Anas has been an enriching experience. His expertise in development, combined with his team spirit and ability to find innovative solutions, has greatly contributed to the success of our projects. A reliable and passionate developer whom I highly recommend.",
+    text: "Working with Abdo has been an enriching experience. His expertise in development, combined with his team spirit and ability to find innovative solutions, has greatly contributed to the success of our projects. A reliable and passionate developer whom I highly recommend.",
     avatar: memojiAvatar3,
   },
   // {
@@ -37,13 +37,13 @@ const testimonials = [
   {
     name: "ELALAOUI Abdelkarim",
     position: "Frontend Web Developer @ FreeLancer",
-    text: "Collaborating with Anas ERRAKIBI was a great experience. His skill in designing seamless user experiences and his meticulous attention to detail led to great results. I am very happy with the results I got with him!",
+    text: "Collaborating with Abdo Raquibi was a great experience. His skill in designing seamless user experiences and his meticulous attention to detail led to great results. I am very happy with the results I got with him!",
     avatar: memojiAvatar6,
   },
   {
     name: "ALMOU Oualid",
     position: "Web Designer @ FreeLancer",
-    text: "Working on the same team with Anas was a good experience, because he’s very creative and pays close attention to design details and any problem on the project. He’s great at analyzing problems and finding solutions, and he’s also a good listener when it comes to other people's suggestions.",
+    text: "Working on the same team with Abdo was a good experience, because he’s very creative and pays close attention to design details and any problem on the project. He’s great at analyzing problems and finding solutions, and he’s also a good listener when it comes to other people's suggestions.",
     avatar: memojiAvatar3,
   },
 ];
