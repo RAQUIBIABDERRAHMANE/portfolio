@@ -1,7 +1,7 @@
 import ArrowUpRight from "@/assets/icons/arrow-up-right.svg";
 
 const links = [
-  { name: "Buy me a Coffee", link: "https://buymeacoffee.com/anaser_25" },
+  { name: "Buy me a Coffee", link: "https://buymeacoffee.com/" },
   { name: "LinkdeIn", link: "https://www.linkedin.com/in/anas-er-rakibi/" },
   { name: "Instagram", link: "https://www.instagram.com/anas_errakibi" },
   { name: "Facebook", link: "https://www.facebook.com/taner.olmez.160" },

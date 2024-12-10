@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   description:
     "Explore the portfolio of Abdo Raquibi, a skilled full-stack developer specializing in modern web applications, user-friendly interfaces, and cutting-edge technologies.",
   keywords:
-    "Anas ER-RAKIBI, Full-Stack Web Developer, Web Development, Portfolio, Frontend Developer, Backend Developer, PHP, Laravel, React, Next.js, Node.js, JavaScript, Tailwind Css, Bootstrap",
+    "Abdo raquibi,raquibi,Raquibi,Abderrahmane Raquibi,Abderahmae, Full-Stack Web Developer, Web Development, Portfolio, Frontend Developer, Backend Developer, PHP, Laravel, React, Next.js, Node.js, JavaScript, Tailwind Css, Bootstrap",
   openGraph: {
     title: "Anas Dev | Full-Stack Web Developer Portfolio",
     description:
