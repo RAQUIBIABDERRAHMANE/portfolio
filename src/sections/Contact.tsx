@@ -15,7 +15,7 @@ const buttonVariants = {
 
 export const ContactSection = () => {
   const ConnectClick = () => {
-    const number = "+212696486911";
+    const number = "+212665830816";
     window.open(`https://wa.me/${number}`, "_blank");
   };
 
