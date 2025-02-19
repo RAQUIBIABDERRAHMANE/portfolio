@@ -73,7 +73,7 @@ export const Header = () => {
           About
         </motion.a>
         <motion.a
-          href="https://wa.me/+212696486911"
+          href="https://wa.me/+212665830816"
           target="_blank"
           className="nav-item bg-white text-gray-900 hover:bg-white/70 hover:text-gray-900"
           variants={itemVariants}
