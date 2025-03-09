@@ -34,6 +34,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" type="image/x-icon" />
+        <meta name="facebook-domain-verification" content="l0j97svsueiuplxttmp216u4ks798j" />
       </head>
       <body
         className={twMerge(
