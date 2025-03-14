@@ -45,6 +45,7 @@ export default function RootLayout({
             src="https://cdn.buymeacoffee.com/buttons/v2/default-green.png"
             alt="Buy Me A Coffee"
             style={{ height: "60px", width: "217px" }}
+            className={'fixed z-10'}
           />
         </a>
       </body>
