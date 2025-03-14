@@ -190,7 +190,7 @@ export const AboutSection = () => {
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-300 to-sky-400 -z-20 animate-ping [animation-duration:2s]"></div>
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-300 to-sky-400 -z-10"></div>
                 <Image
-                  src={SmileMemoji}
+                  src={/favicon.ico}
                   alt="Smiling Memoji"
                   className="size-20"
                 />
