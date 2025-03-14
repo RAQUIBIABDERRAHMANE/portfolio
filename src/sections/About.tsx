@@ -192,7 +192,7 @@ export const AboutSection = () => {
                 <Image
                   src="/favicon.ico"
                   alt="Smiling Memoji"
-                  className="size-20"
+                  className="size-16"
                 />
               </div>
             </Card>
