@@ -193,7 +193,7 @@ export const AboutSection = () => {
       <Image
         src={SmileMemoji}
         alt="Smiling Memoji"
-        className="size-16"
+        className="size-20"
       />
     </div>
   </div>
