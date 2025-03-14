@@ -17,35 +17,37 @@ export const metadata: Metadata = {
   keywords:
     "Abdo raquibi,raquibi,Raquibi,Abderrahmane Raquibi,Abderahmane,abderahmane, Full-Stack Web Developer, Web Development, Portfolio, Frontend Developer, Backend Developer, PHP, Laravel, React, Next.js, Node.js, JavaScript, Tailwind Css, Bootstrap",
   openGraph: {
-    title: "abdo raquibi | Full-Stack Web Developer Portfolio",
+    title: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
     description:
       "Dive into the portfolio of Abderrahmane Raquibi, showcasing expertise in full-stack development, modern web technologies, and innovative project solutions.",
     url: "https://abdoraquibi.icu/",
     type: "website",
   },
+  icons: {
+    icon: "/favicon.ico",
+  },
+  other: {
+    "facebook-domain-verification": "l0j97svsueiuplxttmp216u4ks798j",
+  },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" type="image/x-icon" />
-        <meta name="facebook-domain-verification" content="l0j97svsueiuplxttmp216u4ks798j" />
-      </head>
       <body
-        className={twMerge(
-          inter.variable,
-          calistoga.variable,
-          "bg-gray-900 text-white antialiased font-sans scrollbar"
-        )}
+        className={`${inter.variable} ${calistoga.variable} bg-gray-900 text-white antialiased font-sans scrollbar`}
       >
         {children}
-        <a href="https://www.buymeacoffee.com/RAQUIBI" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-green.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
-        </body>
+        <a href="https://www.buymeacoffee.com/RAQUIBI" target="_blank" rel="noopener noreferrer">
+          <img
+            src="https://cdn.buymeacoffee.com/buttons/v2/default-green.png"
+            alt="Buy Me A Coffee"
+            style={{ height: "60px", width: "217px" }}
+          />
+        </a>
+      </body>
     </html>
   );
 }
