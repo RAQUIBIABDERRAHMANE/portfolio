@@ -40,14 +40,18 @@ export default function RootLayout({
         className={`${inter.variable} ${calistoga.variable} bg-gray-900 text-white antialiased font-sans scrollbar`}
       >
         {children}
-        <a href="https://www.buymeacoffee.com/RAQUIBI" target="_blank" rel="noopener noreferrer">
-          <img
-            src="https://cdn.buymeacoffee.com/buttons/v2/default-green.png"
-            alt="Buy Me A Coffee"
-            style={{ height: "60px", width: "217px" }}
-            className={'fixed z-10'}
-          />
-        </a>
+        <a
+  href="https://www.buymeacoffee.com/RAQUIBI"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="fixed bottom-4 right-4 z-50"
+>
+  <img
+    src="https://cdn.buymeacoffee.com/buttons/v2/default-green.png"
+    alt="Buy Me A Coffee"
+    style={{ height: "60px", width: "217px" }}
+  />
+</a>
       </body>
     </html>
   );
