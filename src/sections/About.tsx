@@ -191,7 +191,7 @@ export const AboutSection = () => {
     <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-300 to-sky-400 -z-10"></div>
     <div className="absolute inset-0 flex justify-center items-center">
       <Image
-        src="/favicon.ico"
+        src={SmileMemoji}
         alt="Smiling Memoji"
         className="size-16"
       />
