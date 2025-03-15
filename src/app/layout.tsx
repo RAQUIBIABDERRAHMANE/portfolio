@@ -22,6 +22,14 @@ export const metadata: Metadata = {
       "Dive into the portfolio of Abderrahmane Raquibi, showcasing expertise in full-stack development, modern web technologies, and innovative project solutions.",
     url: "https://abdoraquibi.icu/",
     type: "website",
+    images: [
+      {
+        url: "https://i.imgur.com/UpECO52.png", // Replace with the actual URL of your image
+        width: 1200,
+        height: 630,
+        alt: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
+      },
+    ],
   },
   icons: {
     icon: "/favicon.ico",
