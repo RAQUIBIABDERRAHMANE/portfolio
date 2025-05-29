@@ -55,6 +55,7 @@ export default function RootLayout({
       <head>
         <meta name="author" content="Abderrahmane Raquibi" />
         <meta name="copyright" content="© 2025 Abderrahmane Raquibi" />
+        <meta property="og:image" content="/abderrahmaneraquibi.jpg" />
         <meta name="theme-color" content="#0f172a" />
       </head>
       <body
