@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "https://i.imgur.com/UpECO52.png", // Replace with the actual URL of your image
+        url: "https://abdoraquibi.icu/abderrahmaneraquibi.jpg", // Replace with the actual URL of your image
         width: 1200,
         height: 630,
         alt: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
@@ -90,7 +90,7 @@ export default function RootLayout({
               "https://instagram.com/ceo.raquibi",
               "https://www.linkedin.com/in/abderrahmaneraquibi/"
             ],
-            "image": "https://i.imgur.com/UpECO52.png",
+            "image": "https://abdoraquibi.icu/abderrahmaneraquibi.jpg",
             "description": "Moroccan full-stack developer & entrepreneur specialized in Laravel, React, and SaaS platforms.",
           }),
         }}
