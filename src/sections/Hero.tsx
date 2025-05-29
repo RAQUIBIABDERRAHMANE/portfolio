@@ -130,7 +130,8 @@ export const HeroSection = () => {
       <div className="container">
         <div className="flex flex-col items-center">
           <Image
-            src={memojiImage}
+            // src={memojiImage}
+            src="/abdo raq.png"
             className="size-[100px]"
             alt="person peeking form behind laptop"
           />
