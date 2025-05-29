@@ -3,7 +3,7 @@ import ArrowUpRight from "@/assets/icons/arrow-up-right.svg";
 const links = [
 //   { name: "Buy me a Coffee", link: "https://buymeacoffee.com/" },
 //   { name: "LinkdeIn", link: "https://www.linkedin.com/in/" },
-  { name: "Instagram", link: "https://www.instagram.com/abderahmaeraquibi1" },
+  { name: "Instagram", link: "https://www.instagram.com/abderrahmaneraquibi1" },
 //   { name: "Facebook", link: "https://www.facebook.com/" },
 //   { name: "X", link: "https://x.com/" },
 ];
