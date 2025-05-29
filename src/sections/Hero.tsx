@@ -132,7 +132,7 @@ export const HeroSection = () => {
           <Image
             // src={memojiImage}
             src="/abdo raq.png"
-            className="size-[100px]"
+            className="size-[150px]"
             alt="person peeking form behind laptop"
           />
           <div className="bg-gray-950 border border-gray-800 py-1.5 px-4 inline-flex items-center gap-4 rounded-lg">
