@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     ],
   },
   icons: {
-    icon: "/favicon.png",
+    icon: "/favicon.ico",
   },
   other: {
     "facebook-domain-verification": "l0j97svsueiuplxttmp216u4ks798j",
