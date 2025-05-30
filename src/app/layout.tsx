@@ -29,6 +29,12 @@ export const metadata: Metadata = {
         height: 630,
         alt: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
       },
+      {
+        url: "https://abdoraquibi.icu/abderrahmaneraquibi.jpg", // Replace with the actual URL of your image
+        width: 1200,
+        height: 630,
+        alt: "Abderrahmane Raquibi | Full-Stack Web Developer Portfolio",
+      },
     ],
   },
   icons: {
