@@ -7,18 +7,37 @@ import { ProjectsSection } from "@/sections/Projects";
 import { TapeSection } from "@/sections/Tape";
 import { TechnologieSection } from "@/sections/Technologies";
 import { TestimonialsSection } from "@/sections/Testimonials";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Home",
+  description: "Welcome to Abdo Raquibi's portfolio - Full-Stack Web Developer specializing in Laravel, React, and Next.js",
+};
+
 export default function Home() {
   return (
-    <div>
+    <main className="min-h-screen">
       <Header />
       <HeroSection />
-      <TechnologieSection />
-      <ProjectsSection />
-      <TapeSection />
-      <TestimonialsSection/>
-      <AboutSection />
-      <ContactSection />
-      <Footer/>
-    </div>
+      <section aria-label="Technologies" id="technologies">
+        <TechnologieSection />
+      </section>
+      <section aria-label="Projects" id="projects">
+        <ProjectsSection />
+      </section>
+      <section aria-label="Featured Work" id="featured">
+        <TapeSection />
+      </section>
+      <section aria-label="Testimonials" id="testimonials">
+        <TestimonialsSection />
+      </section>
+      <section aria-label="About Me" id="about">
+        <AboutSection />
+      </section>
+      <section aria-label="Contact" id="contact">
+        <ContactSection />
+      </section>
+      <Footer />
+    </main>
   );
 }
