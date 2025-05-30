@@ -13,9 +13,9 @@ const calistoga = Calistoga({
 export const metadata: Metadata = {
   title: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
   description:
-    "Explore the portfolio of Abdo Raquibi, a skilled full-stack developer specializing in modern web applications, user-friendly interfaces, and cutting-edge technologies.",
+    "Hi, I'm Abderrahmane Raquibi — a full-stack developer building modern, fast, and scalable web apps with Laravel, React, and Next.js. Let's build something great together!",
   keywords:
-    "Abdo raquibi,raquibi,Raquibi,Abderrahmane Raquibi,Abderahmane,abderahmane, Full-Stack Web Developer, Web Development, Portfolio, Frontend Developer, Backend Developer, PHP, Laravel, React, Next.js, Node.js, JavaScript, Tailwind Css, Bootstrap",
+    "Abdo Raquibi, Full-Stack Developer, Laravel Developer, React Developer, Next.js Portfolio, Morocco Developer, SaaS Developer, Tailwind CSS",
   openGraph: {
     title: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
     description:
@@ -70,9 +70,12 @@ export default function RootLayout({
         >
           <img
             src="https://cdn.buymeacoffee.com/buttons/v2/default-green.png"
-            alt="Buy Me A Coffee"
-            style={{ height: "60px", width: "217px" }}
+            alt="Support Abdo Raquibi by buying a coffee"
+            width={217}
+            height={60}
+            loading="lazy"
           />
+
         </a>
       </body>
       <script
@@ -95,6 +98,23 @@ export default function RootLayout({
           }),
         }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "url": "https://abdoraquibi.icu",
+            "name": "Abdo Raquibi Portfolio",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://abdoraquibi.icu/search?q={search_term_string}",
+              "query-input": "required name=search_term_string",
+            },
+          }),
+        }}
+      />
+
 
     </html>
   );
