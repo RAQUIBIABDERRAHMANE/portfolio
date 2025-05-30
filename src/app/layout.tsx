@@ -140,7 +140,7 @@ export default function RootLayout({
           />
         </noscript>
         {children}
-        <a
+        {/* <a
           href="https://www.buymeacoffee.com/RAQUIBI"
           target="_blank"
           rel="noopener noreferrer"
@@ -154,7 +154,7 @@ export default function RootLayout({
             loading="lazy"
             priority={false}
           />
-        </a>
+        </a> */}
       </body>
       <script
         type="application/ld+json"
