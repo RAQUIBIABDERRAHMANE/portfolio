@@ -108,6 +108,18 @@ export default function RootLayout({
             })(window,document,'script','dataLayer','GTM-KDDQ6RLX');
           `}
         </Script>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-CQ4F903N9X"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-CQ4F903N9X');
+          `}
+        </Script>
         <meta name="author" content="Abderrahmane Raquibi" />
         <meta name="copyright" content="© 2025 Abderrahmane Raquibi" />
         <meta property="og:image" content="/abderrahmaneraquibi.jpg" />
