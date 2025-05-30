@@ -135,6 +135,11 @@ export const HeroSection = () => {
             className="size-[150px] rounded-full"
             alt="person peeking form behind laptop"
           />
+          <Image
+            src="/abderrahmaneraquibi.jpg"
+            className="size-[150px] rounded-full hidden"
+            alt="person peeking form behind laptop"
+          />
           <div className="bg-gray-950 border border-gray-800 py-1.5 px-4 inline-flex items-center gap-4 rounded-lg">
             <div className="bg-green-500 size-2.5 rounded-full relative">
               <div className="bg-green-500 absolute inset-0 rounded-full animate-ping-large"></div>
