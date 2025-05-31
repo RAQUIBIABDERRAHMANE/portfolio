@@ -70,7 +70,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en\" className={inter.variable}>
+    <html lang="en" className={inter.variable}>
       <head>
         <Script id="google-tag-manager" strategy="afterInteractive">
           {`
@@ -133,6 +133,7 @@ export default function RootLayout({
             }),
           }}
         />
+
       </head>
       <body className={inter.className}>
         <noscript>
@@ -147,6 +148,27 @@ export default function RootLayout({
           />
         </noscript>
         {children}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Person",
+              "name": "Abderrahmane Raquibi",
+              "url": "https://abdoraquibi.icu",
+              "image": "https://fr.wikipedia.org/wiki/Abderrahmane_Raquibi#/media/Fichier:Abderrahmane_Raquibi_at_GITEX_Africa_2025.jpg",
+              "sameAs": [
+                "https://fr.wikipedia.org/wiki/Abderrahmane_Raquibi",
+                "https://www.linkedin.com/in/abderrahmaneraquibi",
+                "https://github.com/Raquibiabderrahmane"
+              ],
+              "jobTitle": "Développeur web",
+              "nationality": "MA"
+            }),
+          }}
+        />
+
+
       </body>
     </html>
   );
