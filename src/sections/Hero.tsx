@@ -130,13 +130,16 @@ export const HeroSection = () => {
       <div className="container">
         <div className="flex flex-col items-center">
           <Image
-            // src={memojiImage}
             src="/abdo raq.png"
+            width={150}
+            height={150}
             className="size-[150px] rounded-full"
             alt="person peeking form behind laptop , abdo raquibi"
           />
           <Image
             src="/abderrahmaneraquibi.jpg"
+            width={150}
+            height={150}
             className="size-[150px] rounded-full hidden"
             alt="person peeking form behind laptop , abdo raquibi , abderrahmane raquibi"
           />
