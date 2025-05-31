@@ -4,19 +4,38 @@
 
 @layer base {
   body {
-    @apply bg-gradient-to-b from-gray-950 to-gray-900 min-h-screen;
+    @apply bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 text-gray-100 min-h-screen;
   }
   
   .nav-item {
-    @apply py-2 px-6 rounded-lg text-white/80 text-sm font-medium hover:bg-white/5 hover:text-white transition-all duration-300;
+    @apply px-4 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-primary-500/10 transition-all duration-300;
   }
 
   .section-padding {
-    @apply py-24 md:py-32;
+    @apply py-20 md:py-32;
   }
 
-  .gradient-text {
-    @apply bg-gradient-to-r from-blue-400 to-violet-500 text-transparent bg-clip-text;
+  .heading-gradient {
+    @apply bg-gradient-to-r from-primary-400 to-violet-400 bg-clip-text text-transparent;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 rounded-lg bg-primary-500 text-white font-medium 
+    hover:bg-primary-600 transition-all duration-300 
+    focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-gray-900;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 rounded-lg border border-gray-700 text-gray-300 
+    hover:bg-gray-800 hover:text-white transition-all duration-300
+    focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900;
+  }
+
+  .card {
+    @apply rounded-2xl bg-gray-800/50 border border-gray-700/50 backdrop-blur-sm
+    hover:bg-gray-800/70 hover:border-gray-600/50 transition-all duration-300;
   }
 }
 
@@ -25,11 +44,7 @@
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
   
-  .glass-effect {
-    @apply backdrop-blur-lg bg-white/5 border border-white/10;
-  }
-  
-  .hover-card {
-    @apply transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-white/5;
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-400 to-violet-400 bg-clip-text text-transparent;
   }
 }

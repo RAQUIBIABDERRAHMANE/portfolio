@@ -1,16 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Inter, Calistoga } from "next/font/google";
-import { twMerge } from "tailwind-merge";
-import Image from "next/image";
+import { Inter } from "next/font/google";
 import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const calistoga = Calistoga({
-  subsets: ["latin"],
-  variable: "--font-serif",
-  weight: ["400"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://abdoraquibi.icu'),
@@ -18,8 +11,7 @@ export const metadata: Metadata = {
     default: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
     template: "%s | Abdo Raquibi"
   },
-  description:
-    "Hi, I'm Abderrahmane Raquibi — a full-stack developer building modern, fast, and scalable web apps with Laravel, React, and Next.js. Let's build something great together!",
+  description: "Hi, I'm Abderrahmane Raquibi — a full-stack developer building modern, fast, and scalable web apps with Laravel, React, and Next.js. Let's build something great together!",
   keywords: [
     "Abdo Raquibi",
     "Full-Stack Developer",
@@ -31,51 +23,33 @@ export const metadata: Metadata = {
     "Tailwind CSS",
     "Web Development",
     "Software Engineer",
-    "Full Stack Engineer",
-    "Web Applications",
-    "Portfolio Website"
   ].join(", "),
   authors: [{ name: "Abderrahmane Raquibi" }],
   creator: "Abderrahmane Raquibi",
-  publisher: "Abderrahmane Raquibi",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
   openGraph: {
     title: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
-    description:
-      "Dive into the portfolio of Abderrahmane Raquibi, showcasing expertise in full-stack development, modern web technologies, and innovative project solutions.",
-    url: "https://abdoraquibi.icu/",
+    description: "Full-stack developer specializing in Laravel, React, and Next.js. Building modern web applications with a focus on performance and user experience.",
+    url: "https://abdoraquibi.icu",
     siteName: "Abdo Raquibi Portfolio",
     locale: "en_US",
     type: "website",
-    images: [
-      {
-        url: "https://abdoraquibi.icu/abderrahmaneraquibi.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
-      },
-    ],
+    images: [{
+      url: "https://abdoraquibi.icu/abderrahmaneraquibi.jpg",
+      width: 1200,
+      height: 630,
+      alt: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
+    }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
-    description: "Full-stack developer specializing in Laravel, React, and Next.js. Building modern web applications with a focus on performance and user experience.",
+    description: "Full-stack developer specializing in Laravel, React, and Next.js",
     images: ["https://abdoraquibi.icu/abderrahmaneraquibi.jpg"],
     creator: "@ceo_raquibi",
   },
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
-  },
-  other: {
-    "facebook-domain-verification": "l0j97svsueiuplxttmp216u4ks798j",
-  },
-  alternates: {
-    canonical: "https://abdoraquibi.icu",
   },
   robots: {
     index: true,
@@ -88,18 +62,17 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: "your-google-site-verification", // Add your Google Search Console verification code
-  },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <head>
-        <Script id="google-tag-manager\" strategy="afterInteractive">
+        <Script id="google-tag-manager" strategy="afterInteractive">
           {`
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -161,9 +134,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body
-        className={`${inter.variable} ${calistoga.variable} bg-gray-900 text-white antialiased font-sans scrollbar`}
-      >
+      <body className={inter.className}>
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-KDDQ6RLX"
@@ -176,21 +147,6 @@ export default function RootLayout({
           />
         </noscript>
         {children}
-        {/* <a
-          href="https://www.buymeacoffee.com/RAQUIBI"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="fixed bottom-4 right-4 z-50"
-        >
-          <Image
-            src="https://cdn.buymeacoffee.com/buttons/v2/default-green.png"
-            alt="Support Abdo Raquibi by buying a coffee"
-            width={217}
-            height={60}
-            loading="lazy"
-            priority={false}
-          />
-        </a> */}
       </body>
     </html>
   );
