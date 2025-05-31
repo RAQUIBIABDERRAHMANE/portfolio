@@ -70,7 +70,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en\" className={inter.variable}>
       <head>
         <Script id="google-tag-manager" strategy="afterInteractive">
           {`
