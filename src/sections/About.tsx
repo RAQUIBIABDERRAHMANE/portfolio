@@ -123,7 +123,7 @@ export const AboutSection = () => {
         <HeaderSection
           eyebrow="ABOUT ME"
           title="Where Every Moment Tells a Story"
-          description="Greetings! I’m Abderrahmane Raquibi, a Full Stack Web Developer located in Morocco."
+          description="Greetings! I'm Abderrahmane Raquibi, a Full Stack Web Developer located in Morocco."
         />
         <div className="mt-20 flex flex-col gap-8">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-5 lg:grid-cols-3">
@@ -181,23 +181,25 @@ export const AboutSection = () => {
               </div>
             </Card>
             <Card className="h-[320px] relative md:col-span-2 lg:col-span-1">
-  <Image
-    src={MapImage}
-    alt="Map Image"
-    className="h-full w-full object-cover object-left-top"
-  />
-  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-20 rounded-full after:content-[''] after:absolute after:inset-0 after:outline after:outline-2 after:outline-offset-2 after:rounded-full after:outline-gray-950/30">
-    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-300 to-sky-400 -z-20 animate-ping [animation-duration:2s]"></div>
-    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-300 to-sky-400 -z-10"></div>
-    <div className="absolute inset-0 flex justify-center items-center">
-      <Image
-        src="/favicon.ico"
-        alt="Smiling Memoji"
-        className="size-20"
-      />
-    </div>
-  </div>
-</Card>
+              <Image
+                src={MapImage}
+                alt="Map Image"
+                className="h-full w-full object-cover object-left-top"
+              />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-20 rounded-full after:content-[''] after:absolute after:inset-0 after:outline after:outline-2 after:outline-offset-2 after:rounded-full after:outline-gray-950/30">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-300 to-sky-400 -z-20 animate-ping [animation-duration:2s]"></div>
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-300 to-sky-400 -z-10"></div>
+                <div className="absolute inset-0 flex justify-center items-center">
+                  <Image
+                    src="/favicon.ico"
+                    alt="Smiling Memoji"
+                    width={80}
+                    height={80}
+                    className="size-20"
+                  />
+                </div>
+              </div>
+            </Card>
           </div>
         </div>
       </div>
