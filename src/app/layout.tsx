@@ -124,6 +124,42 @@ export default function RootLayout({
         <meta name="copyright" content="© 2025 Abderrahmane Raquibi" />
         <meta property="og:image" content="/abderrahmaneraquibi.jpg" />
         <meta name="theme-color" content="#0f172a" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Person",
+              "name": "Abderrahmane Raquibi",
+              "alternateName": "Abdo Raquibi",
+              "url": "https://abdoraquibi.icu",
+              "jobTitle": "Full-Stack Web Developer",
+              "sameAs": [
+                "https://github.com/raquibiabderrahmane",
+                "https://instagram.com/abderrahmaneraquibi1",
+                "https://www.linkedin.com/in/abderrahmaneraquibi"
+              ],
+              "image": "https://abdoraquibi.icu/abderrahmaneraquibi.jpg",
+              "description": "Moroccan full-stack developer & entrepreneur specialized in Laravel, React, and SaaS platforms.",
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "url": "https://abdoraquibi.icu",
+              "name": "Abdo Raquibi Portfolio",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://abdoraquibi.icu/search?q={search_term_string}",
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
       </head>
       <body
         className={`${inter.variable} ${calistoga.variable} bg-gray-900 text-white antialiased font-sans scrollbar`}
@@ -156,42 +192,6 @@ export default function RootLayout({
           />
         </a> */}
       </body>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Person",
-            "name": "Abderrahmane Raquibi",
-            "alternateName": "Abdo Raquibi",
-            "url": "https://abdoraquibi.icu",
-            "jobTitle": "Full-Stack Web Developer",
-            "sameAs": [
-              "https://github.com/raquibiabderrahmane",
-              "https://instagram.com/abderrahmaneraquibi1",
-              "https://www.linkedin.com/in/abderrahmaneraquibi"
-            ],
-            "image": "https://abdoraquibi.icu/abderrahmaneraquibi.jpg",
-            "description": "Moroccan full-stack developer & entrepreneur specialized in Laravel, React, and SaaS platforms.",
-          }),
-        }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            "url": "https://abdoraquibi.icu",
-            "name": "Abdo Raquibi Portfolio",
-            "potentialAction": {
-              "@type": "SearchAction",
-              "target": "https://abdoraquibi.icu/search?q={search_term_string}",
-              "query-input": "required name=search_term_string",
-            },
-          }),
-        }}
-      />
     </html>
   );
 }
