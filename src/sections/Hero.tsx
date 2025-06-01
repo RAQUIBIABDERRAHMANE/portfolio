@@ -12,38 +12,39 @@ export const HeroSection = () => {
     <div className="section-padding relative overflow-hidden" id="home">
       <div className="container">
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
-          <motion.div 
+          <motion.div
             className="flex-1 text-center lg:text-left"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6">
-              Full Stack Developer & 
+              Full Stack Developer &
               <span className="gradient-text"> Digital Creator</span>
             </h1>
             <p className="text-lg md:text-xl text-gray-400 mb-8 max-w-2xl mx-auto lg:mx-0">
-              Building modern web experiences with cutting-edge technologies. 
+              Building modern web experiences with cutting-edge technologies.
               Focused on creating scalable and user-friendly applications.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <button 
+              <button
                 onClick={scrollToProjects}
                 className="px-8 py-4 rounded-lg bg-gradient-to-r from-blue-500 to-violet-500 text-white font-medium hover:opacity-90 transition-opacity"
               >
                 View My Work
               </button>
-              <a 
-                href="https://wa.me/+212665830816" 
+              <a
+                href="https://wa.me/+212665830816"
                 target="_blank"
                 className="px-8 py-4 rounded-lg glass-effect text-white font-medium hover:bg-white/10 transition-all"
               >
-                Let's Connect
+                Let&apos;s Connect
               </a>
+
             </div>
           </motion.div>
-          
-          <motion.div 
+
+          <motion.div
             className="flex-1 relative"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -63,7 +64,7 @@ export const HeroSection = () => {
           </motion.div>
         </div>
       </div>
-      
+
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
         <ArrowDown className="w-6 h-6 text-gray-400" />
       </div>
