@@ -1,7 +1,7 @@
 import VirtualRLandingPage from "@/assets/images/VirtualR.webp";
 import HRMImage from "@/assets/images/veneroo.webp";
 import MedicareplusImage from "@/assets/images/medicareplus.webp";
-import DefpImage from "@/assets/images/defp.webp";
+import DefpImage from "@/assets/images/mng.jpg";
 import CheckIcon from "@/assets/icons/check-circle.svg";
 import ArrowUpRightIcon from "@/assets/icons/arrow-up-right.svg";
 import Image from "next/image";
@@ -11,22 +11,22 @@ import { memo } from "react";
 
 const portfolioProjects = [
   {
-    company: "EtabHub",
-    year: "2024",
-    title: "School Management website",
+    company: "EquipTrack",
+    year: "2025",
+    title: "Equipment Tracking & Movement",
     results: [
-      { title: "Developing a School Management Website" },
-      { title: "Develeped and maintained client websites" },
-      { title: "Collaborated with cross-functional teams" },
+      { title: "Manage all equipment in one place" },
+      { title: "Track equipment movements between services" },
+      { title: "Filter by department or service" },
       {
-        title: "Implemented responsive design and cross-browser compatibility",
+        title: "Easily add new equipment",
       },
-      { title: "Enhanced user experience by 40%" },
-      { title: "Improved site speed by 50%" },
+      { title: "Status indicators: available, moved, or broken" },
+      { title: "Visualize usage with movement charts" },
     ],
-    link: "https://etabhub.com",
+    link: "https://github.com/RAQUIBIABDERRAHMANE/gestion_m6",
     image: DefpImage,
-    text: "Vist Live Site",
+    text: "GitHub Source Code",
   },
   {
     company: "Veneroo",
