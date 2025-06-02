@@ -24,7 +24,7 @@ const portfolioProjects = [
       { title: "Status indicators: available, moved, or broken" },
       { title: "Visualize usage with movement charts" },
     ],
-    link: "https://github.com/RAQUIBIABDERRAHMANE/gestion_m6",
+    link: "https://github.com/ABDERRAHMANERAQUIBI/EquipTrack",
     image: DefpImage,
     text: "GitHub Source Code",
   },
