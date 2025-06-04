@@ -7,12 +7,22 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://abdoraquibi.icu'),
+  icons: {
+    icon: "/favicon.ico"
+  },
   title: {
     default: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
     template: "%s | Abdo Raquibi"
   },
   description: "Hi, I'm Abderrahmane Raquibi — a full-stack developer building modern, fast, and scalable web apps with Laravel, React, and Next.js. Let's build something great together!",
   keywords: [
+    "abdo",
+    "raquibi",
+    "abderrahmane raquibi",
+    "abderrahmane",
+    "raquibi abderrahmane",
+    "abderrahmane raquibi portfolio",
+    "abdo raquibi portfolio",
     "Abdo Raquibi",
     "Full-Stack Developer",
     "Laravel Developer",
@@ -47,10 +57,7 @@ export const metadata: Metadata = {
     images: ["https://abdoraquibi.icu/abderrahmaneraquibi.jpg"],
     creator: "@ceo_raquibi",
   },
-  icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
-  },
+
   robots: {
     index: true,
     follow: true,

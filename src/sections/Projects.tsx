@@ -1,3 +1,5 @@
+"use client";
+
 import VirtualRLandingPage from "@/assets/images/VirtualR.webp";
 import HRMImage from "@/assets/images/veneroo.webp";
 import MedicareplusImage from "@/assets/images/medicareplus.webp";
@@ -7,7 +9,7 @@ import ArrowUpRightIcon from "@/assets/icons/arrow-up-right.svg";
 import Image from "next/image";
 import { HeaderSection } from "@/components/HeaderSection";
 import { Card } from "@/components/Card";
-import { memo } from "react";
+import { motion } from "framer-motion";
 
 const portfolioProjects = [
   {
@@ -27,6 +29,7 @@ const portfolioProjects = [
     link: "https://github.com/ABDERRAHMANERAQUIBI/EquipTrack",
     image: DefpImage,
     text: "GitHub Source Code",
+    color: "from-blue-500 to-violet-500",
   },
   {
     company: "Veneroo",
@@ -42,6 +45,7 @@ const portfolioProjects = [
     link: "https://buymeacoffee.com/anaser_25/e/298045",
     image: HRMImage,
     text: "Get Source Code",
+    color: "from-violet-500 to-purple-500",
   },
   {
     company: "Academic",
@@ -55,6 +59,7 @@ const portfolioProjects = [
     link: "https://buymeacoffee.com/anaser_25/e/297849",
     image: VirtualRLandingPage,
     text: "Get Source Code",
+    color: "from-purple-500 to-pink-500",
   },
   {
     company: "Veneroo",
@@ -71,67 +76,80 @@ const portfolioProjects = [
     link: "https://medicareplus.ma/",
     image: MedicareplusImage,
     text: "Vist Live Site",
+    color: "from-pink-500 to-red-500",
   },
 ];
 
 export const ProjectsSection = () => {
   return (
-    <section className="pb-16 lg:py-24" id="project">
+    <section className="py-16 lg:py-24 scroll-smooth" id="project">
       <div className="container">
         <HeaderSection
           eyebrow="CURATED WORK"
           title="Featured Case Studies"
           description="Compilation of case studies that evoke my sense of pride"
         />
-        <div className="mt-10 md:mt-20 flex flex-col gap-20">
+        <div className="mt-10 md:mt-20 grid grid-cols-1 gap-8 md:grid-cols-2">
           {portfolioProjects.map((project, projectIndex) => (
-            <Card
+            <motion.div
               key={project.title}
-              className="px-8 pt-8 pb-0 md:pt-12 md:px-10 lg:pt-16 lg:px-20 sticky"
-              style={{
-                top: `calc(64px + ${projectIndex * 40}px`,
-              }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: projectIndex * 0.1 }}
             >
-              <div className="lg:grid lg:grid-cols-2 lg:gap-16">
-                <div className="lg:pb-16">
-                  <div className="bg-gradient-to-r from-emerald-300 to-sky-400 inline-flex font-bold uppercase tracking-widest text-sm gap-2 text-transparent bg-clip-text">
-                    <span>{project.company}</span>
-                    <span>&bull;</span>
-                    <span>{project.year}</span>
+              <Card className="group relative overflow-hidden h-full">
+                <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-300"
+                  style={{ backgroundImage: `linear-gradient(to right, ${project.color})` }}
+                />
+                <div className="relative z-10 p-6 md:p-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="bg-gradient-to-r from-emerald-300 to-sky-400 inline-flex font-bold uppercase tracking-widest text-sm gap-2 text-transparent bg-clip-text">
+                      <span>{project.company}</span>
+                      <span>&bull;</span>
+                      <span>{project.year}</span>
+                    </div>
                   </div>
-                  <h3 className="font-serif text-2xl mt-2 md:mt-5 md:text-4xl">
+                  <h3 className="font-serif text-2xl md:text-3xl mb-6">
                     {project.title}
                   </h3>
-                  <hr className="border-t-2 border-white/5 mt-4 md:mt-5" />
-                  <ul className="flex flex-col gap-4 mt-4 md:mt-5">
+                  <div className="relative aspect-video mb-6 overflow-hidden rounded-lg">
+                    <Image
+                      src={project.image}
+                      alt={project.title}
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      loading={projectIndex < 2 ? "eager" : "lazy"}
+                      priority={projectIndex < 2}
+                    />
+                  </div>
+                  <ul className="space-y-3 mb-6">
                     {project.results.map((result) => (
-                      <li
+                      <motion.li
                         key={result.title}
-                        className="flex gap-2 text-sm md:text-base text-white/50"
+                        className="flex items-start gap-3 text-sm md:text-base text-white/70"
+                        whileHover={{ x: 5 }}
+                        transition={{ type: "spring", stiffness: 300 }}
                       >
-                        <CheckIcon className="size-5 md:size-6" />
+                        <CheckIcon className="size-5 md:size-6 flex-shrink-0 mt-0.5" />
                         <span>{result.title}</span>
-                      </li>
+                      </motion.li>
                     ))}
                   </ul>
-                  <a href={project.link} target="_blank">
-                    <button className="bg-white text-gray-950 h-12 w-full md:w-auto px-6 rounded-xl font-semibold inline-flex items-center justify-center gap-2 mt-8">
-                      <span>{project.text}</span>
-                      <ArrowUpRightIcon className="size-4" />
-                    </button>
-                  </a>
+                  <motion.a
+                    href={project.link}
+                    target="_blank"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors duration-300"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <span>{project.text}</span>
+                    <ArrowUpRightIcon className="size-4" />
+                  </motion.a>
                 </div>
-                <div className="relative">
-                  <Image
-                    src={project.image}
-                    alt={project.title}
-                    className="mt-8 -mb-4 md:-mb-0 lg:mt-0 lg:absolute lg:h-full lg:w-auto lg:max-w-none"
-                    loading={projectIndex < 2 ? "eager" : "lazy"}
-                    priority={projectIndex < 2}
-                  />
-                </div>
-              </div>
-            </Card>
+              </Card>
+            </motion.div>
           ))}
         </div>
       </div>
