@@ -82,6 +82,15 @@ export const Header = () => {
           Project
         </motion.a>
         <motion.a
+          href="#blog"
+          className="nav-item"
+          variants={itemVariants}
+          whileHover="hover"
+          custom={1}
+        >
+          Blog
+        </motion.a>
+        <motion.a
           href="#about"
           className="nav-item"
           variants={itemVariants}

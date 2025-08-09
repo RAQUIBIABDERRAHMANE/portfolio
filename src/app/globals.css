@@ -48,3 +48,62 @@
     @apply bg-gradient-to-r from-primary-400 to-violet-400 bg-clip-text text-transparent;
   }
 }
+
+/* Blog prose styling */
+.prose {
+  @apply text-gray-300;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  @apply text-white font-semibold mb-4 mt-8;
+}
+
+.prose h2 {
+  @apply text-2xl;
+}
+
+.prose h3 {
+  @apply text-xl;
+}
+
+.prose p {
+  @apply mb-4 leading-relaxed;
+}
+
+.prose ul,
+.prose ol {
+  @apply mb-4 pl-6;
+}
+
+.prose li {
+  @apply mb-2;
+}
+
+.prose strong {
+  @apply text-white font-semibold;
+}
+
+.prose code {
+  @apply bg-gray-800 text-blue-300 px-2 py-1 rounded text-sm;
+}
+
+.prose pre {
+  @apply bg-gray-800 border border-gray-700 rounded-lg p-4 mb-4 overflow-x-auto;
+}
+
+.prose pre code {
+  @apply bg-transparent p-0 text-gray-300;
+}
+
+.prose a {
+  @apply text-blue-400 hover:text-blue-300 underline;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-blue-500 pl-4 italic text-gray-400 my-6;
+}

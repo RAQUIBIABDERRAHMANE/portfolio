@@ -1,4 +1,5 @@
 import { AboutSection } from "@/sections/About";
+import { BlogSection } from "@/sections/Blog";
 import { ContactSection } from "@/sections/Contact";
 import { Footer } from "@/sections/Footer";
 import { Header } from "@/sections/Header";
@@ -34,6 +35,10 @@ export default function Home() {
           <section aria-label="Projects" id="projects" className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 to-purple-500/10 blur-3xl"></div>
             <ProjectsSection />
+          </section>
+          <section aria-label="Blog" id="blog" className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-blue-500/10 blur-3xl"></div>
+            <BlogSection />
           </section>
           <section aria-label="Featured Work" id="featured" className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 blur-3xl"></div>
