@@ -60,7 +60,7 @@ export const BlogPage = () => {
     return blogPosts.filter(post => {
       const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           post.tags.toLowerCase().includes(searchTerm.toLowerCase());
+                           (post.tags || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === "" || post.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
@@ -253,7 +253,7 @@ export const BlogPage = () => {
 
                     {/* Tags */}
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {post.tags.split(',').map((tag, index) => (
+                      {(post.tags || '').split(',').filter(tag => tag.trim()).map((tag, index) => (
                         <span
                           key={index}
                           className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full border border-blue-500/30"
