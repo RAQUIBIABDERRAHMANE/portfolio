@@ -3,6 +3,8 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 
+
+
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
@@ -79,6 +81,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <head>
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            .whitespace-nowrap {
+              display: none;
+            }
+          `
+        }} />
         <Script id="google-tag-manager" strategy="afterInteractive">
           {`
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -155,6 +164,19 @@ export default function RootLayout({
           />
         </noscript>
         {children}
+        
+        {/* ElevenLabs ConvAI Widget */}
+        <div 
+          dangerouslySetInnerHTML={{
+            __html: '<elevenlabs-convai agent-id="CJvAPOdSDyNNaGgIXAAP"></elevenlabs-convai>'
+          }}
+        />
+        
+        <Script 
+          src="https://unpkg.com/@elevenlabs/convai-widget-embed" 
+          strategy="afterInteractive"
+        />
+        
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
