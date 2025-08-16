@@ -52,7 +52,7 @@ export const BlogPage = () => {
   // Get unique categories
   const categories = useMemo(() => {
     const cats = blogPosts.map(post => post.category);
-    return [...new Set(cats)];
+    return Array.from(new Set(cats));
   }, [blogPosts]);
 
   // Filter and search posts

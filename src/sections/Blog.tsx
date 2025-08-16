@@ -201,7 +201,6 @@ export const BlogSection = () => {
                 key={post.id}
                 variants={itemVariants}
                 whileHover="hover"
-                variants={hoverVariants}
                 className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-300 relative z-10 shadow-2xl"
               >
                 <div className="aspect-video bg-gradient-to-br from-blue-500/20 to-purple-500/20 relative overflow-hidden">

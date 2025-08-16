@@ -11,7 +11,7 @@ interface BlogPostProps {
     content: string;
     author: string;
     date: string;
-    readTime: string;
+    read_time: string;
     category: string;
     tags: string;
     image: string;
@@ -180,7 +180,7 @@ export const BlogPost = ({ post }: BlogPostProps) => {
                  </div>
                  <div className="flex items-center gap-2">
                    <Clock className="w-4 h-4" />
-                   <span>{post.readTime}</span>
+                   <span>{post.read_time}</span>
                  </div>
                </div>
             </motion.div>
