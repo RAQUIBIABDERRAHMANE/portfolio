@@ -1,7 +1,7 @@
 "use client";
 
 import VirtualRLandingPage from "@/assets/images/VirtualR.webp";
-import HRMImage from "@/assets/images/veneroo.webp";
+import HRMImage from "@/assets/images/image.png";
 import MedicareplusImage from "@/assets/images/medicareplus.webp";
 import DefpImage from "@/assets/images/mng.jpg";
 import CheckIcon from "@/assets/icons/check-circle.svg";
@@ -32,17 +32,17 @@ const portfolioProjects = [
     color: "from-blue-500 to-violet-500",
   },
   {
-    company: "Veneroo",
-    year: "2024",
-    title: "ERP Project",
+    company: "First POS",
+    year: "2025",
+    title: "POS System ",
     results: [
-      { title: "Implemented efficient attendance tracking system" },
-      { title: "Developed robust absence recording features" },
-      { title: "Integrated holiday management functionality" },
-      { title: "Optimized employee salary processing" },
-      { title: "Streamlined project management tools" },
+      { title: "Modern web-based architecture system" },
+      { title: "Real-time performance and scalability" },
+      { title: "Cross-platform device accessibility everywhere" },
+      { title: "Cost-effective implementation and setup" },
+      { title: "Easy maintenance and updates" },
     ],
-    link: "https://buymeacoffee.com/anaser_25/e/298045",
+    link: "https://github.com/RAQUIBIABDERRAHMANE/POS",
     image: HRMImage,
     text: "Get Source Code",
     color: "from-violet-500 to-purple-500",
