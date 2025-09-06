@@ -1,7 +1,7 @@
 "use client";
 
 import VirtualRLandingPage from "@/assets/images/VirtualR.webp";
-import POSIM from "@/assets/images/pos.webp";
+import POS from "@/assets/images/pos.webp";
 import MedicareplusImage from "@/assets/images/medicareplus.webp";
 import DefpImage from "@/assets/images/mng.jpg";
 import CheckIcon from "@/assets/icons/check-circle.svg";
@@ -43,7 +43,7 @@ const portfolioProjects = [
       { title: "Easy maintenance and updates" },
     ],
     link: "https://github.com/RAQUIBIABDERRAHMANE/POS",
-    image: POSIM,
+    image: POS,
     text: "Get Source Code",
     color: "from-violet-500 to-purple-500",
   },
