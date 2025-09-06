@@ -1,7 +1,7 @@
 "use client";
 
 import VirtualRLandingPage from "@/assets/images/VirtualR.webp";
-import HRMImage from "@/assets/images/image.png";
+import HRMImage from "@/assets/images/pos.webp";
 import MedicareplusImage from "@/assets/images/medicareplus.webp";
 import DefpImage from "@/assets/images/mng.jpg";
 import CheckIcon from "@/assets/icons/check-circle.svg";
