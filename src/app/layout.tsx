@@ -1,22 +1,22 @@
+"use client"; // Required since we use hooks
+
 import type { Metadata } from "next";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import Script from "next/script";
-
-
+import { useEffect } from "react";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://abdoraquibi.icu'),
-  icons: {
-    icon: "/favicon.ico"
-  },
+  metadataBase: new URL("https://abdoraquibi.icu"),
+  icons: { icon: "/favicon.ico" },
   title: {
     default: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
-    template: "%s | Abdo Raquibi"
+    template: "%s | Abdo Raquibi",
   },
-  description: "Hi, I'm Abderrahmane Raquibi — a full-stack developer building modern, fast, and scalable web apps with Laravel, React, and Next.js. Let's build something great together!",
+  description:
+    "Hi, I'm Abderrahmane Raquibi — a full-stack developer building modern, fast, and scalable web apps with Laravel, React, and Next.js. Let's build something great together!",
   keywords: [
     "abdo",
     "raquibi",
@@ -40,54 +40,68 @@ export const metadata: Metadata = {
   creator: "Abderrahmane Raquibi",
   openGraph: {
     title: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
-    description: "Full-stack developer specializing in Laravel, React, and Next.js. Building modern web applications with a focus on performance and user experience.",
+    description:
+      "Full-stack developer specializing in Laravel, React, and Next.js. Building modern web applications with a focus on performance and user experience.",
     url: "https://abdoraquibi.icu",
     siteName: "Abdo Raquibi Portfolio",
     locale: "en_US",
     type: "website",
-    images: [{
-      url: "https://abdoraquibi.icu/abderrahmaneraquibi.jpg",
-      width: 1200,
-      height: 630,
-      alt: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
-    }],
+    images: [
+      {
+        url: "https://abdoraquibi.icu/abderrahmaneraquibi.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
-    description: "Full-stack developer specializing in Laravel, React, and Next.js",
+    description:
+      "Full-stack developer specializing in Laravel, React, and Next.js",
     images: ["https://abdoraquibi.icu/abderrahmaneraquibi.jpg"],
     creator: "@ceo_raquibi",
   },
-
   robots: {
     index: true,
     follow: true,
     googleBot: {
       index: true,
       follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
   },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
+  // ✅ Run n8n chat only on client side
+  useEffect(() => {
+    import("@n8n/chat").then(({ createChat }) => {
+      createChat({
+        webhookUrl: "YOUR_PRODUCTION_WEBHOOK_URL", // Replace with your actual webhook
+      });
+    });
+  }, []);
+
   return (
     <html lang="en" className={inter.variable}>
       <head>
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            .whitespace-nowrap {
-              display: none;
-            }
-          `
-        }} />
+        {/* Custom style to hide unwanted elements */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              .whitespace-nowrap {
+                display: none;
+              }
+            `,
+          }}
+        />
+        {/* Google Tag Manager */}
         <Script id="google-tag-manager" strategy="afterInteractive">
           {`
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -97,6 +111,7 @@ export default function RootLayout({
             })(window,document,'script','dataLayer','GTM-KDDQ6RLX');
           `}
         </Script>
+        {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-CQ4F903N9X"
           strategy="afterInteractive"
@@ -109,47 +124,54 @@ export default function RootLayout({
             gtag('config', 'G-CQ4F903N9X');
           `}
         </Script>
+        {/* Metadata extras */}
         <meta name="author" content="Abderrahmane Raquibi" />
         <meta name="copyright" content="© 2025 Abderrahmane Raquibi" />
         <meta property="og:image" content="/abderrahmaneraquibi.jpg" />
         <meta name="theme-color" content="#0f172a" />
+
+        {/* Structured Data: Person */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Person",
-              "name": "Abderrahmane Raquibi",
-              "alternateName": "Abdo Raquibi",
-              "url": "https://abdoraquibi.icu",
-              "jobTitle": "Full-Stack Web Developer",
-              "sameAs": [
+              name: "Abderrahmane Raquibi",
+              alternateName: "Abdo Raquibi",
+              url: "https://abdoraquibi.icu",
+              jobTitle: "Full-Stack Web Developer",
+              sameAs: [
                 "https://github.com/raquibiabderrahmane",
                 "https://instagram.com/abderrahmaneraquibi1",
-                "https://www.linkedin.com/in/abderrahmaneraquibi"
+                "https://www.linkedin.com/in/abderrahmaneraquibi",
               ],
-              "image": "https://abdoraquibi.icu/abderrahmaneraquibi.jpg",
-              "description": "Moroccan full-stack developer & entrepreneur specialized in Laravel, React, and SaaS platforms.",
+              image: "https://abdoraquibi.icu/abderrahmaneraquibi.jpg",
+              description:
+                "Moroccan full-stack developer & entrepreneur specialized in Laravel, React, and SaaS platforms.",
             }),
           }}
         />
+        {/* Structured Data: Website */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              "url": "https://abdoraquibi.icu",
-              "name": "Abdo Raquibi Portfolio",
-              "potentialAction": {
+              url: "https://abdoraquibi.icu",
+              name: "Abdo Raquibi Portfolio",
+              potentialAction: {
                 "@type": "SearchAction",
-                "target": "https://abdoraquibi.icu/search?q={search_term_string}",
+                target:
+                  "https://abdoraquibi.icu/search?q={search_term_string}",
                 "query-input": "required name=search_term_string",
               },
             }),
           }}
         />
-
+        {/* n8n Chat Styles */}
+        <link rel="stylesheet" href="https://unpkg.com/@n8n/chat/style.css" />
       </head>
       <body className={inter.className}>
         <noscript>
@@ -157,47 +179,33 @@ export default function RootLayout({
             src="https://www.googletagmanager.com/ns.html?id=GTM-KDDQ6RLX"
             height="0"
             width="0"
-            style={{
-              display: 'none',
-              visibility: 'hidden'
-            }}
+            style={{ display: "none", visibility: "hidden" }}
           />
         </noscript>
+
         {children}
-        
-        {/* ElevenLabs ConvAI Widget */}
-        <div 
-          dangerouslySetInnerHTML={{
-            __html: '<elevenlabs-convai agent-id="CJvAPOdSDyNNaGgIXAAP"></elevenlabs-convai>'
-          }}
-        />
-        
-        <Script 
-          src="https://unpkg.com/@elevenlabs/convai-widget-embed" 
-          strategy="afterInteractive"
-        />
-        
+
+        {/* Extra Person Structured Data */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Person",
-              "name": "Abderrahmane Raquibi",
-              "url": "https://abdoraquibi.icu",
-              "image": "https://fr.wikipedia.org/wiki/Abderrahmane_Raquibi#/media/Fichier:Abderrahmane_Raquibi_at_GITEX_Africa_2025.jpg",
-              "sameAs": [
+              name: "Abderrahmane Raquibi",
+              url: "https://abdoraquibi.icu",
+              image:
+                "https://fr.wikipedia.org/wiki/Abderrahmane_Raquibi#/media/Fichier:Abderrahmane_Raquibi_at_GITEX_Africa_2025.jpg",
+              sameAs: [
                 "https://fr.wikipedia.org/wiki/Abderrahmane_Raquibi",
                 "https://www.linkedin.com/in/abderrahmaneraquibi",
-                "https://github.com/Raquibiabderrahmane"
+                "https://github.com/Raquibiabderrahmane",
               ],
-              "jobTitle": "Développeur web",
-              "nationality": "MA"
+              jobTitle: "Développeur web",
+              nationality: "MA",
             }),
           }}
         />
-
-
       </body>
     </html>
   );
