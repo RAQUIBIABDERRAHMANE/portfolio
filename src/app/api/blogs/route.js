@@ -1,23 +1,15 @@
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
-import { tempBlogs, getNextId } from '@/lib/tempData';
+import { getPublishedBlogs, addBlog } from '@/lib/blogUtils';
 
 export async function GET() {
   try {
-    // Try to connect to MySQL database first
-    try {
-      const [rows] = await pool.execute(
-        'SELECT id, title, slug, excerpt, content, author, date, read_time, category, tags, is_published, is_featured, view_count FROM blogs ORDER BY date DESC'
-      );
-      console.log('Successfully retrieved data from MySQL database');
-      return NextResponse.json({ blogs: rows, source: 'mysql' });
-    } catch (dbError) {
-      console.log('MySQL connection failed, using temporary data:', dbError.message);
-      // Fallback to temporary data if database connection fails
-      return NextResponse.json({ blogs: tempBlogs, source: 'temp', error: dbError.message });
-    }
+    const blogs = getPublishedBlogs();
+    return NextResponse.json({ 
+      blogs: blogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+      source: 'json' 
+    });
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error fetching blogs:', error);
     return NextResponse.json(
       { error: 'Failed to fetch blogs' },
       { status: 500 }
@@ -37,29 +29,22 @@ export async function POST(request) {
       read_time,
       tags,
       is_published,
-      is_featured
+      is_featured,
+      image,
+      meta_description,
+      meta_keywords
     } = await request.json();
 
-    // Validate required fields
+    // Valider les champs requis
     if (!title || !slug || !excerpt || !content || !category || !author) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Champs requis manquants' },
         { status: 400 }
       );
     }
 
-    // Check if slug already exists
-    const existing = tempBlogs.find(blog => blog.slug === slug);
-    if (existing) {
-      return NextResponse.json(
-        { error: 'A post with this slug already exists' },
-        { status: 400 }
-      );
-    }
-
-    // Create new blog post
-    const newBlog = {
-      id: getNextId(),
+    // Créer le nouveau blog
+    const blogData = {
       title,
       slug,
       excerpt,
@@ -70,24 +55,32 @@ export async function POST(request) {
       tags: tags || '',
       is_published: is_published || false,
       is_featured: is_featured || false,
-      date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
-      view_count: 0
+      image: image || '',
+      meta_description: meta_description || excerpt,
+      meta_keywords: meta_keywords || '',
+      date: new Date().toISOString().split('T')[0] // Format YYYY-MM-DD
     };
 
-    // Add to temporary storage
-    tempBlogs.unshift(newBlog); // Add to beginning for newest first
+    const newBlog = addBlog(blogData);
+
+    if (!newBlog) {
+      return NextResponse.json(
+        { error: 'Échec de la création du blog' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(
       { 
-        message: 'Post created successfully',
+        message: 'Blog créé avec succès',
         blog: newBlog
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error('Error creating post:', error);
+    console.error('Error creating blog:', error);
     return NextResponse.json(
-      { error: 'Failed to create post' },
+      { error: 'Échec de la création du blog' },
       { status: 500 }
     );
   }

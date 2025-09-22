@@ -2,7 +2,13 @@
 import { motion } from "framer-motion";
 import { ArrowLeft, Calendar, Clock, User, Tag, Share2, Twitter, Facebook, Linkedin, MessageCircle, Copy, Check } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
+import rehypeRaw from 'rehype-raw';
+import { TableOfContents } from './TableOfContents';
+import 'highlight.js/styles/github-dark.css';
 
 interface BlogPostProps {
   post: {
@@ -200,18 +206,174 @@ export const BlogPost = ({ post }: BlogPostProps) => {
         </motion.div>
 
         {/* Content */}
-        <motion.article
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-          className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-16"
-        >
-          <motion.div
-            variants={itemVariants}
-            className="prose prose-lg prose-invert max-w-none"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
-        </motion.article>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Table of Contents - Desktop Sidebar */}
+            <div className="lg:col-span-1 order-2 lg:order-1">
+              <TableOfContents content={post.content} />
+            </div>
+
+            {/* Main Content */}
+            <motion.article
+              initial="hidden"
+              animate="visible"
+              variants={containerVariants}
+              className="lg:col-span-3 order-1 lg:order-2"
+            >
+              <motion.div
+                variants={itemVariants}
+                className="prose prose-lg prose-invert max-w-none prose-slate
+                  prose-headings:text-white prose-headings:font-bold prose-headings:tracking-tight
+                  prose-h1:text-4xl prose-h1:mb-6 prose-h1:mt-8
+                  prose-h2:text-3xl prose-h2:mb-5 prose-h2:mt-8 prose-h2:border-b prose-h2:border-gray-700 prose-h2:pb-2
+                  prose-h3:text-2xl prose-h3:mb-4 prose-h3:mt-6
+                  prose-h4:text-xl prose-h4:mb-3 prose-h4:mt-5
+                  prose-p:text-gray-300 prose-p:leading-relaxed prose-p:mb-4
+                  prose-li:text-gray-300 prose-li:mb-2
+                  prose-strong:text-white prose-strong:font-semibold
+                  prose-code:bg-gray-800 prose-code:text-blue-300 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm prose-code:font-mono
+                  prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto
+                  prose-pre:code:bg-transparent prose-pre:code:p-0 prose-pre:code:text-gray-300
+                  prose-a:text-blue-400 prose-a:no-underline hover:prose-a:text-blue-300 hover:prose-a:underline
+                  prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-400 prose-blockquote:my-6
+                  prose-ul:list-disc prose-ol:list-decimal
+                  prose-table:border-collapse prose-th:border prose-th:border-gray-600 prose-th:bg-gray-800 prose-th:p-3 prose-th:text-left prose-th:font-semibold prose-th:text-white
+                  prose-td:border prose-td:border-gray-600 prose-td:p-3 prose-td:text-gray-300"
+              >
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeHighlight, rehypeRaw]}
+                  components={{
+                    h1: ({ children }) => {
+                      const id = String(children)
+                        .toLowerCase()
+                        .replace(/[^\w\s-]/g, '')
+                        .replace(/\s+/g, '-');
+                      return (
+                        <h1 id={id} className="text-4xl font-bold text-white mb-6 mt-8 leading-tight scroll-mt-8">
+                          {children}
+                        </h1>
+                      );
+                    },
+                    h2: ({ children }) => {
+                      const id = String(children)
+                        .toLowerCase()
+                        .replace(/[^\w\s-]/g, '')
+                        .replace(/\s+/g, '-');
+                      return (
+                        <h2 id={id} className="text-3xl font-bold text-white mb-5 mt-8 border-b border-gray-700 pb-2 leading-tight scroll-mt-8">
+                          {children}
+                        </h2>
+                      );
+                    },
+                    h3: ({ children }) => {
+                      const id = String(children)
+                        .toLowerCase()
+                        .replace(/[^\w\s-]/g, '')
+                        .replace(/\s+/g, '-');
+                      return (
+                        <h3 id={id} className="text-2xl font-semibold text-white mb-4 mt-6 leading-tight scroll-mt-8">
+                          {children}
+                        </h3>
+                      );
+                    },
+                    h4: ({ children }) => {
+                      const id = String(children)
+                        .toLowerCase()
+                        .replace(/[^\w\s-]/g, '')
+                        .replace(/\s+/g, '-');
+                      return (
+                        <h4 id={id} className="text-xl font-semibold text-white mb-3 mt-5 scroll-mt-8">
+                          {children}
+                        </h4>
+                      );
+                    },
+                    p: ({ children }) => (
+                      <p className="text-gray-300 leading-relaxed mb-4 text-lg">
+                        {children}
+                      </p>
+                    ),
+                    ul: ({ children }) => (
+                      <ul className="list-disc list-inside text-gray-300 mb-4 ml-4 space-y-2">
+                        {children}
+                      </ul>
+                    ),
+                    ol: ({ children }) => (
+                      <ol className="list-decimal list-inside text-gray-300 mb-4 ml-4 space-y-2">
+                        {children}
+                      </ol>
+                    ),
+                    li: ({ children }) => (
+                      <li className="text-gray-300 mb-2 leading-relaxed">
+                        {children}
+                      </li>
+                    ),
+                    strong: ({ children }) => (
+                      <strong className="text-white font-semibold">
+                        {children}
+                      </strong>
+                    ),
+                    code: ({ children, className, ...props }) => (
+                      <code 
+                        className={`bg-gray-800 text-blue-300 px-2 py-1 rounded text-sm font-mono ${className || ''}`}
+                        {...props}
+                      >
+                        {children}
+                      </code>
+                    ),
+                    pre: ({ children }) => (
+                      <pre className="bg-gray-900 border border-gray-700 rounded-lg p-4 overflow-x-auto mb-6 relative">
+                        <div className="absolute top-2 right-2 text-xs text-gray-500 uppercase tracking-wide">
+                          Code
+                        </div>
+                        {children}
+                      </pre>
+                    ),
+                    a: ({ children, href }) => (
+                      <a 
+                        href={href} 
+                        className="text-blue-400 hover:text-blue-300 hover:underline transition-colors"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {children}
+                      </a>
+                    ),
+                    blockquote: ({ children }) => (
+                      <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-400 my-6 bg-gray-800/30 py-4 rounded-r-lg">
+                        {children}
+                      </blockquote>
+                    ),
+                    table: ({ children }) => (
+                      <div className="overflow-x-auto mb-6">
+                        <table className="min-w-full border-collapse border border-gray-600 rounded-lg overflow-hidden">
+                          {children}
+                        </table>
+                      </div>
+                    ),
+                    thead: ({ children }) => (
+                      <thead className="bg-gray-800">
+                        {children}
+                      </thead>
+                    ),
+                    th: ({ children }) => (
+                      <th className="border border-gray-600 p-3 text-left font-semibold text-white">
+                        {children}
+                      </th>
+                    ),
+                    td: ({ children }) => (
+                      <td className="border border-gray-600 p-3 text-gray-300">
+                        {children}
+                      </td>
+                    ),
+                  }}
+                >
+                  {post.content}
+                </ReactMarkdown>
+              </motion.div>
+            </motion.article>
+          </div>
+        </div>
 
         {/* Tags */}
         <motion.div

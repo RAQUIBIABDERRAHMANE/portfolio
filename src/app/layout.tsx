@@ -38,6 +38,11 @@ export const metadata: Metadata = {
   ].join(", "),
   authors: [{ name: "Abderrahmane Raquibi" }],
   creator: "Abderrahmane Raquibi",
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
   openGraph: {
     title: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
     description: "Full-stack developer specializing in Laravel, React, and Next.js. Building modern web applications with a focus on performance and user experience.",

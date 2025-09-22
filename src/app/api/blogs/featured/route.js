@@ -1,24 +1,16 @@
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import { getFeaturedBlogs } from '@/lib/blogUtils';
 
 export async function GET() {
   try {
-    const connection = await pool.getConnection();
+    // Récupérer les blogs mis en avant (limité à 6 pour la page d'accueil)
+    const featuredBlogs = getFeaturedBlogs(6);
     
-    try {
-      // Fetch featured blogs (limit to 6 for the homepage)
-      const [rows] = await connection.execute(
-        'SELECT * FROM blogs WHERE is_featured = 1 AND is_published = 1 ORDER BY date DESC LIMIT 6'
-      );
-      
-      return NextResponse.json({ blogs: rows });
-    } finally {
-      connection.release();
-    }
+    return NextResponse.json({ blogs: featuredBlogs });
   } catch (error) {
-    console.error('Database error:', error);
+    console.error('Error fetching featured blogs:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch featured blogs' },
+      { error: 'Échec de la récupération des blogs mis en avant' },
       { status: 500 }
     );
   }

@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import { BlogPost } from "@/components/BlogPost";
 import { notFound } from "next/navigation";
-import pool from "@/lib/db";
 
 interface BlogPostPageProps {
   params: {
@@ -26,93 +25,78 @@ interface DatabasePost {
   view_count: number;
 }
 
-export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+// Fonction pour récupérer un blog depuis l'API
+async function fetchBlogBySlug(slug: string): Promise<DatabasePost | null> {
   try {
-    const connection = await pool.getConnection();
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/blogs/${slug}`, {
+      cache: 'no-store' // Désactiver le cache pour avoir les données les plus récentes
+    });
     
-    try {
-      const [rows] = await connection.execute(
-        'SELECT * FROM blogs WHERE slug = ? AND is_published = 1',
-        [params.slug]
-      ) as [DatabasePost[], any];
-      
-      if (rows.length === 0) {
-        return {
-          title: "Post Not Found",
-          description: "The requested blog post could not be found.",
-        };
-      }
-
-      const post = rows[0];
-      
-      return {
-        title: `${post.title} | Abdo Raquibi - Full-Stack Developer`,
-        description: post.excerpt,
-        keywords: post.meta_keywords,
-        openGraph: {
-          title: post.title,
-          description: post.excerpt,
-          type: 'article',
-          publishedTime: post.date,
-          authors: [post.author],
-        },
-        twitter: {
-          card: 'summary_large_image',
-          title: post.title,
-          description: post.excerpt,
-        },
-      };
-    } finally {
-      connection.release();
+    if (!response.ok) {
+      return null;
     }
+    
+    const data = await response.json();
+    return data.blog;
   } catch (error) {
-    console.error('Database error:', error);
-    return {
-      title: "Post Not Found",
-      description: "The requested blog post could not be found.",
-    };
+    console.error('Error fetching blog:', error);
+    return null;
   }
 }
 
+export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+  const post = await fetchBlogBySlug(params.slug);
+  
+  if (!post) {
+    return {
+      title: "Article Non Trouvé",
+      description: "L'article de blog demandé n'a pas pu être trouvé.",
+    };
+  }
+  
+  return {
+    title: `${post.title} | Abdo Raquibi - Développeur Full-Stack`,
+    description: post.excerpt,
+    keywords: post.meta_keywords,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      type: 'article',
+      publishedTime: post.date,
+      authors: [post.author],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.excerpt,
+    },
+  };
+}
+
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
-  try {
-    const connection = await pool.getConnection();
-    
-    try {
-      const [rows] = await connection.execute(
-        'SELECT * FROM blogs WHERE slug = ? AND is_published = 1',
-        [params.slug]
-      ) as [DatabasePost[], any];
-      
-      if (rows.length === 0) {
-        notFound();
-      }
-
-      const post = rows[0];
-      
-      // Transform the database post to match the component interface
-      const transformedPost = {
-        id: post.id,
-        title: post.title,
-        slug: post.slug,
-        excerpt: post.excerpt,
-        content: post.content,
-        author: post.author,
-        date: post.date,
-        read_time: post.read_time,
-        category: post.category,
-        tags: post.tags,
-        image: post.image,
-        meta_description: post.meta_description,
-        view_count: post.view_count,
-      };
-
-      return <BlogPost post={transformedPost} />;
-    } finally {
-      connection.release();
-    }
-  } catch (error) {
-    console.error('Database error:', error);
+  const post = await fetchBlogBySlug(params.slug);
+  
+  if (!post) {
     notFound();
   }
+  
+  // Transformer le post de la base de données pour correspondre à l'interface du composant
+  const transformedPost = {
+    id: post.id,
+    title: post.title,
+    slug: post.slug,
+    excerpt: post.excerpt,
+    content: post.content,
+    author: post.author,
+    date: post.date,
+    read_time: post.read_time,
+    category: post.category,
+    tags: post.tags,
+    image: post.image,
+    meta_description: post.meta_description,
+    view_count: post.view_count,
+  };
+
+  return <BlogPost post={transformedPost} />;
 }

@@ -49,9 +49,9 @@
   }
 }
 
-/* Blog prose styling */
+/* Blog prose styling - Enhanced structure */
 .prose {
-  @apply text-gray-300;
+  @apply text-gray-300 max-w-none;
 }
 
 .prose h1,
@@ -60,28 +60,44 @@
 .prose h4,
 .prose h5,
 .prose h6 {
-  @apply text-white font-semibold mb-4 mt-8;
+  @apply text-white font-bold mb-4 mt-8 tracking-tight;
+}
+
+.prose h1 {
+  @apply text-4xl mb-6 leading-tight;
 }
 
 .prose h2 {
-  @apply text-2xl;
+  @apply text-3xl mb-5 border-b border-gray-700 pb-2;
 }
 
 .prose h3 {
-  @apply text-xl;
+  @apply text-2xl mb-4;
+}
+
+.prose h4 {
+  @apply text-xl mb-3;
 }
 
 .prose p {
-  @apply mb-4 leading-relaxed;
+  @apply mb-4 leading-relaxed text-lg;
 }
 
 .prose ul,
 .prose ol {
-  @apply mb-4 pl-6;
+  @apply mb-4 ml-4 space-y-2;
+}
+
+.prose ul {
+  @apply list-disc list-inside;
+}
+
+.prose ol {
+  @apply list-decimal list-inside;
 }
 
 .prose li {
-  @apply mb-2;
+  @apply mb-2 leading-relaxed;
 }
 
 .prose strong {
@@ -89,21 +105,58 @@
 }
 
 .prose code {
-  @apply bg-gray-800 text-blue-300 px-2 py-1 rounded text-sm;
+  @apply bg-gray-800 text-blue-300 px-2 py-1 rounded text-sm font-mono;
 }
 
 .prose pre {
-  @apply bg-gray-800 border border-gray-700 rounded-lg p-4 mb-4 overflow-x-auto;
+  @apply bg-gray-900 border border-gray-700 rounded-lg p-4 mb-6 overflow-x-auto relative;
 }
 
 .prose pre code {
-  @apply bg-transparent p-0 text-gray-300;
+  @apply bg-transparent p-0 text-gray-300 font-mono;
 }
 
 .prose a {
-  @apply text-blue-400 hover:text-blue-300 underline;
+  @apply text-blue-400 no-underline hover:text-blue-300 hover:underline transition-colors;
 }
 
 .prose blockquote {
-  @apply border-l-4 border-blue-500 pl-4 italic text-gray-400 my-6;
+  @apply border-l-4 border-blue-500 pl-4 italic text-gray-400 my-6 bg-gray-800/30 py-4 rounded-r-lg;
+}
+
+.prose table {
+  @apply border-collapse border border-gray-600 rounded-lg overflow-hidden min-w-full;
+}
+
+.prose thead {
+  @apply bg-gray-800;
+}
+
+.prose th {
+  @apply border border-gray-600 p-3 text-left font-semibold text-white;
+}
+
+.prose td {
+  @apply border border-gray-600 p-3 text-gray-300;
+}
+
+/* Code highlighting improvements */
+.prose pre[class*="language-"] {
+  @apply bg-gray-900 border border-gray-700;
+}
+
+.prose code[class*="language-"] {
+  @apply text-gray-300;
+}
+
+/* Section spacing for better readability */
+.prose > * + * {
+  @apply mt-6;
+}
+
+.prose > h1 + *,
+.prose > h2 + *,
+.prose > h3 + *,
+.prose > h4 + * {
+  @apply mt-4;
 }
