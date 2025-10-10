@@ -1,0 +1,256 @@
+<svg width="800" height="800" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="headGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e0f7ff;stop-opacity:0.9" />
+      <stop offset="50%" style="stop-color:#5eb3d6;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#1e5a7a;stop-opacity:0.9" />
+    </linearGradient>
+    
+    <linearGradient id="brainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00fff9;stop-opacity:0.8" />
+      <stop offset="50%" style="stop-color:#00d4ff;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#0099ff;stop-opacity:0.8" />
+    </linearGradient>
+    
+    <radialGradient id="glowGradient" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#00fff9;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00d4ff;stop-opacity:0.5" />
+      <stop offset="100%" style="stop-color:#00fff9;stop-opacity:0" />
+    </radialGradient>
+
+    <radialGradient id="eyeGlow" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#00fff9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00fff9;stop-opacity:0" />
+    </radialGradient>
+    
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <filter id="strongGlow">
+      <feGaussianBlur stdDeviation="12" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Neck -->
+  <g>
+    <path d="M 320 680 L 300 750 L 340 770 L 460 770 L 500 750 L 480 680 Z" 
+          fill="url(#headGradient)" stroke="#00fff9" stroke-width="2" opacity="0.8"/>
+    <rect x="340" y="720" width="120" height="8" fill="#00fff9" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;0.3;0.6" dur="2s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="340" y="735" width="120" height="8" fill="#00d4ff" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;0.3;0.6" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+    </rect>
+  </g>
+
+  <!-- Face structure -->
+  <ellipse cx="400" cy="400" rx="180" ry="220" fill="url(#headGradient)" stroke="#00fff9" stroke-width="3"/>
+  
+  <!-- Metallic panels on sides -->
+  <g opacity="0.7">
+    <path d="M 220 350 Q 210 400 220 450 L 240 460 L 240 340 Z" 
+          fill="#2a5f7f" stroke="#00fff9" stroke-width="1.5"/>
+    <path d="M 580 350 Q 590 400 580 450 L 560 460 L 560 340 Z" 
+          fill="#2a5f7f" stroke="#00fff9" stroke-width="1.5"/>
+    
+    <!-- Panel details -->
+    <line x1="225" y1="360" x2="235" y2="360" stroke="#00fff9" stroke-width="1" opacity="0.6"/>
+    <line x1="225" y1="380" x2="235" y2="380" stroke="#00fff9" stroke-width="1" opacity="0.6"/>
+    <line x1="225" y1="400" x2="235" y2="400" stroke="#00fff9" stroke-width="1" opacity="0.6"/>
+    <line x1="225" y1="420" x2="235" y2="420" stroke="#00fff9" stroke-width="1" opacity="0.6"/>
+    <line x1="225" y1="440" x2="235" y2="440" stroke="#00fff9" stroke-width="1" opacity="0.6"/>
+    
+    <line x1="565" y1="360" x2="575" y2="360" stroke="#00fff9" stroke-width="1" opacity="0.6"/>
+    <line x1="565" y1="380" x2="575" y2="380" stroke="#00fff9" stroke-width="1" opacity="0.6"/>
+    <line x1="565" y1="400" x2="575" y2="400" stroke="#00fff9" stroke-width="1" opacity="0.6"/>
+    <line x1="565" y1="420" x2="575" y2="420" stroke="#00fff9" stroke-width="1" opacity="0.6"/>
+    <line x1="565" y1="440" x2="575" y2="440" stroke="#00fff9" stroke-width="1" opacity="0.6"/>
+  </g>
+
+  <!-- Brain chamber (top of head) -->
+  <g filter="url(#strongGlow)">
+    <!-- Transparent dome -->
+    <ellipse cx="400" cy="240" rx="120" ry="80" fill="url(#brainGradient)" opacity="0.3" 
+             stroke="#00fff9" stroke-width="2"/>
+    
+    <!-- Brain neural network -->
+    <g opacity="0.8">
+      <!-- Brain structure -->
+      <path d="M 320 240 Q 340 220 360 240 Q 380 260 400 240 Q 420 220 440 240 Q 460 260 480 240" 
+            stroke="#00fff9" stroke-width="2" fill="none">
+        <animate attributeName="stroke-opacity" values="0.8;0.4;0.8" dur="3s" repeatCount="indefinite"/>
+      </path>
+      <path d="M 330 260 Q 350 240 370 260 Q 390 280 410 260 Q 430 240 450 260 Q 470 280 480 260" 
+            stroke="#00d4ff" stroke-width="2" fill="none">
+        <animate attributeName="stroke-opacity" values="0.6;0.3;0.6" dur="3s" repeatCount="indefinite" begin="0.5s"/>
+      </path>
+      
+      <!-- Neural nodes -->
+      <circle cx="340" cy="230" r="4" fill="#00fff9">
+        <animate attributeName="r" values="4;6;4" dur="2s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="380" cy="250" r="4" fill="#00fff9">
+        <animate attributeName="r" values="4;6;4" dur="2s" repeatCount="indefinite" begin="0.3s"/>
+      </circle>
+      <circle cx="420" cy="250" r="4" fill="#00d4ff">
+        <animate attributeName="r" values="4;6;4" dur="2s" repeatCount="indefinite" begin="0.6s"/>
+      </circle>
+      <circle cx="460" cy="230" r="4" fill="#00d4ff">
+        <animate attributeName="r" values="4;6;4" dur="2s" repeatCount="indefinite" begin="0.9s"/>
+      </circle>
+      
+      <!-- Connecting lines -->
+      <line x1="340" y1="230" x2="380" y2="250" stroke="#00fff9" stroke-width="1" opacity="0.6">
+        <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite"/>
+      </line>
+      <line x1="380" y1="250" x2="420" y2="250" stroke="#00fff9" stroke-width="1" opacity="0.6">
+        <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+      </line>
+      <line x1="420" y1="250" x2="460" y2="230" stroke="#00d4ff" stroke-width="1" opacity="0.6">
+        <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite" begin="1s"/>
+      </line>
+    </g>
+  </g>
+
+  <!-- Forehead panel -->
+  <rect x="300" y="310" width="200" height="40" rx="5" fill="#2a5f7f" opacity="0.6" 
+        stroke="#00fff9" stroke-width="2"/>
+  <line x1="310" y1="330" x2="490" y2="330" stroke="#00fff9" stroke-width="1" opacity="0.7"/>
+
+  <!-- Eyes -->
+  <g filter="url(#glow)">
+    <!-- Left eye -->
+    <ellipse cx="340" cy="420" rx="35" ry="45" fill="url(#eyeGlow)" opacity="0.4"/>
+    <ellipse cx="340" cy="420" rx="25" ry="35" fill="#001a2e" stroke="#00fff9" stroke-width="3"/>
+    <ellipse cx="340" cy="420" rx="18" ry="25" fill="#00fff9" opacity="0.9">
+      <animate attributeName="opacity" values="0.9;0.5;0.9" dur="3s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="338" cy="415" rx="8" ry="12" fill="#ffffff" opacity="0.9"/>
+    
+    <!-- Scan line left eye -->
+    <line x1="315" y1="420" x2="365" y2="420" stroke="#00fff9" stroke-width="2" opacity="0.8">
+      <animate attributeName="y1" values="395;445;395" dur="4s" repeatCount="indefinite"/>
+      <animate attributeName="y2" values="395;445;395" dur="4s" repeatCount="indefinite"/>
+    </line>
+
+    <!-- Right eye -->
+    <ellipse cx="460" cy="420" rx="35" ry="45" fill="url(#eyeGlow)" opacity="0.4"/>
+    <ellipse cx="460" cy="420" rx="25" ry="35" fill="#001a2e" stroke="#00fff9" stroke-width="3"/>
+    <ellipse cx="460" cy="420" rx="18" ry="25" fill="#00fff9" opacity="0.9">
+      <animate attributeName="opacity" values="0.9;0.5;0.9" dur="3s" repeatCount="indefinite" begin="0.5s"/>
+    </ellipse>
+    <ellipse cx="458" cy="415" rx="8" ry="12" fill="#ffffff" opacity="0.9"/>
+    
+    <!-- Scan line right eye -->
+    <line x1="435" y1="420" x2="485" y2="420" stroke="#00fff9" stroke-width="2" opacity="0.8">
+      <animate attributeName="y1" values="395;445;395" dur="4s" repeatCount="indefinite" begin="0.5s"/>
+      <animate attributeName="y2" values="395;445;395" dur="4s" repeatCount="indefinite" begin="0.5s"/>
+    </line>
+  </g>
+
+  <!-- Cheek plates with circuits -->
+  <g>
+    <!-- Left cheek -->
+    <rect x="260" y="460" width="60" height="80" rx="5" fill="#2a5f7f" opacity="0.5" 
+          stroke="#00fff9" stroke-width="1.5"/>
+    <path d="M 270 480 L 290 490 L 280 500 L 300 510" stroke="#00fff9" stroke-width="1.5" fill="none" opacity="0.7"/>
+    <circle cx="270" cy="480" r="3" fill="#00fff9" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    
+    <!-- Right cheek -->
+    <rect x="480" y="460" width="60" height="80" rx="5" fill="#2a5f7f" opacity="0.5" 
+          stroke="#00fff9" stroke-width="1.5"/>
+    <path d="M 530 480 L 510 490 L 520 500 L 500 510" stroke="#00fff9" stroke-width="1.5" fill="none" opacity="0.7"/>
+    <circle cx="530" cy="480" r="3" fill="#00fff9" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+    </circle>
+  </g>
+
+  <!-- Nose sensor -->
+  <rect x="385" y="480" width="30" height="40" rx="3" fill="#00d4ff" opacity="0.4" 
+        stroke="#00fff9" stroke-width="1.5"/>
+  <circle cx="400" cy="500" r="5" fill="#00fff9" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.4;0.9" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Mouth/speaker grille -->
+  <g>
+    <rect x="330" y="560" width="140" height="60" rx="8" fill="#001a2e" opacity="0.8" 
+          stroke="#00fff9" stroke-width="2"/>
+    <!-- Grille lines -->
+    <line x1="340" y1="575" x2="460" y2="575" stroke="#00fff9" stroke-width="1.5" opacity="0.6"/>
+    <line x1="340" y1="585" x2="460" y2="585" stroke="#00fff9" stroke-width="1.5" opacity="0.6"/>
+    <line x1="340" y1="595" x2="460" y2="595" stroke="#00fff9" stroke-width="1.5" opacity="0.6"/>
+    <line x1="340" y1="605" x2="460" y2="605" stroke="#00fff9" stroke-width="1.5" opacity="0.6"/>
+    
+    <!-- Sound wave animation -->
+    <path d="M 350 590 Q 370 585 390 590 T 430 590" stroke="#00fff9" stroke-width="2" fill="none" opacity="0.7">
+      <animate attributeName="d" 
+               values="M 350 590 Q 370 585 390 590 T 430 590;M 350 590 Q 370 595 390 590 T 430 590;M 350 590 Q 370 585 390 590 T 430 590" 
+               dur="1s" repeatCount="indefinite"/>
+    </path>
+  </g>
+
+  <!-- Jaw line -->
+  <path d="M 280 620 Q 400 660 520 620" stroke="#00fff9" stroke-width="2" fill="none" opacity="0.6"/>
+
+  <!-- Circuit patterns on face -->
+  <g opacity="0.5">
+    <path d="M 280 360 L 290 370 L 280 380" stroke="#00fff9" stroke-width="1.5" fill="none"/>
+    <circle cx="280" cy="360" r="2" fill="#00fff9"/>
+    <path d="M 310 330 L 320 340 L 330 330" stroke="#00fff9" stroke-width="1.5" fill="none"/>
+    
+    <path d="M 520 360 L 510 370 L 520 380" stroke="#00fff9" stroke-width="1.5" fill="none"/>
+    <circle cx="520" cy="360" r="2" fill="#00fff9"/>
+    <path d="M 490 330 L 480 340 L 470 330" stroke="#00fff9" stroke-width="1.5" fill="none"/>
+  </g>
+
+  <!-- Status LEDs -->
+  <circle cx="260" cy="340" r="5" fill="#00fff9" filter="url(#glow)">
+    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="540" cy="340" r="5" fill="#00d4ff" filter="url(#glow)">
+    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite" begin="0.5s"/>
+  </circle>
+  <circle cx="260" cy="520" r="5" fill="#a855f7" filter="url(#glow)">
+    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite" begin="1s"/>
+  </circle>
+  <circle cx="540" cy="520" r="5" fill="#00fff9" filter="url(#glow)">
+    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite" begin="0.3s"/>
+  </circle>
+
+  <!-- Head sensors/antennas -->
+  <g>
+    <line x1="400" y1="180" x2="400" y2="120" stroke="#00fff9" stroke-width="3" opacity="0.8"/>
+    <circle cx="400" cy="120" r="8" fill="#00fff9" filter="url(#glow)">
+      <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="400" cy="120" r="15" fill="none" stroke="#00fff9" stroke-width="2" opacity="0.6">
+      <animate attributeName="r" values="15;25;15" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- Side antennas -->
+  <g opacity="0.7">
+    <line x1="240" y1="280" x2="200" y2="260" stroke="#00fff9" stroke-width="2"/>
+    <circle cx="200" cy="260" r="5" fill="#00fff9">
+      <animate attributeName="opacity" values="1;0.3;1" dur="1.8s" repeatCount="indefinite"/>
+    </circle>
+    
+    <line x1="560" y1="280" x2="600" y2="260" stroke="#00fff9" stroke-width="2"/>
+    <circle cx="600" cy="260" r="5" fill="#00d4ff">
+      <animate attributeName="opacity" values="1;0.3;1" dur="1.8s" repeatCount="indefinite" begin="0.4s"/>
+    </circle>
+  </g>
+</svg>

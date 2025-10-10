@@ -77,7 +77,12 @@ export const AboutSection = () => {
               className="space-y-8"
             >
               <Card className="p-8">
-                <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                <h3 className="text-2xl font-bold mb-6 glow-text" style={{ 
+                  background: 'linear-gradient(90deg, #00fff9, #00d4ff)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}>
                   My Journey
                 </h3>
                 <div className="space-y-6">
@@ -88,10 +93,34 @@ export const AboutSection = () => {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: index * 0.2 }}
-                      className="relative pl-8 border-l-2 border-emerald-400/30"
+                      className="relative pl-8"
+                      style={{
+                        borderLeft: '2px solid rgba(0, 255, 249, 0.3)',
+                      }}
                     >
-                      <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400" />
-                      <span className="text-sm font-medium text-emerald-400">{item.year}</span>
+                      <motion.div 
+                        className="absolute -left-[9px] top-0 w-4 h-4 rounded-full"
+                        style={{
+                          background: 'linear-gradient(135deg, #00fff9, #00d4ff)',
+                          boxShadow: '0 0 10px #00fff9',
+                        }}
+                        animate={{
+                          scale: [1, 1.2, 1],
+                          boxShadow: [
+                            '0 0 10px #00fff9',
+                            '0 0 20px #00fff9',
+                            '0 0 10px #00fff9',
+                          ],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          delay: index * 0.3,
+                        }}
+                      />
+                      <span className="text-sm font-medium font-mono" style={{ color: '#00fff9' }}>
+                        {item.year}
+                      </span>
                       <h4 className="text-lg font-semibold mt-1">{item.title}</h4>
                       <p className="text-gray-400 mt-1">{item.description}</p>
                     </motion.div>
@@ -109,7 +138,12 @@ export const AboutSection = () => {
               className="space-y-8"
             >
               <Card className="p-8">
-                <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                <h3 className="text-2xl font-bold mb-6 glow-text" style={{ 
+                  background: 'linear-gradient(90deg, #00fff9, #00d4ff)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}>
                   My Toolbox
                 </h3>
                 <div className="grid grid-cols-3 gap-4">
@@ -120,17 +154,37 @@ export const AboutSection = () => {
                       whileInView={{ opacity: 1, scale: 1 }}
                       viewport={{ once: true }}
                       transition={{ delay: index * 0.1 }}
-                      className="flex flex-col items-center p-4 rounded-lg bg-gray-800/50 hover:bg-gray-800/80 transition-colors"
+                      className="flex flex-col items-center p-4 rounded-lg relative overflow-hidden group"
+                      style={{
+                        background: 'rgba(0, 255, 249, 0.05)',
+                        border: '1px solid rgba(0, 255, 249, 0.2)',
+                      }}
+                      whileHover={{
+                        scale: 1.05,
+                        boxShadow: '0 0 20px rgba(0, 255, 249, 0.3)',
+                      }}
                     >
-                      <Image src={item.iconType} alt={item.title} width={32} height={32} className="w-8 h-8 mb-2" />
-                      <span className="text-sm text-center">{item.title}</span>
+                      <motion.div
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(0, 255, 249, 0.1) 0%, transparent 100%)',
+                        }}
+                        transition={{ duration: 0.3 }}
+                      />
+                      <Image src={item.iconType} alt={item.title} width={32} height={32} className="w-8 h-8 mb-2 relative z-10" />
+                      <span className="text-sm text-center relative z-10">{item.title}</span>
                     </motion.div>
                   ))}
                 </div>
               </Card>
 
               <Card className="p-8">
-                <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                <h3 className="text-2xl font-bold mb-6 glow-text" style={{ 
+                  background: 'linear-gradient(90deg, #00fff9, #00d4ff)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}>
                   Beyond Code
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -141,12 +195,27 @@ export const AboutSection = () => {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: index * 0.1 }}
-                      className={`p-4 rounded-lg bg-gradient-to-r ${interest.color} bg-opacity-10 hover:bg-opacity-20 transition-all`}
+                      className="p-4 rounded-lg relative overflow-hidden group"
+                      style={{
+                        background: 'rgba(0, 255, 249, 0.05)',
+                        border: '1px solid rgba(0, 255, 249, 0.2)',
+                      }}
+                      whileHover={{
+                        scale: 1.05,
+                        boxShadow: '0 0 20px rgba(0, 255, 249, 0.2)',
+                      }}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 relative z-10">
                         <span className="text-2xl">{interest.icon}</span>
                         <span className="font-medium">{interest.title}</span>
                       </div>
+                      <motion.div
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100"
+                        style={{
+                          background: `linear-gradient(135deg, rgba(0, 255, 249, 0.1), rgba(0, 212, 255, 0.1))`,
+                        }}
+                        transition={{ duration: 0.3 }}
+                      />
                     </motion.div>
                   ))}
                 </div>
@@ -163,7 +232,12 @@ export const AboutSection = () => {
           >
             <Card className="p-8">
               <div className="max-w-3xl mx-auto text-center">
-                <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                <h3 className="text-2xl font-bold mb-4 glow-text" style={{ 
+                  background: 'linear-gradient(90deg, #00fff9, #00d4ff)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}>
                   My Philosophy
                 </h3>
                 <p className="text-gray-400 leading-relaxed">

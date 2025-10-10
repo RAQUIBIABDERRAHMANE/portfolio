@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import Script from "next/script";
+import { CyberBackground } from "@/components/CyberBackground";
 
 
 
@@ -168,6 +169,10 @@ export default function RootLayout({
             }}
           />
         </noscript>
+        
+        {/* Cyber city background with towers and flying robots */}
+        <CyberBackground />
+        
         {children}
         
         {/* ElevenLabs ConvAI Widget */}
