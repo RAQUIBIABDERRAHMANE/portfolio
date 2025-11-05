@@ -3,6 +3,7 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import { CyberBackground } from "@/components/CyberBackground";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 
 
@@ -158,7 +159,6 @@ export default function RootLayout({
 
       </head>
       <body className={inter.className}>
-        <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-KDDQ6RLX"
             height="0"
@@ -168,13 +168,15 @@ export default function RootLayout({
               visibility: 'hidden'
             }}
           />
-        </noscript>
         
         {/* Cyber city background with towers and flying robots */}
         <CyberBackground />
         
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         
+        {/* ElevenLabs ConvAI Widget */}
         {/* ElevenLabs ConvAI Widget */}
         <div 
           dangerouslySetInnerHTML={{

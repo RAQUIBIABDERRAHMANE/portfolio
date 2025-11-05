@@ -33,7 +33,7 @@ const contactMethods = [
   {
     name: "Email",
     icon: "/icons/email.svg",
-    value: "abderrahmaneraquibi@gmail.com",
+    value: "contact@raquibi.com",
     action: (value: string) => window.open(`mailto:${value}`, "_blank"),
   },
 ];

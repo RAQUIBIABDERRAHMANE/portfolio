@@ -6,7 +6,7 @@ export async function GET(request, { params }) {
     const { slug } = params;
     
     // Récupérer le blog par slug
-    const blog = getBlogBySlug(slug);
+    const blog = await getBlogBySlug(slug);
     
     if (!blog) {
       return NextResponse.json(
@@ -16,7 +16,7 @@ export async function GET(request, { params }) {
     }
     
     // Incrémenter le nombre de vues
-    incrementViewCount(slug);
+    await incrementViewCount(slug);
     
     return NextResponse.json({ blog });
   } catch (error) {

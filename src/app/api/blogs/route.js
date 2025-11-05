@@ -3,10 +3,12 @@ import { getPublishedBlogs, addBlog } from '@/lib/blogUtils';
 
 export async function GET() {
   try {
-    const blogs = getPublishedBlogs();
+    const blogs = await getPublishedBlogs();
+    const sorted = blogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const source = process.env.USE_DB === 'true' ? 'db' : 'json';
     return NextResponse.json({ 
-      blogs: blogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-      source: 'json' 
+      blogs: sorted,
+      source
     });
   } catch (error) {
     console.error('Error fetching blogs:', error);
@@ -61,7 +63,7 @@ export async function POST(request) {
       date: new Date().toISOString().split('T')[0] // Format YYYY-MM-DD
     };
 
-    const newBlog = addBlog(blogData);
+  const newBlog = await addBlog(blogData);
 
     if (!newBlog) {
       return NextResponse.json(
