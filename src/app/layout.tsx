@@ -3,9 +3,6 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import { CyberBackground } from "@/components/CyberBackground";
-import { AuthProvider } from "@/contexts/AuthContext";
-
-
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -172,9 +169,7 @@ export default function RootLayout({
         {/* Cyber city background with towers and flying robots */}
         <CyberBackground />
         
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        {children}
         
         {/* ElevenLabs ConvAI Widget */}
         {/* ElevenLabs ConvAI Widget */}

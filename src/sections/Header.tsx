@@ -1,6 +1,5 @@
 "use client";
 import { motion } from "framer-motion";
-import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 
 const navVariants = {
@@ -38,12 +37,6 @@ const hoverVariants = {
 };
 
 export const Header = () => {
-  const { user, logout } = useAuth();
-
-  const handleLogout = async () => {
-    await logout();
-  };
-
   return (
     <motion.div
       className="flex justify-center items-center fixed top-3 w-full z-50"
@@ -130,54 +123,6 @@ export const Header = () => {
           About
         </motion.a>
         
-        {user ? (
-          <>
-            <motion.div
-              className="nav-item relative z-10 cursor-default"
-              variants={itemVariants}
-              custom={3}
-            >
-              <span className="text-neon-cyan">{user.fullName}</span>
-            </motion.div>
-            <motion.button
-              onClick={handleLogout}
-              className="nav-item relative z-10 font-medium"
-              style={{
-                background: 'linear-gradient(90deg, #ec4899, #a855f7)',
-                color: '#ffffff',
-              }}
-              variants={itemVariants}
-              whileHover={{
-                scale: 1.05,
-                boxShadow: '0 0 20px rgba(236, 72, 153, 0.6)',
-              }}
-              custom={4}
-            >
-              Logout
-            </motion.button>
-          </>
-        ) : (
-          <>
-            <Link href="/signin">
-              <motion.div
-                className="nav-item relative z-10 font-medium"
-                style={{
-                  background: 'linear-gradient(90deg, #00fff9, #00d4ff)',
-                  color: '#050816',
-                }}
-                variants={itemVariants}
-                whileHover={{
-                  scale: 1.05,
-                  boxShadow: '0 0 20px rgba(0, 255, 249, 0.6)',
-                }}
-                custom={3}
-              >
-                Sign In
-              </motion.div>
-            </Link>
-          </>
-        )}
-        
         <motion.a
           href="https://wa.me/+212665830816"
           target="_blank"
@@ -191,7 +136,7 @@ export const Header = () => {
             scale: 1.05,
             boxShadow: '0 0 20px rgba(0, 255, 136, 0.6)',
           }}
-          custom={user ? 5 : 4}
+          custom={3}
         >
           Contact
         </motion.a>
