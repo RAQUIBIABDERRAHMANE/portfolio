@@ -175,7 +175,7 @@ export default function RootLayout({
         {/* ElevenLabs ConvAI Widget */}
         <div 
           dangerouslySetInnerHTML={{
-            __html: '<elevenlabs-convai agent-id="agent_8801k4n3v74henjv2b8ss8avpz34"></elevenlabs-convai>'
+            __html: '<elevenlabs-convai agent-id="agent_1301k4n2f78kf7q8wzz0m7n9mdee"></elevenlabs-convai>'
           }}
         />
         
