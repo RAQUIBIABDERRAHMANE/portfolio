@@ -19,7 +19,7 @@ export default function NewsletterPage() {
     setMessage("");
 
     try {
-      const response = await fetch("https://n8n.raquibi.space/webhook/clients-data", {
+      const response = await fetch("https://n8n.raquibi.com/webhook/clients-data", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
