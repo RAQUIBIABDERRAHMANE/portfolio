@@ -1,25 +1,59 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useEffect, useState, FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { HeaderSection } from "@/components/HeaderSection";
 import { Card } from "@/components/Card";
+import { Header } from "@/sections/Header";
+import { Footer } from "@/sections/Footer";
 
 export default function EventPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     phone: "",
     classe: ""
   });
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error" | "checking">("checking");
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        console.log("Checking event auth...");
+        const res = await fetch("/api/auth/check");
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        console.log("Auth data for event:", data);
+
+        if (!data.authenticated) {
+          router.push("/login?redirect=/event");
+          return;
+        }
+
+        setFormData(prev => ({
+          ...prev,
+          fullName: data.fullName || "",
+          email: data.email || "",
+          phone: data.phone || ""
+        }));
+        setStatus("idle");
+      } catch (err) {
+        console.error("Event auth error:", err);
+        router.push("/login?redirect=/event");
+      }
+    };
+    checkAuth();
+  }, [router]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus("loading");
     setMessage("");
     try {
+      console.log("Submitting event form with data:", formData);
       const response = await fetch("https://n8n.raquibi.com/webhook/event-qr", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -28,7 +62,7 @@ export default function EventPage() {
       if (response.ok) {
         setStatus("success");
         setMessage("Registration successful!");
-        setFormData({ fullName: "", email: "", phone: "", classe: "" });
+        setFormData(prev => ({ ...prev, classe: "" }));
       } else {
         setStatus("error");
         setMessage("An error occurred while submitting the form. Please try again.");
@@ -44,13 +78,22 @@ export default function EventPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  if (status === "checking") {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#050816]">
+        <div className="text-cyan-400 animate-pulse font-mono tracking-widest uppercase">Verified Access...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen py-16 lg:py-24">
-      <div className="container max-w-3xl">
+    <div className="min-h-screen bg-[#020617] text-white">
+      <Header />
+      <main className="container max-w-3xl py-32 lg:py-40">
         <HeaderSection
           eyebrow="Join the Event"
-          title="Event Registration"
-          description="Fill out the form to register for our exclusive event. We look forward to welcoming you!"
+          title="ID-SIGNAL LOCK: EVENT"
+          description="FORCED AUTO-FILL ACTIVE. If you see placeholders, please refresh your terminal/browser."
         />
 
         <motion.div
@@ -73,7 +116,7 @@ export default function EventPage() {
                   value={formData.fullName}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-white placeholder-white/40 transition-all"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-white/40 transition-all"
                   placeholder="Your full name"
                 />
               </div>
@@ -89,7 +132,7 @@ export default function EventPage() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-white placeholder-white/40 transition-all"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-white/40 transition-all"
                   placeholder="example@email.com"
                 />
               </div>
@@ -105,7 +148,7 @@ export default function EventPage() {
                   value={formData.phone}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-white placeholder-white/40 transition-all"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-white/40 transition-all"
                   placeholder="06 XX XX XX XX"
                 />
               </div>
@@ -121,7 +164,7 @@ export default function EventPage() {
                   value={formData.classe}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-white placeholder-white/40 transition-all"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-white/40 transition-all"
                   placeholder="Your class"
                 />
               </div>
@@ -131,11 +174,10 @@ export default function EventPage() {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`p-4 rounded-lg ${
-                    status === "success"
-                      ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
-                      : "bg-red-500/10 border border-red-500/20 text-red-400"
-                  }`}
+                  className={`p-4 rounded-lg ${status === "success"
+                    ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                    : "bg-red-500/10 border border-red-500/20 text-red-400"
+                    }`}
                 >
                   {message}
                 </motion.div>
@@ -145,7 +187,7 @@ export default function EventPage() {
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="w-full px-6 py-3 bg-gradient-to-r from-emerald-400 to-sky-400 text-gray-900 font-semibold rounded-lg hover:shadow-lg hover:shadow-emerald-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-6 py-4 bg-gradient-to-r from-cyan-400 to-blue-500 text-gray-950 font-bold rounded-xl hover:shadow-lg hover:shadow-cyan-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest text-sm"
               >
                 {status === "loading" ? (
                   <span className="flex items-center justify-center gap-2">
@@ -169,21 +211,22 @@ export default function EventPage() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Sending...
+                    Processing...
                   </span>
                 ) : (
-                  "Register Now"
+                  "Confirm Registration"
                 )}
               </button>
             </form>
-            <div className="mt-8 text-center text-sm text-white/60">
+            <div className="mt-8 text-center text-xs text-white/40">
               <p>
-                We respect your privacy. Your information will never be shared with third parties.
+                Secure identity node registration enabled. Your data is protected.
               </p>
             </div>
           </Card>
         </motion.div>
-      </div>
+      </main>
+      <Footer />
     </div>
   );
 }

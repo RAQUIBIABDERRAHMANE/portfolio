@@ -150,7 +150,7 @@ export default function ClientDashboard() {
                                         <Phone className="text-cyan-400 mt-1" size={20} />
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Phone Number</p>
-                                            <p className="text-lg">Contacting administrator to retrieve...</p>
+                                            <p className="text-lg">{userData?.phone || "Not specified"}</p>
                                         </div>
                                     </div>
                                 </div>

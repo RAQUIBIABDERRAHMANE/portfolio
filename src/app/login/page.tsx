@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Card } from "@/components/Card";
 import { Header } from "@/sections/Header";
 import { Footer } from "@/sections/Footer";
 
-export default function LoginPage() {
+function LoginForm() {
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -15,6 +15,8 @@ export default function LoginPage() {
     const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
     const [error, setError] = useState("");
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirectTo = searchParams.get("redirect");
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -37,8 +39,10 @@ export default function LoginPage() {
             if (response.ok) {
                 setStatus("idle");
 
-                // Redirect based on role
-                if (data.role === 'admin') {
+                // Priority: URI Redirect > Role-based Redirect
+                if (redirectTo) {
+                    router.push(redirectTo);
+                } else if (data.role === 'admin') {
                     router.push("/admin");
                 } else {
                     router.push("/dashboard");
@@ -54,6 +58,53 @@ export default function LoginPage() {
         }
     };
 
+    return (
+        <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Email</label>
+                <input
+                    type="email"
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all"
+                    placeholder="admin@raquibi.com"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Password</label>
+                <input
+                    type="password"
+                    name="password"
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all"
+                    placeholder="••••••••"
+                />
+            </div>
+
+            {error && (
+                <p className="text-red-400 text-sm text-center bg-red-400/10 py-2 rounded">
+                    {error}
+                </p>
+            )}
+
+            <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                disabled={status === "loading"}
+                className="w-full py-4 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-lg shadow-[0_0_20px_rgba(0,255,249,0.3)] hover:shadow-[0_0_30px_rgba(0,255,249,0.5)] transition-all disabled:opacity-50"
+            >
+                {status === "loading" ? "Logging in..." : "Login"}
+            </motion.button>
+        </form>
+    );
+}
+
+export default function LoginPage() {
     return (
         <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
             <div className="fixed inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
@@ -72,48 +123,9 @@ export default function LoginPage() {
                             Login
                         </h2>
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-400 mb-2">Email</label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    required
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    className="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all"
-                                    placeholder="admin@raquibi.com"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-400 mb-2">Password</label>
-                                <input
-                                    type="password"
-                                    name="password"
-                                    required
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    className="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all"
-                                    placeholder="••••••••"
-                                />
-                            </div>
-
-                            {error && (
-                                <p className="text-red-400 text-sm text-center bg-red-400/10 py-2 rounded">
-                                    {error}
-                                </p>
-                            )}
-
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                type="submit"
-                                disabled={status === "loading"}
-                                className="w-full py-4 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-lg shadow-[0_0_20px_rgba(0,255,249,0.3)] hover:shadow-[0_0_30px_rgba(0,255,249,0.5)] transition-all disabled:opacity-50"
-                            >
-                                {status === "loading" ? "Logging in..." : "Login"}
-                            </motion.button>
-                        </form>
+                        <Suspense fallback={<div className="text-cyan-400 animate-pulse text-center">SYNCHRONIZING...</div>}>
+                            <LoginForm />
+                        </Suspense>
                     </Card>
                 </div>
                 <Footer />

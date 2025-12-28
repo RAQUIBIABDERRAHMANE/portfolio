@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "send-emails": "node scripts/send-bulk-email.mjs"
   },
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "^2.9.0",

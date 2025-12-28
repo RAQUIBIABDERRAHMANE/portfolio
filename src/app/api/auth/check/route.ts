@@ -9,20 +9,22 @@ export async function GET() {
         return NextResponse.json({ authenticated: false });
     }
 
-    let userInfo = {
+    let userInfo: any = {
         email: user.email,
         role: user.role,
-        fullName: user.role === 'admin' ? 'Administrator' : ''
+        fullName: user.role === 'admin' ? 'Administrator' : '',
+        phone: ''
     };
 
     if (user.role === 'client' && user.userId) {
         const result = await db.execute({
-            sql: 'SELECT fullName FROM users WHERE id = ?',
+            sql: 'SELECT fullName, phone FROM users WHERE id = ?',
             args: [user.userId]
         });
         const dbUser = result.rows[0] as any;
         if (dbUser) {
             userInfo.fullName = dbUser.fullName;
+            userInfo.phone = dbUser.phone;
         }
     }
 

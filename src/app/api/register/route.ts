@@ -47,21 +47,62 @@ export async function POST(req: Request) {
         const mailOptions = {
             from: `"Raquibi Portfolio" <${process.env.SMTP_USER}>`,
             to: email,
-            subject: 'Registration Successful - Raquibi Portfolio',
+            subject: 'Registration Confirmed - Raquibi Portfolio',
             html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-          <h2 style="color: #00fff9;">Welcome, ${fullName}!</h2>
-          <p>Thank you for registering on my portfolio website.</p>
-          <p><strong>Your Details:</strong></p>
-          <ul>
-            <li><strong>Name:</strong> ${fullName}</li>
-            <li><strong>Phone:</strong> ${phone}</li>
-            <li><strong>Email:</strong> ${email}</li>
-          </ul>
-          <p>I will get in touch with you soon!</p>
-          <hr />
-          <p style="font-size: 12px; color: #777;">This is an automated message from Raquibi Portfolio.</p>
-        </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Confirmed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0; padding:0; background-color:#020617; font-family:Arial, Helvetica, sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#020617; padding:24px 0;">
+    <tr>
+        <td align="center">
+
+            <!-- Main Container -->
+            <table width="600" cellpadding="0" cellspacing="0"
+                   style="background-color:#0f111a; border-radius:12px; overflow:hidden; border:2px solid #38bdf8;">
+
+                <!-- Header -->
+                <tr>
+                    <td style="padding:32px; background-color:#020617; text-align:center;">
+                        <img src="https://www.raquibi.com/abdo.png" alt="Logo" width="120" style="margin-bottom:16px;">
+                        <h1 style="margin:0; color:#38bdf8; font-size:24px;">Email Confirmed</h1>
+                    </td>
+                </tr>
+
+                <!-- Confirmation Message -->
+                <tr>
+                    <td style="padding:28px 32px; color:#e5e7eb; text-align:center;">
+                        <p style="margin:0; font-size:16px; line-height:1.6;">
+                            Hello <strong>${fullName}</strong>,<br><br>
+                            Your email has been successfully confirmed.
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="padding:20px; text-align:center; background-color:#020617; border-top:1px solid #1e293b;">
+                        <p style="margin:0; font-size:12px; color:#64748b;">
+                            © 2025 RAQUIBI
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+            <!-- End Container -->
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
+
       `,
         };
 
