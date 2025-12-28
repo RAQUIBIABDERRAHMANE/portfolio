@@ -20,9 +20,10 @@ self.addEventListener('push', (event) => {
         const data = event.data.json();
         const options = {
             body: data.body,
-            icon: '/logo.ico', // PNG is required for reliable rendering on Android/iOS
-            badge: '/logo.ico',
+            icon: '/logo.png', // CRITICAL: .ico fails on mobile background wake-up. Use PNG.
+            badge: '/logo.png',
             vibrate: [100, 50, 100],
+            sound: '/notification.mp3', // Custom notification sound
             data: {
                 url: data.url || '/'
             },

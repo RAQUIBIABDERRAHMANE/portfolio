@@ -34,8 +34,9 @@ export const RegistrationForm = () => {
 
             if (response.ok) {
                 setStatus("success");
-                setMessage(data.message);
-                setFormData({ fullName: "", phone: "", email: "", password: "" });
+                setMessage("Registration successful! Redirecting...");
+                // Auto-login successful, redirect to dashboard
+                window.location.href = "/dashboard";
             } else {
                 setStatus("error");
                 setMessage(data.error || "Something went wrong");

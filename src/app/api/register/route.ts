@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import db from '@/lib/sqlite';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
+import { signToken } from '@/lib/auth';
 
 export async function POST(req: Request) {
     try {
@@ -33,11 +34,27 @@ export async function POST(req: Request) {
             throw dbError;
         }
 
-        // 2. Send SMTP Email
+        // 2. Auto-Login: Generate Token & Set Cookie
+        // We need the new user's ID, which we can get from the result or by querying
+        // Since we know the email is unique, we can just query it back or use `lastInsertRowid` if using better driver API.
+        // For safety, let's query it back.
+        const userResult = await db.execute({
+            sql: 'SELECT id, email, fullName, role FROM users WHERE email = ?',
+            args: [email]
+        });
+        const newUser = userResult.rows[0] as any;
+
+        const token = signToken({
+            userId: newUser.id,
+            email: newUser.email,
+            role: 'client' // Default role
+        });
+
+        // 3. Send SMTP Email (Async - don't block response)
         const transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST,
             port: Number(process.env.SMTP_PORT) || 465,
-            secure: true, // Use SSL/TLS
+            secure: true,
             auth: {
                 user: process.env.SMTP_USER,
                 pass: process.env.SMTP_PASS,
@@ -70,7 +87,7 @@ export async function POST(req: Request) {
                 <tr>
                     <td style="padding:32px; background-color:#020617; text-align:center;">
                         <img src="https://www.raquibi.com/abdo.png" alt="Logo" width="120" style="margin-bottom:16px;">
-                        <h1 style="margin:0; color:#38bdf8; font-size:24px;">Email Confirmed</h1>
+                        <h1 style="margin:0; color:#38bdf8; font-size:24px;">Welcome Aboard!</h1>
                     </td>
                 </tr>
 
@@ -79,7 +96,7 @@ export async function POST(req: Request) {
                     <td style="padding:28px 32px; color:#e5e7eb; text-align:center;">
                         <p style="margin:0; font-size:16px; line-height:1.6;">
                             Hello <strong>${fullName}</strong>,<br><br>
-                            Your email has been successfully confirmed.
+                            Your registration was successful. You are now logged in and ready to explore.
                         </p>
                     </td>
                 </tr>
@@ -102,13 +119,24 @@ export async function POST(req: Request) {
 
 </body>
 </html>
-
       `,
         };
 
-        await transporter.sendMail(mailOptions);
+        // Fire and forget email to speed up response
+        transporter.sendMail(mailOptions).catch(err => console.error('Email send error:', err));
 
-        return NextResponse.json({ success: true, message: 'Registration successful!' });
+        const response = NextResponse.json({ success: true, message: 'Registration successful! logging in...' });
+
+        response.cookies.set('auth_token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 86400, // 1 day
+            path: '/',
+        });
+
+        return response;
+
     } catch (error: any) {
         console.error('Registration Error:', error);
         return NextResponse.json(
