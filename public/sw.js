@@ -20,8 +20,8 @@ self.addEventListener('push', (event) => {
         const data = event.data.json();
         const options = {
             body: data.body,
-            icon: '/logo.png', // PNG is required for reliable rendering on Android/iOS
-            badge: '/logo.png',
+            icon: '/logo.ico', // PNG is required for reliable rendering on Android/iOS
+            badge: '/logo.ico',
             vibrate: [100, 50, 100],
             data: {
                 url: data.url || '/'
