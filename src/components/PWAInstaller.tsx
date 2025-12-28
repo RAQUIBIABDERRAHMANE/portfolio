@@ -7,12 +7,18 @@ export default function PWAInstaller() {
     useEffect(() => {
         // 1. Register Service Worker
         if ("serviceWorker" in navigator) {
-            window.addEventListener("load", () => {
+            const registerSW = () => {
                 navigator.serviceWorker.register("/sw.js").then(
                     (reg) => console.log("SW registered:", reg.scope),
                     (err) => console.log("SW registration failed:", err)
                 );
-            });
+            };
+
+            if (document.readyState === "complete") {
+                registerSW();
+            } else {
+                window.addEventListener("load", registerSW);
+            }
         }
 
         // 2. Listen for install prompt

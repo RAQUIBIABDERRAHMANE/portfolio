@@ -37,81 +37,40 @@ export default function ClientDashboard() {
 
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [subscribing, setSubscribing] = useState(false);
-    const [subStatus, setSubStatus] = useState("");
-
-    // Helper for VAPID key conversion
-    function urlBase64ToUint8Array(base64String: string) {
-        const padding = '='.repeat((4 - base64String.length % 4) % 4);
-        const base64 = (base64String + padding)
-            .replace(/\-/g, '+')
-            .replace(/_/g, '/');
-
-        const rawData = window.atob(base64);
-        const outputArray = new Uint8Array(rawData.length);
-
-        for (let i = 0; i < rawData.length; ++i) {
-            outputArray[i] = rawData.charCodeAt(i);
-        }
-        return outputArray;
-    }
 
     const subscribeToPush = async () => {
-        if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
-            alert("Push notifications are not supported in this browser or context.");
-            return;
-        }
-
-        const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-        if (!vapidKey) {
-            alert("Configuration error: Missing public key.");
-            return;
-        }
-
         setSubscribing(true);
-        setSubStatus("Requesting permission...");
-
         try {
-            // 1. Request Permission explicitly
-            const permission = await Notification.requestPermission();
-            console.log("Permission status:", permission);
-
-            if (permission !== 'granted') {
-                throw new Error("Permission denied. Please enable notifications in your browser settings.");
+            if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+                throw new Error("VAPID Public Key not found");
             }
 
-            // 2. Wait for Service Worker
-            setSubStatus("Connecting...");
-            const registration = await navigator.serviceWorker.ready;
+            console.log("Waiting for Service Worker...");
+            const registration = await Promise.race([
+                navigator.serviceWorker.ready,
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Service Worker timeout")), 5000))
+            ]) as ServiceWorkerRegistration; // Explicit cast to help TS
 
-            // 3. Check for existing subscription
-            setSubStatus("Registering...");
-            const convertedKey = urlBase64ToUint8Array(vapidKey);
-
+            console.log("SW Ready. Subscribing...");
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
-                applicationServerKey: convertedKey
+                applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
             });
 
-            console.log("Push subscription created:", subscription);
-
-            // 4. Send to server
-            setSubStatus("Syncing...");
-            const res = await fetch("/api/push/subscribe", {
+            console.log("Sending subscription to server...");
+            await fetch("/api/push/subscribe", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ subscription }),
             });
 
-            if (!res.ok) throw new Error("Sync failed");
-
             setIsSubscribed(true);
-            alert("Success! Notifications enabled.");
+            alert("Notifications enabled!");
         } catch (err: any) {
             console.error("Failed to subscribe:", err);
-            alert(`Error: ${err.message || 'Unknown error'}`);
+            alert(`Failed to enable notifications: ${err.message || "Unknown error"}`);
         } finally {
             setSubscribing(false);
-            setSubStatus("");
         }
     };
 
@@ -163,10 +122,7 @@ export default function ClientDashboard() {
                                     className="w-full flex items-center justify-center gap-2 px-6 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 transition-all text-sm disabled:opacity-50"
                                 >
                                     {subscribing ? (
-                                        <span className="flex items-center gap-2">
-                                            <span className="animate-spin size-3 border-2 border-cyan-400 border-t-transparent rounded-full"></span>
-                                            {subStatus}
-                                        </span>
+                                        <span className="animate-pulse">Enabling...</span>
                                     ) : (
                                         <>
                                             <Bell size={16} />
