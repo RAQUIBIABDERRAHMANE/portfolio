@@ -37,6 +37,12 @@ export const initDb = async () => {
   } catch (e) {
     // Column might already exist
   }
+
+  try {
+    await db.execute('ALTER TABLE users ADD COLUMN deletedAt DATETIME DEFAULT NULL');
+  } catch (e) {
+    // Column might already exist
+  }
 };
 
 // Auto-init only if in development or locally

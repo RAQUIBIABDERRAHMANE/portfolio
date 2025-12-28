@@ -41,6 +41,12 @@ export async function POST(req: Request) {
         const user = result.rows[0] as any;
 
         if (user && await bcrypt.compare(password, user.password)) {
+            if (user.deletedAt) {
+                return NextResponse.json(
+                    { error: 'Account has been deactivated' },
+                    { status: 403 }
+                );
+            }
             const token = signToken({
                 userId: user.id,
                 email: user.email,

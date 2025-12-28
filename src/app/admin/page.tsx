@@ -14,7 +14,8 @@ import {
     LogOut,
     User as UserIcon,
     ArrowUpRight,
-    Clock
+    Clock,
+    Trash2
 } from "lucide-react";
 
 interface User {
@@ -23,6 +24,7 @@ interface User {
     email: string;
     phone: string;
     createdAt: string;
+    deletedAt?: string | null;
 }
 
 export default function AdminDashboard() {
@@ -60,6 +62,22 @@ export default function AdminDashboard() {
             alert("Failed to send notification");
         } finally {
             setSendingPush(false);
+        }
+    };
+
+    const handleDeleteUser = async (userId: number) => {
+        if (!confirm("Are you sure you want to deactivate this user? They will be unable to log in.")) return;
+
+        try {
+            const res = await fetch(`/api/admin/users/${userId}`, { method: "DELETE" });
+            if (res.ok) {
+                setUsers(users.filter(u => u.id !== userId));
+            } else {
+                const data = await res.json();
+                alert(data.error || "Failed to deactivate user");
+            }
+        } catch (err) {
+            alert("Failed to deactivate user");
         }
     };
 
@@ -283,6 +301,7 @@ export default function AdminDashboard() {
                                             <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-500/70">Email Access</th>
                                             <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-500/70">Uplink</th>
                                             <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-500/70 text-right">Registered</th>
+                                            <th className="px-6 py-5 w-10"></th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-800/50">
@@ -314,6 +333,19 @@ export default function AdminDashboard() {
                                                 <td className="px-6 py-6 font-mono text-xs text-gray-500">{user.phone}</td>
                                                 <td className="px-6 py-6 text-right whitespace-nowrap">
                                                     <p className="text-gray-400 text-xs font-black">{new Date(user.createdAt).toLocaleDateString()}</p>
+                                                </td>
+                                                <td className="px-6 py-6 text-right">
+                                                    {!user.deletedAt ? (
+                                                        <button
+                                                            onClick={() => handleDeleteUser(user.id)}
+                                                            className="p-2 hover:bg-red-500/10 rounded-lg text-gray-500 hover:text-red-500 transition-all group/delete"
+                                                            title="Deactivate User"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    ) : (
+                                                        <span className="text-[10px] font-black text-red-500/50 uppercase tracking-widest border border-red-500/20 px-2 py-1 rounded">Deactivated</span>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))}

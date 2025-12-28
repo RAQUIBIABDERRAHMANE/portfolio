@@ -11,7 +11,7 @@ export async function GET() {
             );
         }
 
-        const result = await db.execute('SELECT id, fullName, email, phone, createdAt FROM users ORDER BY createdAt DESC');
+        const result = await db.execute('SELECT id, fullName, email, phone, createdAt, deletedAt FROM users WHERE deletedAt IS NULL ORDER BY createdAt DESC');
 
         // Map rows to plain objects for reliable JSON serialization
         const users = result.rows.map(row => ({
@@ -19,7 +19,8 @@ export async function GET() {
             fullName: String(row.fullName),
             email: String(row.email),
             phone: String(row.phone),
-            createdAt: String(row.createdAt)
+            createdAt: String(row.createdAt),
+            deletedAt: row.deletedAt ? String(row.deletedAt) : null
         }));
 
         return NextResponse.json({ success: true, users });

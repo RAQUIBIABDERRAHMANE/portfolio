@@ -35,3 +35,18 @@ export function getUser() {
 export function isAuthenticated() {
     return !!getUser();
 }
+
+import db from './sqlite';
+
+export async function isUserActive(userId: number) {
+    try {
+        const result = await db.execute({
+            sql: 'SELECT deletedAt FROM users WHERE id = ?',
+            args: [userId]
+        });
+        const user = result.rows[0];
+        return user && !user.deletedAt;
+    } catch (e) {
+        return false;
+    }
+}

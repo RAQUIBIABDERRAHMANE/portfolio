@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUser } from '@/lib/auth';
+import { getUser, isUserActive } from '@/lib/auth';
 import db from '@/lib/sqlite';
 
 export async function GET() {
@@ -17,12 +17,19 @@ export async function GET() {
     };
 
     if (user.role === 'client' && user.userId) {
+        if (!await isUserActive(user.userId)) {
+            return NextResponse.json({ authenticated: false });
+        }
+
         const result = await db.execute({
-            sql: 'SELECT fullName, phone FROM users WHERE id = ?',
+            sql: 'SELECT fullName, phone, deletedAt FROM users WHERE id = ?',
             args: [user.userId]
         });
         const dbUser = result.rows[0] as any;
         if (dbUser) {
+            if (dbUser.deletedAt) {
+                return NextResponse.json({ authenticated: false });
+            }
             userInfo.fullName = dbUser.fullName;
             userInfo.phone = dbUser.phone;
         }
