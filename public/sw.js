@@ -20,8 +20,8 @@ self.addEventListener('push', (event) => {
         const data = event.data.json();
         const options = {
             body: data.body,
-            icon: '/logo.ico',
-            badge: '/logo.ico',
+            icon: '/logo.png', // Mobile prefers PNG over ICO
+            badge: '/logo.png',
             vibrate: [100, 50, 100],
             data: {
                 url: data.url || '/'
