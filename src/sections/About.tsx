@@ -64,7 +64,7 @@ export const AboutSection = () => {
           title="Crafting Digital Experiences"
           description="A passionate Full Stack Developer based in Morocco, focused on creating elegant solutions to complex problems."
         />
-        
+
         <div className="mt-20 space-y-16">
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -77,7 +77,7 @@ export const AboutSection = () => {
               className="space-y-8"
             >
               <Card className="p-8">
-                <h3 className="text-2xl font-bold mb-6 glow-text" style={{ 
+                <h3 className="text-2xl font-bold mb-6 glow-text" style={{
                   background: 'linear-gradient(90deg, #00fff9, #00d4ff)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
@@ -98,7 +98,7 @@ export const AboutSection = () => {
                         borderLeft: '2px solid rgba(0, 255, 249, 0.3)',
                       }}
                     >
-                      <motion.div 
+                      <motion.div
                         className="absolute -left-[9px] top-0 w-4 h-4 rounded-full"
                         style={{
                           background: 'linear-gradient(135deg, #00fff9, #00d4ff)',
@@ -138,7 +138,7 @@ export const AboutSection = () => {
               className="space-y-8"
             >
               <Card className="p-8">
-                <h3 className="text-2xl font-bold mb-6 glow-text" style={{ 
+                <h3 className="text-2xl font-bold mb-6 glow-text" style={{
                   background: 'linear-gradient(90deg, #00fff9, #00d4ff)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
@@ -146,7 +146,7 @@ export const AboutSection = () => {
                 }}>
                   My Toolbox
                 </h3>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {toolBoxItems.map((item, index) => (
                     <motion.div
                       key={item.title}
@@ -179,7 +179,7 @@ export const AboutSection = () => {
               </Card>
 
               <Card className="p-8">
-                <h3 className="text-2xl font-bold mb-6 glow-text" style={{ 
+                <h3 className="text-2xl font-bold mb-6 glow-text" style={{
                   background: 'linear-gradient(90deg, #00fff9, #00d4ff)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
@@ -232,7 +232,7 @@ export const AboutSection = () => {
           >
             <Card className="p-8">
               <div className="max-w-3xl mx-auto text-center">
-                <h3 className="text-2xl font-bold mb-4 glow-text" style={{ 
+                <h3 className="text-2xl font-bold mb-4 glow-text" style={{
                   background: 'linear-gradient(90deg, #00fff9, #00d4ff)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
@@ -241,9 +241,9 @@ export const AboutSection = () => {
                   My Philosophy
                 </h3>
                 <p className="text-gray-400 leading-relaxed">
-                  I believe in creating software that not only solves problems but also delights users. 
-                  Every line of code I write is an opportunity to make someone&apos;s life a little better. 
-                  When I&apos;m not coding, you&apos;ll find me exploring new technologies, contributing to open-source projects, 
+                  I believe in creating software that not only solves problems but also delights users.
+                  Every line of code I write is an opportunity to make someone&apos;s life a little better.
+                  When I&apos;m not coding, you&apos;ll find me exploring new technologies, contributing to open-source projects,
                   or sharing knowledge with the developer community.
                 </p>
               </div>

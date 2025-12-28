@@ -18,7 +18,7 @@ export default function RegisterPage() {
                     <div className="max-w-2xl mx-auto text-center mb-12">
                         <h1 className="text-4xl md:text-5xl font-bold mb-6 glow-text text-white">Join the Community</h1>
                         <p className="text-gray-400 text-lg">
-                            Fill out the form below to register. You'll receive a confirmation email once your registration is successful.
+                            Fill out the form below to register. You&apos;ll receive a confirmation email once your registration is successful.
                         </p>
                     </div>
                     <RegistrationForm />
