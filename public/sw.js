@@ -20,10 +20,10 @@ self.addEventListener('push', (event) => {
         const data = event.data.json();
         const options = {
             body: data.body,
-            icon: '/logo.png', // CRITICAL: .ico fails on mobile background wake-up. Use PNG.
-            badge: '/logo.png',
+            icon: '/logo.ico', // CRITICAL: .ico fails on mobile background wake-up. Use PNG.
+            badge: '/logo.ico',
             vibrate: [100, 50, 100],
-            sound: '/notification.mp3', // Custom notification sound
+            sound: self.location.origin + '/notification.mp3', // Use absolute path for reliability
             data: {
                 url: data.url || '/'
             },
@@ -33,7 +33,15 @@ self.addEventListener('push', (event) => {
         };
 
         event.waitUntil(
-            self.registration.showNotification(data.title, options)
+            Promise.all([
+                self.registration.showNotification(data.title, options),
+                // Notify clients to play sound if app is open
+                self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+                    clients.forEach(client => {
+                        client.postMessage({ type: 'PLAY_SOUND' });
+                    });
+                })
+            ])
         );
     } catch (err) {
         console.error('Push handling error:', err);

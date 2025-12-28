@@ -12,6 +12,14 @@ export default function PWAInstaller() {
                     (reg) => console.log("SW registered:", reg.scope),
                     (err) => console.log("SW registration failed:", err)
                 );
+
+                // Listen for messages from SW (e.g. to play sound if app is open)
+                navigator.serviceWorker.addEventListener('message', (event) => {
+                    if (event.data && event.data.type === 'PLAY_SOUND') {
+                        const audio = new Audio('/notification.mp3');
+                        audio.play().catch(e => console.log('Audio play failed (interaction required):', e));
+                    }
+                });
             };
 
             if (document.readyState === "complete") {
