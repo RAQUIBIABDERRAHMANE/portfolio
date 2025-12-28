@@ -38,26 +38,69 @@ export default function ClientDashboard() {
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [subscribing, setSubscribing] = useState(false);
 
+    // Helper for VAPID key conversion
+    function urlBase64ToUint8Array(base64String: string) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+            .replace(/\-/g, '+')
+            .replace(/_/g, '/');
+
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+
     const subscribeToPush = async () => {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            alert("Push notifications are not supported in this browser.");
+            return;
+        }
+
+        const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        if (!vapidKey) {
+            console.error("VAPID Public Key is missing (NEXT_PUBLIC_VAPID_PUBLIC_KEY)");
+            alert("Configuration error: Missing public key.");
+            return;
+        }
+
         setSubscribing(true);
         try {
+            console.log("Starting push subscription...");
             const registration = await navigator.serviceWorker.ready;
+            console.log("Service Worker ready");
+
+            const convertedKey = urlBase64ToUint8Array(vapidKey);
+
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
-                applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+                applicationServerKey: convertedKey
             });
 
-            await fetch("/api/push/subscribe", {
+            console.log("Push subscription created:", subscription);
+
+            const res = await fetch("/api/push/subscribe", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ subscription }),
             });
 
+            if (!res.ok) throw new Error("Server failed to store subscription");
+
             setIsSubscribed(true);
-            alert("Notifications enabled!");
-        } catch (err) {
+            alert("Notifications enabled! You will now receive updates on this device.");
+        } catch (err: any) {
             console.error("Failed to subscribe:", err);
-            alert("Failed to enable notifications. Please check site permissions.");
+
+            let extraInfo = "";
+            if (window.navigator.userAgent.match(/iPhone|iPad|iPod/)) {
+                extraInfo = "\n\nNote: On iOS, notifications require adding this app to your Home Screen first.";
+            }
+
+            alert(`Failed to enable notifications: ${err.message || 'Unknown error'}${extraInfo}`);
         } finally {
             setSubscribing(false);
         }
@@ -160,7 +203,7 @@ export default function ClientDashboard() {
                                 <h2 className="text-xl font-semibold mb-4 text-cyan-400">Welcome to your Dashboard</h2>
                                 <p className="text-gray-400 leading-relaxed">
                                     Hi {userData?.fullName}, thank you for registering! This is your personal space where you can view your profile information.
-                                    Stay tuned as we add more features for our valued clients.
+                                    Stay tuned as we add more features for our valued users.
                                 </p>
                             </Card>
                         </div>

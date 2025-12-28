@@ -35,6 +35,7 @@ export default function AdminDashboard() {
 
     const [pushData, setPushData] = useState({ title: "", body: "", url: "" });
     const [sendingPush, setSendingPush] = useState(false);
+    const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
 
     const handleSendNotification = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -43,7 +44,10 @@ export default function AdminDashboard() {
             const res = await fetch("/api/push/send", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(pushData),
+                body: JSON.stringify({
+                    ...pushData,
+                    targetUserIds: selectedUserIds
+                }),
             });
             const data = await res.json();
             if (res.ok) {
@@ -133,8 +137,8 @@ export default function AdminDashboard() {
                             key={item.id}
                             onClick={() => setActiveTab(item.id)}
                             className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all ${activeTab === item.id
-                                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.1)]"
-                                    : "text-gray-500 hover:text-gray-300 hover:bg-gray-800/50"
+                                ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.1)]"
+                                : "text-gray-500 hover:text-gray-300 hover:bg-gray-800/50"
                                 }`}
                         >
                             {item.icon}
@@ -235,7 +239,25 @@ export default function AdminDashboard() {
                             <div className="flex justify-between items-end">
                                 <div>
                                     <h3 className="text-3xl font-black text-white uppercase tracking-tighter">Identity Registry</h3>
-                                    <p className="text-gray-500 text-sm font-medium">Monitoring {filteredUsers.length} system nodes</p>
+                                    <p className="text-gray-500 text-sm font-medium">Monitoring {filteredUsers.length} system nodes | {selectedUserIds.length} selected for comms</p>
+                                </div>
+                                <div className="flex gap-4">
+                                    {selectedUserIds.length > 0 && (
+                                        <button
+                                            onClick={() => setActiveTab("push")}
+                                            className="px-6 py-2 rounded-lg bg-emerald-500 text-[#020617] font-black text-sm hover:bg-emerald-400 transition-all uppercase tracking-tighter flex items-center gap-2"
+                                        >
+                                            <Bell size={16} /> Prepare targeted broadcast
+                                        </button>
+                                    )}
+                                    {selectedUserIds.length > 0 && (
+                                        <button
+                                            onClick={() => setSelectedUserIds([])}
+                                            className="px-6 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-sm hover:bg-red-500/20 transition-all uppercase tracking-tighter"
+                                        >
+                                            Clear Selection
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
@@ -243,6 +265,20 @@ export default function AdminDashboard() {
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-cyan-500/5 border-b border-cyan-500/10">
+                                            <th className="px-6 py-5 w-10">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedUserIds.length === filteredUsers.length && filteredUsers.length > 0}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            setSelectedUserIds(filteredUsers.map(u => u.id));
+                                                        } else {
+                                                            setSelectedUserIds([]);
+                                                        }
+                                                    }}
+                                                    className="size-4 rounded border-gray-800 bg-gray-950 text-cyan-500 focus:ring-cyan-500"
+                                                />
+                                            </th>
                                             <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-500/70">Signature</th>
                                             <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-500/70">Email Access</th>
                                             <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-500/70">Uplink</th>
@@ -251,7 +287,21 @@ export default function AdminDashboard() {
                                     </thead>
                                     <tbody className="divide-y divide-gray-800/50">
                                         {filteredUsers.map((user) => (
-                                            <tr key={user.id} className="hover:bg-cyan-500/5 transition-all group">
+                                            <tr key={user.id} className={`${selectedUserIds.includes(user.id) ? 'bg-cyan-500/10' : 'hover:bg-cyan-500/5'} transition-all group`}>
+                                                <td className="px-6 py-6 whitespace-nowrap">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedUserIds.includes(user.id)}
+                                                        onChange={(e) => {
+                                                            if (e.target.checked) {
+                                                                setSelectedUserIds([...selectedUserIds, user.id]);
+                                                            } else {
+                                                                setSelectedUserIds(selectedUserIds.filter(id => id !== user.id));
+                                                            }
+                                                        }}
+                                                        className="size-4 rounded border-gray-800 bg-gray-950 text-cyan-500 focus:ring-cyan-500"
+                                                    />
+                                                </td>
                                                 <td className="px-6 py-6 whitespace-nowrap">
                                                     <div className="flex items-center gap-4">
                                                         <div className="size-10 bg-gray-950 rounded-lg flex items-center justify-center font-black text-cyan-500 border border-gray-800">
@@ -289,7 +339,20 @@ export default function AdminDashboard() {
                                             <Bell className="animate-pulse" size={32} />
                                         </div>
                                         <h3 className="text-4xl font-black text-white uppercase tracking-tighter">Signal Command</h3>
-                                        <p className="text-gray-500 text-sm font-medium">Inject broadcast signals into all connected endpoint nodes</p>
+                                        {selectedUserIds.length > 0 ? (
+                                            <div className="space-y-2">
+                                                <p className="text-emerald-400 text-sm font-bold uppercase tracking-widest">Targeted mode active</p>
+                                                <p className="text-gray-500 text-sm font-medium">Ready to inject signal into {selectedUserIds.length} selected endpoint nodes</p>
+                                                <button
+                                                    onClick={() => setSelectedUserIds([])}
+                                                    className="text-[10px] text-red-500 font-bold hover:underline uppercase tracking-tighter"
+                                                >
+                                                    Switch to Global Broadcast
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <p className="text-gray-500 text-sm font-medium">Inject broadcast signals into all connected endpoint nodes</p>
+                                        )}
                                     </div>
 
                                     <Card className="p-12 border-cyan-500/20">

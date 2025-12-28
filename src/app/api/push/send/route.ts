@@ -22,22 +22,43 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { title, body, url } = await req.json();
+        const { title, body, url, targetUserIds } = await req.json();
 
         if (!title || !body) {
             return NextResponse.json({ error: 'Title and body are required' }, { status: 400 });
         }
 
-        const subscriptionsResult = await db.execute('SELECT subscription FROM subscriptions');
+        let sql = 'SELECT subscription FROM subscriptions';
+        let args: any[] = [];
+
+        if (targetUserIds && Array.isArray(targetUserIds) && targetUserIds.length > 0) {
+            const placeholders = targetUserIds.map(() => '?').join(',');
+            sql += ` WHERE user_id IN (${placeholders})`;
+            args = targetUserIds;
+        }
+
+        const subscriptionsResult = await db.execute({ sql, args });
         const subscriptions = subscriptionsResult.rows as any[];
+
+        if (subscriptions.length === 0) {
+            return NextResponse.json({
+                success: true,
+                message: 'No active subscriptions found for selected targets.',
+                stats: { success: 0, failure: 0 }
+            });
+        }
 
         const results = await Promise.allSettled(
             subscriptions.map(sub => {
-                const subscription = JSON.parse(sub.subscription);
-                return webpush.sendNotification(
-                    subscription,
-                    JSON.stringify({ title, body, url: url || '/' })
-                );
+                try {
+                    const subscription = JSON.parse(sub.subscription);
+                    return webpush.sendNotification(
+                        subscription,
+                        JSON.stringify({ title, body, url: url || '/' })
+                    );
+                } catch (e) {
+                    return Promise.reject(new Error('Invalid subscription format'));
+                }
             })
         );
 
