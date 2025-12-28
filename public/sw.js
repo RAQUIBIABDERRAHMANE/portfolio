@@ -22,9 +22,13 @@ self.addEventListener('push', (event) => {
             body: data.body,
             icon: '/logo.ico',
             badge: '/logo.ico',
+            vibrate: [100, 50, 100],
             data: {
                 url: data.url || '/'
-            }
+            },
+            requireInteraction: true, // Key for persistent notifications on desktop
+            tag: 'portfolio-update',
+            renotify: true
         };
 
         event.waitUntil(
@@ -38,6 +42,18 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
     event.waitUntil(
-        clients.openWindow(event.notification.data.url)
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            const url = event.notification.data.url;
+            // Check if there's already a tab open with this URL
+            for (const client of clientList) {
+                if (client.url === url && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            // If not, open a new window
+            if (clients.openWindow) {
+                return clients.openWindow(url);
+            }
+        })
     );
 });
