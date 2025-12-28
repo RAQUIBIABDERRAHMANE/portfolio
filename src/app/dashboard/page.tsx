@@ -37,6 +37,7 @@ export default function ClientDashboard() {
 
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [subscribing, setSubscribing] = useState(false);
+    const [subStatus, setSubStatus] = useState("");
 
     // Helper for VAPID key conversion
     function urlBase64ToUint8Array(base64String: string) {
@@ -55,24 +56,35 @@ export default function ClientDashboard() {
     }
 
     const subscribeToPush = async () => {
-        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-            alert("Push notifications are not supported in this browser.");
+        if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+            alert("Push notifications are not supported in this browser or context.");
             return;
         }
 
         const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
         if (!vapidKey) {
-            console.error("VAPID Public Key is missing (NEXT_PUBLIC_VAPID_PUBLIC_KEY)");
             alert("Configuration error: Missing public key.");
             return;
         }
 
         setSubscribing(true);
-        try {
-            console.log("Starting push subscription...");
-            const registration = await navigator.serviceWorker.ready;
-            console.log("Service Worker ready");
+        setSubStatus("Requesting permission...");
 
+        try {
+            // 1. Request Permission explicitly
+            const permission = await Notification.requestPermission();
+            console.log("Permission status:", permission);
+
+            if (permission !== 'granted') {
+                throw new Error("Permission denied. Please enable notifications in your browser settings.");
+            }
+
+            // 2. Wait for Service Worker
+            setSubStatus("Connecting...");
+            const registration = await navigator.serviceWorker.ready;
+
+            // 3. Check for existing subscription
+            setSubStatus("Registering...");
             const convertedKey = urlBase64ToUint8Array(vapidKey);
 
             const subscription = await registration.pushManager.subscribe({
@@ -82,27 +94,24 @@ export default function ClientDashboard() {
 
             console.log("Push subscription created:", subscription);
 
+            // 4. Send to server
+            setSubStatus("Syncing...");
             const res = await fetch("/api/push/subscribe", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ subscription }),
             });
 
-            if (!res.ok) throw new Error("Server failed to store subscription");
+            if (!res.ok) throw new Error("Sync failed");
 
             setIsSubscribed(true);
-            alert("Notifications enabled! You will now receive updates on this device.");
+            alert("Success! Notifications enabled.");
         } catch (err: any) {
             console.error("Failed to subscribe:", err);
-
-            let extraInfo = "";
-            if (window.navigator.userAgent.match(/iPhone|iPad|iPod/)) {
-                extraInfo = "\n\nNote: On iOS, notifications require adding this app to your Home Screen first.";
-            }
-
-            alert(`Failed to enable notifications: ${err.message || 'Unknown error'}${extraInfo}`);
+            alert(`Error: ${err.message || 'Unknown error'}`);
         } finally {
             setSubscribing(false);
+            setSubStatus("");
         }
     };
 
@@ -154,7 +163,10 @@ export default function ClientDashboard() {
                                     className="w-full flex items-center justify-center gap-2 px-6 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 transition-all text-sm disabled:opacity-50"
                                 >
                                     {subscribing ? (
-                                        <span className="animate-pulse">Enabling...</span>
+                                        <span className="flex items-center gap-2">
+                                            <span className="animate-spin size-3 border-2 border-cyan-400 border-t-transparent rounded-full"></span>
+                                            {subStatus}
+                                        </span>
                                     ) : (
                                         <>
                                             <Bell size={16} />
