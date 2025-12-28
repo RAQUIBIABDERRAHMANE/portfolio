@@ -55,12 +55,7 @@ export async function POST(req: Request) {
                     return webpush.sendNotification(
                         subscription,
                         JSON.stringify({ title, body, url: url || '/' }),
-                        {
-                            TTL: 86400, // Keep message alive for 24 hours if device is offline
-                            headers: {
-                                'Urgency': 'high' // Priority for mobile power management
-                            }
-                        }
+                        { TTL: 86400 } // Keep message alive for 24 hours if device is offline
                     );
                 } catch (e) {
                     return Promise.reject(new Error('Invalid subscription format'));
