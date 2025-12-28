@@ -75,7 +75,18 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Abdo Raquibi',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
+
+import PWAInstaller from "@/components/PWAInstaller";
 
 export default function RootLayout({
   children,
@@ -85,38 +96,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <head>
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            .whitespace-nowrap {
-              display: none;
-            }
-          `
-        }} />
-        <Script id="google-tag-manager" strategy="afterInteractive">
-          {`
-            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','GTM-KDDQ6RLX');
-          `}
-        </Script>
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-CQ4F903N9X"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-CQ4F903N9X');
-          `}
-        </Script>
-        <meta name="author" content="Abderrahmane Raquibi" />
-        <meta name="copyright" content="© 2025 Abderrahmane Raquibi" />
-        <meta property="og:image" content="/abderrahmaneraquibi.jpg" />
-        <meta name="theme-color" content="#0f172a" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -137,74 +116,10 @@ export default function RootLayout({
             }),
           }}
         />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebSite",
-              "url": "https://abdoraquibi.icu",
-              "name": "Abdo Raquibi Portfolio",
-              "potentialAction": {
-                "@type": "SearchAction",
-                "target": "https://abdoraquibi.icu/search?q={search_term_string}",
-                "query-input": "required name=search_term_string",
-              },
-            }),
-          }}
-        />
-
       </head>
       <body className={inter.className}>
-          <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-KDDQ6RLX"
-            height="0"
-            width="0"
-            style={{
-              display: 'none',
-              visibility: 'hidden'
-            }}
-          />
-        
-        {/* Cyber city background with towers and flying robots */}
-        <CyberBackground />
-        
+        <PWAInstaller />
         {children}
-        
-        {/* ElevenLabs ConvAI Widget */}
-        {/* ElevenLabs ConvAI Widget */}
-        <div 
-          dangerouslySetInnerHTML={{
-            __html: '<elevenlabs-convai agent-id="agent_1301k4n2f78kf7q8wzz0m7n9mdee"></elevenlabs-convai>'
-          }}
-        />
-        
-        <Script 
-          src="https://unpkg.com/@elevenlabs/convai-widget-embed" 
-          strategy="afterInteractive"
-        />
-        
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Person",
-              "name": "Abderrahmane Raquibi",
-              "url": "https://abdoraquibi.icu",
-              "image": "https://fr.wikipedia.org/wiki/Abderrahmane_Raquibi#/media/Fichier:Abderrahmane_Raquibi_at_GITEX_Africa_2025.jpg",
-              "sameAs": [
-                "https://fr.wikipedia.org/wiki/Abderrahmane_Raquibi",
-                "https://www.linkedin.com/in/abderrahmaneraquibi",
-                "https://github.com/Raquibiabderrahmane"
-              ],
-              "jobTitle": "Développeur web",
-              "nationality": "MA"
-            }),
-          }}
-        />
-
-
       </body>
     </html>
   );
