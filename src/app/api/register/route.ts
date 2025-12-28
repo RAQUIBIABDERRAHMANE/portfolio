@@ -19,12 +19,12 @@ export async function POST(req: Request) {
 
         // 1. Save to SQLite
         try {
-            const stmt = db.prepare(
-                'INSERT INTO users (fullName, phone, email, password) VALUES (?, ?, ?, ?)'
-            );
-            stmt.run(fullName, phone, email, hashedPassword);
+            await db.execute({
+                sql: 'INSERT INTO users (fullName, phone, email, password) VALUES (?, ?, ?, ?)',
+                args: [fullName, phone, email, hashedPassword]
+            });
         } catch (dbError: any) {
-            if (dbError.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+            if (dbError.message?.includes('UNIQUE constraint failed')) {
                 return NextResponse.json(
                     { error: 'Email already registered' },
                     { status: 400 }

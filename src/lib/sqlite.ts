@@ -1,42 +1,47 @@
-import Database from 'better-sqlite3';
-import path from 'path';
-import fs from 'fs';
+import { createClient } from '@libsql/client';
 
-const dbPath = process.env.DB_PATH || './database/users.sqlite';
-const dbDir = path.dirname(dbPath);
+const url = process.env.TURSO_DATABASE_URL || 'file:./database/users.sqlite';
+const authToken = process.env.TURSO_AUTH_TOKEN;
 
-// Ensure the directory exists
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
-}
+const db = createClient({
+  url,
+  authToken,
+});
 
-const db = new Database(dbPath);
+// Initialize the database tables
+export const initDb = async () => {
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      fullName TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE,
+      password TEXT,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
 
-// Initialize the database
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    fullName TEXT NOT NULL,
-    phone TEXT NOT NULL,
-    email TEXT NOT NULL UNIQUE,
-    password TEXT,
-    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      subscription TEXT NOT NULL,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(user_id) REFERENCES users(id)
+    );
+  `);
 
-  CREATE TABLE IF NOT EXISTS subscriptions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER,
-    subscription TEXT NOT NULL,
-    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(user_id) REFERENCES users(id)
-  );
-`);
+  // Migration for existing databases
+  try {
+    await db.execute('ALTER TABLE users ADD COLUMN password TEXT');
+  } catch (e) {
+    // Column might already exist
+  }
+};
 
-// Migration for existing databases
-try {
-  db.exec('ALTER TABLE users ADD COLUMN password TEXT');
-} catch (e) {
-  // Column might already exist
+// Auto-init only if in development or locally
+if (process.env.NODE_ENV === 'development' || !process.env.VERCEL) {
+  initDb().catch(console.error);
 }
 
 export default db;

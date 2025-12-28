@@ -34,7 +34,11 @@ export async function POST(req: Request) {
         }
 
         // Check for Client in DB
-        const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email) as any;
+        const result = await db.execute({
+            sql: 'SELECT * FROM users WHERE email = ?',
+            args: [email]
+        });
+        const user = result.rows[0] as any;
 
         if (user && await bcrypt.compare(password, user.password)) {
             const token = signToken({

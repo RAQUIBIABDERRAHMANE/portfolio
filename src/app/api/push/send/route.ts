@@ -28,7 +28,8 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Title and body are required' }, { status: 400 });
         }
 
-        const subscriptions = db.prepare('SELECT subscription FROM subscriptions').all() as any[];
+        const subscriptionsResult = await db.execute('SELECT subscription FROM subscriptions');
+        const subscriptions = subscriptionsResult.rows as any[];
 
         const results = await Promise.allSettled(
             subscriptions.map(sub => {
@@ -49,12 +50,12 @@ export async function POST(req: Request) {
             .filter(Boolean);
 
         if (deadSubscriptions.length > 0) {
-            const deleteStmt = db.prepare('DELETE FROM subscriptions WHERE subscription = ?');
-            db.transaction(() => {
-                for (const dead of deadSubscriptions) {
-                    deleteStmt.run(dead.subscription);
-                }
-            })();
+            for (const dead of deadSubscriptions) {
+                await db.execute({
+                    sql: 'DELETE FROM subscriptions WHERE subscription = ?',
+                    args: [dead.subscription]
+                });
+            }
         }
 
         return NextResponse.json({

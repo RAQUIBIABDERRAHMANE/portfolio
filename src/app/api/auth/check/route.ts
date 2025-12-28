@@ -16,7 +16,11 @@ export async function GET() {
     };
 
     if (user.role === 'client' && user.userId) {
-        const dbUser = db.prepare('SELECT fullName FROM users WHERE id = ?').get(user.userId) as any;
+        const result = await db.execute({
+            sql: 'SELECT fullName FROM users WHERE id = ?',
+            args: [user.userId]
+        });
+        const dbUser = result.rows[0] as any;
         if (dbUser) {
             userInfo.fullName = dbUser.fullName;
         }

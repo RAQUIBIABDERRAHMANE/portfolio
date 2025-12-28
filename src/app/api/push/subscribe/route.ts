@@ -12,14 +12,20 @@ export async function POST(req: Request) {
         }
 
         const subscriptionJson = JSON.stringify(subscription);
-        const userId = user?.role === 'client' ? user.userId : null;
+        const userId = user?.role === 'client' ? (user.userId ?? null) : null;
 
         // Check if subscription already exists to avoid duplicates
-        const existing = db.prepare('SELECT id FROM subscriptions WHERE subscription = ?').get(subscriptionJson) as any;
+        const existingResult = await db.execute({
+            sql: 'SELECT id FROM subscriptions WHERE subscription = ?',
+            args: [subscriptionJson]
+        });
+        const existing = existingResult.rows[0];
 
         if (!existing) {
-            db.prepare('INSERT INTO subscriptions (user_id, subscription) VALUES (?, ?)')
-                .run(userId, subscriptionJson);
+            await db.execute({
+                sql: 'INSERT INTO subscriptions (user_id, subscription) VALUES (?, ?)',
+                args: [userId, subscriptionJson]
+            });
         }
 
         return NextResponse.json({ success: true, message: 'Subscribed to push notifications' });

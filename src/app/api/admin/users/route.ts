@@ -11,7 +11,8 @@ export async function GET() {
             );
         }
 
-        const users = db.prepare('SELECT id, fullName, email, phone, createdAt FROM users ORDER BY createdAt DESC').all();
+        const result = await db.execute('SELECT id, fullName, email, phone, createdAt FROM users ORDER BY createdAt DESC');
+        const users = result.rows;
 
         return NextResponse.json({ success: true, users });
     } catch (error: any) {

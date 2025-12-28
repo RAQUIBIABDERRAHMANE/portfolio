@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "^2.9.0",
+    "@libsql/client": "^0.15.15",
     "@n8n/chat": "^0.50.0",
     "@svgr/webpack": "^8.1.0",
     "@types/better-sqlite3": "^7.6.13",
