@@ -12,11 +12,23 @@ export async function GET() {
         }
 
         const result = await db.execute('SELECT id, fullName, email, phone, createdAt FROM users ORDER BY createdAt DESC');
-        const users = result.rows;
+
+        // Map rows to plain objects for reliable JSON serialization
+        const users = result.rows.map(row => ({
+            id: Number(row.id),
+            fullName: String(row.fullName),
+            email: String(row.email),
+            phone: String(row.phone),
+            createdAt: String(row.createdAt)
+        }));
 
         return NextResponse.json({ success: true, users });
     } catch (error: any) {
-        console.error('Fetch Users Error:', error);
+        console.error('Fetch Users API Error:', {
+            message: error.message,
+            stack: error.stack,
+            cause: error.cause
+        });
         return NextResponse.json(
             { error: 'Internal Server Error', details: error.message },
             { status: 500 }
