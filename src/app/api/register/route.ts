@@ -18,12 +18,20 @@ export async function POST(req: Request) {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // 1. Save to SQLite
+        // 1. Save to SQLite & Get ID atomically using RETURNING *
+        let newUser: any;
         try {
-            await db.execute({
-                sql: 'INSERT INTO users (fullName, phone, email, password) VALUES (?, ?, ?, ?)',
+            const result = await db.execute({
+                sql: 'INSERT INTO users (fullName, phone, email, password) VALUES (?, ?, ?, ?) RETURNING id, email, fullName',
                 args: [fullName, phone, email, hashedPassword]
             });
+
+            if (result.rows.length > 0) {
+                newUser = result.rows[0];
+            } else {
+                throw new Error("Failed to insert user and retrieve data.");
+            }
+
         } catch (dbError: any) {
             if (dbError.message?.includes('UNIQUE constraint failed')) {
                 return NextResponse.json(
@@ -33,16 +41,6 @@ export async function POST(req: Request) {
             }
             throw dbError;
         }
-
-        // 2. Auto-Login: Generate Token & Set Cookie
-        // We need the new user's ID, which we can get from the result or by querying
-        // Since we know the email is unique, we can just query it back or use `lastInsertRowid` if using better driver API.
-        // For safety, let's query it back.
-        const userResult = await db.execute({
-            sql: 'SELECT id, email, fullName, role FROM users WHERE email = ?',
-            args: [email]
-        });
-        const newUser = userResult.rows[0] as any;
 
         const token = signToken({
             userId: newUser.id,

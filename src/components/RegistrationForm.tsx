@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card } from "./Card";
 
@@ -13,6 +13,22 @@ export const RegistrationForm = () => {
     });
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [message, setMessage] = useState("");
+
+    const [redirectPath, setRedirectPath] = useState("/dashboard");
+
+    useEffect(() => {
+        // Capture referrer on mount
+        if (typeof document !== 'undefined' && document.referrer) {
+            const referrerUrl = new URL(document.referrer);
+            // Only redirect to internal pages, excluding the login/register pages themselves to avoid loops
+            if (referrerUrl.origin === window.location.origin) {
+                const path = referrerUrl.pathname;
+                if (path !== '/login' && path !== '/register') {
+                    setRedirectPath(path);
+                }
+            }
+        }
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -35,8 +51,8 @@ export const RegistrationForm = () => {
             if (response.ok) {
                 setStatus("success");
                 setMessage("Registration successful! Redirecting...");
-                // Auto-login successful, redirect to dashboard
-                window.location.href = "/dashboard";
+                // Auto-login successful, redirect to previous page or dashboard
+                window.location.href = redirectPath;
             } else {
                 setStatus("error");
                 setMessage(data.error || "Something went wrong");
