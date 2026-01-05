@@ -38,10 +38,12 @@ export default function ClientDashboard() {
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [subscribing, setSubscribing] = useState(false);
 
-    const subscribeToPush = async () => {
+    const subscribeToPush = async (isAuto = false) => {
         setSubscribing(true);
         try {
             if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+                // If auto, just return silently, don't throw to console unless debug
+                if (isAuto) return;
                 throw new Error("VAPID Public Key not found");
             }
 
@@ -65,14 +67,23 @@ export default function ClientDashboard() {
             });
 
             setIsSubscribed(true);
-            alert("Notifications enabled!");
+            if (!isAuto) alert("Notifications enabled!");
         } catch (err: any) {
             console.error("Failed to subscribe:", err);
-            alert(`Failed to enable notifications: ${err.message || "Unknown error"}`);
+            if (!isAuto) alert(`Failed to enable notifications: ${err.message || "Unknown error"}`);
         } finally {
             setSubscribing(false);
         }
     };
+
+    useEffect(() => {
+        // Auto-request permission if not yet decided
+        if ("Notification" in window && Notification.permission === "default") {
+            // We can't programmematically click, but we can trigger the subscribe flow 
+            // which requests permission via pushManager.subscribe
+            subscribeToPush(true);
+        }
+    }, []);
 
     const handleLogout = async () => {
         await fetch("/api/logout", { method: "POST" });
@@ -117,7 +128,7 @@ export default function ClientDashboard() {
 
                             {!isSubscribed && (
                                 <button
-                                    onClick={subscribeToPush}
+                                    onClick={() => subscribeToPush(false)}
                                     disabled={subscribing}
                                     className="w-full flex items-center justify-center gap-2 px-6 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 transition-all text-sm disabled:opacity-50"
                                 >
