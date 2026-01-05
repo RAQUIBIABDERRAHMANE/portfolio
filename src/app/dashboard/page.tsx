@@ -7,10 +7,14 @@ import { Card } from "@/components/Card";
 import { motion } from "framer-motion";
 import { User, Mail, Phone, Calendar, LogOut, Bell, BellOff } from "lucide-react";
 
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+
 export default function ClientDashboard() {
     const [userData, setUserData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+
+    const { isSubscribed, subscribing, subscribeToPush } = usePushNotifications();
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -34,56 +38,6 @@ export default function ClientDashboard() {
         };
         fetchUserData();
     }, [router]);
-
-    const [isSubscribed, setIsSubscribed] = useState(false);
-    const [subscribing, setSubscribing] = useState(false);
-
-    const subscribeToPush = async (isAuto = false) => {
-        setSubscribing(true);
-        try {
-            if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
-                // If auto, just return silently, don't throw to console unless debug
-                if (isAuto) return;
-                throw new Error("VAPID Public Key not found");
-            }
-
-            console.log("Waiting for Service Worker...");
-            const registration = await Promise.race([
-                navigator.serviceWorker.ready,
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Service Worker timeout")), 5000))
-            ]) as ServiceWorkerRegistration; // Explicit cast to help TS
-
-            console.log("SW Ready. Subscribing...");
-            const subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-            });
-
-            console.log("Sending subscription to server...");
-            await fetch("/api/push/subscribe", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ subscription }),
-            });
-
-            setIsSubscribed(true);
-            if (!isAuto) alert("Notifications enabled!");
-        } catch (err: any) {
-            console.error("Failed to subscribe:", err);
-            if (!isAuto) alert(`Failed to enable notifications: ${err.message || "Unknown error"}`);
-        } finally {
-            setSubscribing(false);
-        }
-    };
-
-    useEffect(() => {
-        // Auto-request permission if not yet decided
-        if ("Notification" in window && Notification.permission === "default") {
-            // We can't programmematically click, but we can trigger the subscribe flow 
-            // which requests permission via pushManager.subscribe
-            subscribeToPush(true);
-        }
-    }, []);
 
     const handleLogout = async () => {
         await fetch("/api/logout", { method: "POST" });
