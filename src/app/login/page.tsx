@@ -104,7 +104,7 @@ function LoginForm() {
 
             <div className="text-center mt-4">
                 <p className="text-gray-400 text-sm">
-                    Don't have an account?{" "}
+                    Don&apos;t have an account?{" "}
                     <Link
                         href="/register"
                         className="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors"
