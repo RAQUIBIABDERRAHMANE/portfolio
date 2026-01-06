@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Card } from "./Card";
 
@@ -13,22 +15,9 @@ export const RegistrationForm = () => {
     });
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [message, setMessage] = useState("");
-
-    const [redirectPath, setRedirectPath] = useState("/dashboard");
-
-    useEffect(() => {
-        // Capture referrer on mount
-        if (typeof document !== 'undefined' && document.referrer) {
-            const referrerUrl = new URL(document.referrer);
-            // Only redirect to internal pages, excluding the login/register pages themselves to avoid loops
-            if (referrerUrl.origin === window.location.origin) {
-                const path = referrerUrl.pathname;
-                if (path !== '/login' && path !== '/register') {
-                    setRedirectPath(path);
-                }
-            }
-        }
-    }, []);
+    const searchParams = useSearchParams();
+    const redirectTo = searchParams.get("redirect");
+    const redirectPath = redirectTo || "/dashboard";
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -145,6 +134,18 @@ export const RegistrationForm = () => {
                         {message}
                     </motion.p>
                 )}
+
+                <div className="text-center mt-4">
+                    <p className="text-gray-400 text-sm">
+                        Already have an account?{" "}
+                        <Link
+                            href="/login"
+                            className="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors"
+                        >
+                            Login here
+                        </Link>
+                    </p>
+                </div>
             </form>
         </Card>
     );

@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Card } from "@/components/Card";
 import { Header } from "@/sections/Header";
@@ -100,6 +101,18 @@ function LoginForm() {
             >
                 {status === "loading" ? "Logging in..." : "Login"}
             </motion.button>
+
+            <div className="text-center mt-4">
+                <p className="text-gray-400 text-sm">
+                    Don't have an account?{" "}
+                    <Link
+                        href="/register"
+                        className="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors"
+                    >
+                        Register here
+                    </Link>
+                </p>
+            </div>
         </form>
     );
 }

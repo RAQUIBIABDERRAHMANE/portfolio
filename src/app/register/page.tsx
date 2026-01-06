@@ -1,12 +1,9 @@
+"use client";
+
+import { Suspense } from "react";
 import { Header } from "@/sections/Header";
 import { Footer } from "@/sections/Footer";
 import { RegistrationForm } from "@/components/RegistrationForm";
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-    title: "Register | Abdo Raquibi Portfolio",
-    description: "Join my community and stay updated with my latest projects and services.",
-};
 
 export default function RegisterPage() {
     return (
@@ -21,7 +18,9 @@ export default function RegisterPage() {
                             Fill out the form below to register. You&apos;ll receive a confirmation email once your registration is successful.
                         </p>
                     </div>
-                    <RegistrationForm />
+                    <Suspense fallback={<div className="text-cyan-400 animate-pulse text-center">LOADING...</div>}>
+                        <RegistrationForm />
+                    </Suspense>
                 </div>
                 <Footer />
             </div>

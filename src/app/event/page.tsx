@@ -7,6 +7,7 @@ import { HeaderSection } from "@/components/HeaderSection";
 import { Card } from "@/components/Card";
 import { Header } from "@/sections/Header";
 import { Footer } from "@/sections/Footer";
+import { AuthRequiredModal } from "@/components/AuthRequiredModal";
 
 export default function EventPage() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function EventPage() {
   });
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error" | "checking">("checking");
   const [message, setMessage] = useState("");
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -29,7 +31,8 @@ export default function EventPage() {
         console.log("Auth data for event:", data);
 
         if (!data.authenticated) {
-          router.push("/login?redirect=/event");
+          setShowAuthModal(true);
+          setStatus("idle");
           return;
         }
 
@@ -42,7 +45,8 @@ export default function EventPage() {
         setStatus("idle");
       } catch (err) {
         console.error("Event auth error:", err);
-        router.push("/login?redirect=/event");
+        setShowAuthModal(true);
+        setStatus("idle");
       }
     };
     checkAuth();
@@ -88,6 +92,7 @@ export default function EventPage() {
 
   return (
     <div className="min-h-screen bg-[#020617] text-white">
+      <AuthRequiredModal isOpen={showAuthModal} redirectPath="/event" />
       <Header />
       <main className="container max-w-3xl py-32 lg:py-40">
         <HeaderSection
