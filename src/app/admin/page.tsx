@@ -15,7 +15,22 @@ import {
     User as UserIcon,
     ArrowUpRight,
     Clock,
-    Trash2
+    Trash2,
+    FileText,
+    Eye,
+    EyeOff,
+    Plus,
+    Save,
+    Briefcase,
+    CheckCircle,
+    XCircle,
+    ExternalLink,
+    Mail,
+    Phone,
+    Calendar,
+    Code,
+    DollarSign,
+    Download
 } from "lucide-react";
 
 interface User {
@@ -27,17 +42,54 @@ interface User {
     deletedAt?: string | null;
 }
 
+interface PageSetting {
+    id: number;
+    page_path: string;
+    page_name: string;
+    is_enabled: boolean;
+    disabled_message: string;
+    redirect_path: string | null;
+}
+
+interface EmploymentSubmission {
+    id: number;
+    fullName: string;
+    email: string;
+    phone: string;
+    idNumber: string;
+    startDate: string;
+    position: string;
+    githubUrl: string;
+    portfolioUrl: string;
+    linkedinUrl: string;
+    skills: string;
+    hasFixedSalary: number;
+    fixedSalary: string;
+    revenueSharePercentage: string;
+    cvFileName: string;
+    cvData: string;
+    status: 'pending' | 'approved' | 'rejected';
+    submittedAt: string;
+}
+
 export default function AdminDashboard() {
     const [users, setUsers] = useState<User[]>([]);
+    const [pages, setPages] = useState<PageSetting[]>([]);
+    const [applications, setApplications] = useState<EmploymentSubmission[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [activeTab, setActiveTab] = useState("overview");
     const [searchQuery, setSearchQuery] = useState("");
+    const [selectedApplication, setSelectedApplication] = useState<EmploymentSubmission | null>(null);
+    const [updatingStatus, setUpdatingStatus] = useState<number | null>(null);
     const router = useRouter();
 
     const [pushData, setPushData] = useState({ title: "", body: "", url: "" });
     const [sendingPush, setSendingPush] = useState(false);
     const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
+    const [savingPages, setSavingPages] = useState<{ [key: string]: boolean }>({});
+    const [newPage, setNewPage] = useState({ page_path: "", page_name: "", disabled_message: "" });
+    const [showAddPage, setShowAddPage] = useState(false);
 
     const handleSendNotification = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -81,6 +133,150 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleTogglePage = async (page: PageSetting) => {
+        const pathKey = page.page_path.replace("/", "");
+        setSavingPages(prev => ({ ...prev, [pathKey]: true }));
+        
+        try {
+            const res = await fetch(`/api/admin/pages/${pathKey}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ is_enabled: !page.is_enabled }),
+            });
+            
+            if (res.ok) {
+                setPages(pages.map(p => 
+                    p.page_path === page.page_path 
+                        ? { ...p, is_enabled: !p.is_enabled } 
+                        : p
+                ));
+            } else {
+                alert("Failed to update page");
+            }
+        } catch (err) {
+            alert("Failed to update page");
+        } finally {
+            setSavingPages(prev => ({ ...prev, [pathKey]: false }));
+        }
+    };
+
+    const handleUpdatePageMessage = async (page: PageSetting, message: string) => {
+        const pathKey = page.page_path.replace("/", "");
+        
+        try {
+            await fetch(`/api/admin/pages/${pathKey}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ disabled_message: message }),
+            });
+            
+            setPages(pages.map(p => 
+                p.page_path === page.page_path 
+                    ? { ...p, disabled_message: message } 
+                    : p
+            ));
+        } catch (err) {
+            console.error("Failed to update message");
+        }
+    };
+
+    const handleAddPage = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newPage.page_path || !newPage.page_name) return;
+        
+        try {
+            const res = await fetch("/api/admin/pages", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    page_path: newPage.page_path.startsWith("/") ? newPage.page_path : "/" + newPage.page_path,
+                    page_name: newPage.page_name,
+                    is_enabled: true,
+                    disabled_message: newPage.disabled_message || "Cette page est temporairement indisponible.",
+                }),
+            });
+            
+            const data = await res.json();
+            
+            if (res.ok) {
+                // Refetch pages
+                const pagesRes = await fetch("/api/admin/pages");
+                if (pagesRes.ok) {
+                    const pagesData = await pagesRes.json();
+                    setPages(pagesData.pages);
+                }
+                setNewPage({ page_path: "", page_name: "", disabled_message: "" });
+                setShowAddPage(false);
+            } else {
+                alert("Failed to add page: " + (data.error || "Unknown error"));
+            }
+        } catch (err: any) {
+            alert("Failed to add page: " + (err.message || "Network error"));
+        }
+    };
+
+    const fetchPages = async () => {
+        try {
+            const response = await fetch("/api/admin/pages");
+            if (response.ok) {
+                const data = await response.json();
+                setPages(data.pages || []);
+            }
+        } catch (err) {
+            console.error("Failed to fetch pages:", err);
+        }
+    };
+
+    const fetchApplications = async () => {
+        try {
+            const response = await fetch("/api/employment");
+            if (response.ok) {
+                const data = await response.json();
+                setApplications(data.submissions || []);
+            }
+        } catch (err) {
+            console.error("Failed to fetch applications:", err);
+        }
+    };
+
+    const updateApplicationStatus = async (id: number, status: 'approved' | 'rejected') => {
+        setUpdatingStatus(id);
+        try {
+            const response = await fetch(`/api/employment/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            if (response.ok) {
+                setApplications(apps => apps.map(app => 
+                    app.id === id ? { ...app, status } : app
+                ));
+                setSelectedApplication(null);
+            } else {
+                alert('Failed to update status');
+            }
+        } catch (err) {
+            alert('Failed to update status');
+        } finally {
+            setUpdatingStatus(null);
+        }
+    };
+
+    const deleteApplication = async (id: number) => {
+        if (!confirm('Are you sure you want to delete this application?')) return;
+        try {
+            const response = await fetch(`/api/employment/${id}`, { method: 'DELETE' });
+            if (response.ok) {
+                setApplications(apps => apps.filter(app => app.id !== id));
+                setSelectedApplication(null);
+            } else {
+                alert('Failed to delete application');
+            }
+        } catch (err) {
+            alert('Failed to delete application');
+        }
+    };
+
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -102,6 +298,8 @@ export default function AdminDashboard() {
         };
 
         fetchUsers();
+        fetchPages();
+        fetchApplications();
     }, [router]);
 
     const handleLogout = async () => {
@@ -146,11 +344,13 @@ export default function AdminDashboard() {
                 </div>
 
                 <nav className="flex-1 p-4 space-y-2">
-                    {[
+                    {([
                         { id: "overview", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
                         { id: "users", label: "Registry", icon: <Users size={20} /> },
+                        { id: "applications", label: "Applications", icon: <Briefcase size={20} />, badge: applications.filter(a => a.status === 'pending').length },
+                        { id: "pages", label: "Pages", icon: <FileText size={20} /> },
                         { id: "push", label: "Comms", icon: <Bell size={20} /> },
-                    ].map((item) => (
+                    ] as Array<{ id: string; label: string; icon: JSX.Element; badge?: number }>).map((item) => (
                         <button
                             key={item.id}
                             onClick={() => setActiveTab(item.id)}
@@ -161,6 +361,9 @@ export default function AdminDashboard() {
                         >
                             {item.icon}
                             <span className="font-bold text-sm tracking-wide">{item.label}</span>
+                            {item.badge !== undefined && item.badge > 0 && (
+                                <span className="ml-auto bg-amber-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">{item.badge}</span>
+                            )}
                         </button>
                     ))}
                 </nav>
@@ -355,6 +558,353 @@ export default function AdminDashboard() {
                                     <div className="py-20 text-center text-gray-700 italic font-mono uppercase tracking-[0.2em] text-xs underline decoration-red-500/50 underline-offset-8">Data buffer empty</div>
                                 )}
                             </Card>
+                        </div>
+                    )}
+
+                    {activeTab === "pages" && (
+                        <div className="space-y-6">
+                            <div className="flex justify-between items-end">
+                                <div>
+                                    <h3 className="text-3xl font-black text-white uppercase tracking-tighter">Page Control</h3>
+                                    <p className="text-gray-500 text-sm font-medium">Gérer la visibilité des pages du site</p>
+                                </div>
+                                <button
+                                    onClick={() => setShowAddPage(!showAddPage)}
+                                    className="px-6 py-2 rounded-lg bg-cyan-500 text-[#020617] font-black text-sm hover:bg-cyan-400 transition-all uppercase tracking-tighter flex items-center gap-2"
+                                >
+                                    <Plus size={16} /> Ajouter une page
+                                </button>
+                            </div>
+
+                            {showAddPage && (
+                                <Card className="p-6 border-cyan-500/20">
+                                    <form onSubmit={handleAddPage} className="space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.2em]">Chemin</label>
+                                                <input
+                                                    type="text"
+                                                    value={newPage.page_path}
+                                                    onChange={(e) => setNewPage({ ...newPage, page_path: e.target.value })}
+                                                    placeholder="/example"
+                                                    className="w-full bg-gray-950 border border-gray-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500 font-mono text-sm"
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.2em]">Nom</label>
+                                                <input
+                                                    type="text"
+                                                    value={newPage.page_name}
+                                                    onChange={(e) => setNewPage({ ...newPage, page_name: e.target.value })}
+                                                    placeholder="Example Page"
+                                                    className="w-full bg-gray-950 border border-gray-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500 text-sm"
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.2em]">Message désactivé</label>
+                                                <input
+                                                    type="text"
+                                                    value={newPage.disabled_message}
+                                                    onChange={(e) => setNewPage({ ...newPage, disabled_message: e.target.value })}
+                                                    placeholder="Page temporairement indisponible"
+                                                    className="w-full bg-gray-950 border border-gray-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500 text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-end gap-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowAddPage(false)}
+                                                className="px-4 py-2 rounded-lg bg-gray-800 text-gray-400 font-bold text-sm hover:bg-gray-700 transition-all"
+                                            >
+                                                Annuler
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                className="px-4 py-2 rounded-lg bg-cyan-500 text-[#020617] font-bold text-sm hover:bg-cyan-400 transition-all flex items-center gap-2"
+                                            >
+                                                <Save size={16} /> Enregistrer
+                                            </button>
+                                        </div>
+                                    </form>
+                                </Card>
+                            )}
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {pages.map((page) => (
+                                    <Card key={page.id} className={`p-6 transition-all ${page.is_enabled ? 'border-emerald-500/20' : 'border-red-500/20 bg-red-500/5'}`}>
+                                        <div className="flex items-start justify-between mb-4">
+                                            <div>
+                                                <h4 className="font-black text-white text-lg uppercase tracking-tight">{page.page_name}</h4>
+                                                <p className="text-cyan-400 font-mono text-xs">{page.page_path}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => handleTogglePage(page)}
+                                                disabled={savingPages[page.page_path.replace("/", "")]}
+                                                className={`p-3 rounded-xl transition-all ${
+                                                    page.is_enabled 
+                                                        ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' 
+                                                        : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                                                }`}
+                                            >
+                                                {savingPages[page.page_path.replace("/", "")] ? (
+                                                    <div className="size-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                                ) : page.is_enabled ? (
+                                                    <Eye size={20} />
+                                                ) : (
+                                                    <EyeOff size={20} />
+                                                )}
+                                            </button>
+                                        </div>
+                                        
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`size-2 rounded-full ${page.is_enabled ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : 'bg-red-500 shadow-[0_0_10px_#ef4444]'}`} />
+                                                <span className={`text-xs font-bold uppercase tracking-widest ${page.is_enabled ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                    {page.is_enabled ? 'Active' : 'Désactivée'}
+                                                </span>
+                                            </div>
+                                            
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Message quand désactivé:</label>
+                                                <input
+                                                    type="text"
+                                                    value={page.disabled_message}
+                                                    onChange={(e) => {
+                                                        setPages(pages.map(p => 
+                                                            p.page_path === page.page_path 
+                                                                ? { ...p, disabled_message: e.target.value } 
+                                                                : p
+                                                        ));
+                                                    }}
+                                                    onBlur={(e) => handleUpdatePageMessage(page, e.target.value)}
+                                                    className="w-full bg-gray-950/50 border border-gray-800 rounded-lg px-3 py-2 text-gray-300 text-xs focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                />
+                                            </div>
+                                        </div>
+                                    </Card>
+                                ))}
+                                
+                                {pages.length === 0 && (
+                                    <div className="col-span-full py-20 text-center text-gray-700 italic font-mono uppercase tracking-[0.2em] text-xs">
+                                        Aucune page configurée. Exécutez le script SQL pour initialiser.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === "applications" && (
+                        <div className="p-10 space-y-8">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-4xl font-black text-white uppercase tracking-tighter">Employment Applications</h2>
+                                    <p className="text-gray-500 mt-2">Manage developer employment submissions</p>
+                                </div>
+                                <div className="flex gap-4 text-sm">
+                                    <div className="px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400">
+                                        <span className="font-bold">{applications.filter(a => a.status === 'pending').length}</span> Pending
+                                    </div>
+                                    <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400">
+                                        <span className="font-bold">{applications.filter(a => a.status === 'approved').length}</span> Approved
+                                    </div>
+                                    <div className="px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+                                        <span className="font-bold">{applications.filter(a => a.status === 'rejected').length}</span> Rejected
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {applications.map((app) => (
+                                    <Card 
+                                        key={app.id} 
+                                        className={`p-6 cursor-pointer hover:scale-[1.02] transition-all ${
+                                            app.status === 'pending' ? 'border-amber-500/30' : 
+                                            app.status === 'approved' ? 'border-emerald-500/30' : 'border-red-500/30'
+                                        } ${selectedApplication?.id === app.id ? 'ring-2 ring-cyan-500' : ''}`}
+                                        onClick={() => setSelectedApplication(app)}
+                                    >
+                                        <div className="flex items-start justify-between mb-4">
+                                            <div>
+                                                <h4 className="font-black text-white text-lg">{app.fullName}</h4>
+                                                <p className="text-cyan-400 text-sm">{app.position}</p>
+                                            </div>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                                                app.status === 'pending' ? 'bg-amber-500/20 text-amber-400' :
+                                                app.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : 
+                                                'bg-red-500/20 text-red-400'
+                                            }`}>
+                                                {app.status}
+                                            </span>
+                                        </div>
+                                        <div className="space-y-2 text-sm text-gray-400">
+                                            <div className="flex items-center gap-2">
+                                                <Mail size={14} className="text-gray-600" />
+                                                {app.email}
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Calendar size={14} className="text-gray-600" />
+                                                Start: {new Date(app.startDate).toLocaleDateString()}
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <DollarSign size={14} className="text-gray-600" />
+                                                {app.revenueSharePercentage}% Revenue Share
+                                            </div>
+                                        </div>
+                                        {app.skills && (
+                                            <div className="mt-4 flex flex-wrap gap-1">
+                                                {app.skills.split(', ').slice(0, 5).map((skill, i) => (
+                                                    <span key={i} className="px-2 py-0.5 bg-cyan-500/10 text-cyan-400 text-[10px] rounded-md font-bold">
+                                                        {skill}
+                                                    </span>
+                                                ))}
+                                                {app.skills.split(', ').length > 5 && (
+                                                    <span className="px-2 py-0.5 bg-gray-800 text-gray-500 text-[10px] rounded-md">
+                                                        +{app.skills.split(', ').length - 5} more
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                        <div className="mt-4 pt-4 border-t border-gray-800 text-[10px] text-gray-600">
+                                            Submitted: {new Date(app.submittedAt).toLocaleString()}
+                                        </div>
+                                    </Card>
+                                ))}
+                                
+                                {applications.length === 0 && (
+                                    <div className="col-span-full py-20 text-center text-gray-700 italic font-mono uppercase tracking-[0.2em] text-xs">
+                                        No applications yet
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Detail Modal */}
+                            <AnimatePresence>
+                                {selectedApplication && (
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                                        onClick={() => setSelectedApplication(null)}
+                                    >
+                                        <motion.div
+                                            initial={{ scale: 0.9, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            exit={{ scale: 0.9, opacity: 0 }}
+                                            className="bg-[#0a0f1a] border border-cyan-500/20 rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div>
+                                                    <h3 className="text-2xl font-black text-white">{selectedApplication.fullName}</h3>
+                                                    <p className="text-cyan-400">{selectedApplication.position}</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => setSelectedApplication(null)}
+                                                    className="text-gray-500 hover:text-white text-2xl"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4 mb-6">
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">Email</p>
+                                                    <p className="text-white">{selectedApplication.email}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">Phone</p>
+                                                    <p className="text-white">{selectedApplication.phone}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">ID/Passport</p>
+                                                    <p className="text-white">{selectedApplication.idNumber}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">Start Date</p>
+                                                    <p className="text-white">{new Date(selectedApplication.startDate).toLocaleDateString()}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">Fixed Salary</p>
+                                                    <p className="text-white">{selectedApplication.hasFixedSalary ? (selectedApplication.fixedSalary || 'Yes') : 'No'}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">Revenue Share</p>
+                                                    <p className="font-bold text-emerald-400">{selectedApplication.revenueSharePercentage}%</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="mb-6">
+                                                <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">Skills & Technologies</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {selectedApplication.skills?.split(', ').map((skill, i) => (
+                                                        <span key={i} className="px-3 py-1 bg-cyan-500/10 text-cyan-400 text-sm rounded-lg font-medium">
+                                                            {skill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-wrap gap-3 mb-6">
+                                                {selectedApplication.githubUrl && (
+                                                    <a href={selectedApplication.githubUrl} target="_blank" rel="noopener noreferrer" 
+                                                       className="flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition-all">
+                                                        <Code size={16} /> GitHub <ExternalLink size={12} />
+                                                    </a>
+                                                )}
+                                                {selectedApplication.portfolioUrl && (
+                                                    <a href={selectedApplication.portfolioUrl} target="_blank" rel="noopener noreferrer"
+                                                       className="flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition-all">
+                                                        Portfolio <ExternalLink size={12} />
+                                                    </a>
+                                                )}
+                                                {selectedApplication.linkedinUrl && (
+                                                    <a href={selectedApplication.linkedinUrl} target="_blank" rel="noopener noreferrer"
+                                                       className="flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition-all">
+                                                        LinkedIn <ExternalLink size={12} />
+                                                    </a>
+                                                )}
+                                                {selectedApplication.cvData && (
+                                                    <a href={selectedApplication.cvData} download={selectedApplication.cvFileName || 'cv.pdf'}
+                                                       className="flex items-center gap-2 px-4 py-2 bg-cyan-500/20 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/30 transition-all">
+                                                        <FileText size={16} /> {selectedApplication.cvFileName || 'CV'} <Download size={12} />
+                                                    </a>
+                                                )}
+                                            </div>
+
+                                            <div className="flex gap-3 pt-6 border-t border-gray-800">
+                                                {selectedApplication.status === 'pending' && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => updateApplicationStatus(selectedApplication.id, 'approved')}
+                                                            disabled={updatingStatus === selectedApplication.id}
+                                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500 text-black rounded-xl font-bold hover:bg-emerald-400 transition-all disabled:opacity-50"
+                                                        >
+                                                            <CheckCircle size={18} /> Approve
+                                                        </button>
+                                                        <button
+                                                            onClick={() => updateApplicationStatus(selectedApplication.id, 'rejected')}
+                                                            disabled={updatingStatus === selectedApplication.id}
+                                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-400 transition-all disabled:opacity-50"
+                                                        >
+                                                            <XCircle size={18} /> Reject
+                                                        </button>
+                                                    </>
+                                                )}
+                                                <button
+                                                    onClick={() => deleteApplication(selectedApplication.id)}
+                                                    className="px-4 py-3 bg-gray-800 text-gray-400 rounded-xl font-bold hover:bg-red-900 hover:text-red-400 transition-all"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     )}
 

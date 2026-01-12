@@ -8,8 +8,9 @@ import { Card } from "@/components/Card";
 import { Header } from "@/sections/Header";
 import { Footer } from "@/sections/Footer";
 import { AuthRequiredModal } from "@/components/AuthRequiredModal";
+import { PageGuard } from "@/components/PageGuard";
 
-export default function EventPage() {
+function EventPageContent() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     fullName: "",
@@ -233,5 +234,13 @@ export default function EventPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function EventPage() {
+  return (
+    <PageGuard>
+      <EventPageContent />
+    </PageGuard>
   );
 }

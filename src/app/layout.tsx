@@ -7,7 +7,7 @@ import { CyberBackground } from "@/components/CyberBackground";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://abdoraquibi.icu'),
+  metadataBase: new URL('https://raquibi.com'),
   icons: {
     icon: "/favicon.ico"
   },
@@ -45,12 +45,12 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
     description: "Full-stack developer specializing in Laravel, React, and Next.js. Building modern web applications with a focus on performance and user experience.",
-    url: "https://abdoraquibi.icu",
+    url: "https://raquibi.com",
     siteName: "Abdo Raquibi Portfolio",
     locale: "en_US",
     type: "website",
     images: [{
-      url: "https://abdoraquibi.icu/abderrahmaneraquibi.jpg",
+      url: "https://raquibi.com/abderrahmaneraquibi.jpg",
       width: 1200,
       height: 630,
       alt: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
     description: "Full-stack developer specializing in Laravel, React, and Next.js",
-    images: ["https://abdoraquibi.icu/abderrahmaneraquibi.jpg"],
+    images: ["https://raquibi.com/abderrahmaneraquibi.jpg"],
     creator: "@ceo_raquibi",
   },
 
@@ -105,14 +105,14 @@ export default function RootLayout({
               "@type": "Person",
               "name": "Abderrahmane Raquibi",
               "alternateName": "Abdo Raquibi",
-              "url": "https://abdoraquibi.icu",
+              "url": "https://raquibi.com",
               "jobTitle": "Full-Stack Web Developer",
               "sameAs": [
                 "https://github.com/raquibiabderrahmane",
                 "https://instagram.com/abderrahmaneraquibi1",
                 "https://www.linkedin.com/in/abderrahmaneraquibi"
               ],
-              "image": "https://abdoraquibi.icu/abderrahmaneraquibi.jpg",
+              "image": "https://raquibi.com/abderrahmaneraquibi.jpg",
               "description": "Moroccan full-stack developer & entrepreneur specialized in Laravel, React, and SaaS platforms.",
             }),
           }}
