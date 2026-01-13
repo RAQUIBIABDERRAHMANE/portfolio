@@ -6,6 +6,7 @@ import { HeaderSection } from "@/components/HeaderSection";
 import { Card } from "@/components/Card";
 import { Header } from "@/sections/Header";
 import { Footer } from "@/sections/Footer";
+import { PageGuard } from "@/components/PageGuard";
 import { 
     User, 
     Mail, 
@@ -218,36 +219,39 @@ export default function EmploymentPage() {
 
     if (status === "success") {
         return (
-            <div className="min-h-screen bg-[#020617] text-white">
-                <Header />
-                <main className="container max-w-3xl py-32 lg:py-40">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="text-center"
-                    >
-                        <Card className="p-12">
-                            <div className="size-24 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <CheckCircle className="text-emerald-400" size={48} />
-                            </div>
-                            <h2 className="text-3xl font-bold mb-4">Agreement Submitted!</h2>
-                            <p className="text-white/60 mb-8">{message}</p>
-                            <button
-                                onClick={() => window.location.href = "/"}
-                                className="px-8 py-3 bg-cyan-500 text-gray-900 font-bold rounded-xl hover:bg-cyan-400 transition-all"
-                            >
-                                Return to Home
-                            </button>
-                        </Card>
-                    </motion.div>
-                </main>
-                <Footer />
-            </div>
+            <PageGuard>
+                <div className="min-h-screen bg-[#020617] text-white">
+                    <Header />
+                    <main className="container max-w-3xl py-32 lg:py-40">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="text-center"
+                        >
+                            <Card className="p-12">
+                                <div className="size-24 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <CheckCircle className="text-emerald-400" size={48} />
+                                </div>
+                                <h2 className="text-3xl font-bold mb-4">Agreement Submitted!</h2>
+                                <p className="text-white/60 mb-8">{message}</p>
+                                <button
+                                    onClick={() => window.location.href = "/"}
+                                    className="px-8 py-3 bg-cyan-500 text-gray-900 font-bold rounded-xl hover:bg-cyan-400 transition-all"
+                                >
+                                    Return to Home
+                                </button>
+                            </Card>
+                        </motion.div>
+                    </main>
+                    <Footer />
+                </div>
+            </PageGuard>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#020617] text-white">
+        <PageGuard>
+            <div className="min-h-screen bg-[#020617] text-white">
             <Header />
             <main className="container max-w-4xl py-32 lg:py-40">
                 <HeaderSection
@@ -728,5 +732,6 @@ export default function EmploymentPage() {
             </main>
             <Footer />
         </div>
+        </PageGuard>
     );
 }
