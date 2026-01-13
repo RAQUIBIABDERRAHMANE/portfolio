@@ -21,10 +21,10 @@ import {
     Upload,
     Linkedin,
     Globe,
-    PenTool,
     Building2,
     Code,
-    CreditCard
+    CreditCard,
+    Image
 } from "lucide-react";
 
 const techStackOptions = [
@@ -41,9 +41,7 @@ export default function EmploymentPage() {
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [message, setMessage] = useState("");
     const [cvFile, setCvFile] = useState<File | null>(null);
-    const signatureCanvasRef = useRef<HTMLCanvasElement>(null);
-    const [isSigning, setIsSigning] = useState(false);
-    const [signatureDate, setSignatureDate] = useState("");
+    const [userImage, setUserImage] = useState<File | null>(null);
     
     const [formData, setFormData] = useState({
         // Section 1: Agreement & Identity
@@ -102,53 +100,24 @@ export default function EmploymentPage() {
         }
     };
 
-    const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        setIsSigning(true);
-        const canvas = signatureCanvasRef.current;
-        if (!canvas) return;
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-            ctx.lineWidth = 2;
-            ctx.lineCap = "round";
-            ctx.strokeStyle = "#ffffff";
-            ctx.beginPath();
-            ctx.moveTo((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (!file.type.startsWith("image/")) {
+                alert("Please upload an image file only");
+                e.target.value = "";
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                alert("Image size must be less than 2MB");
+                e.target.value = "";
+                return;
+            }
+            setUserImage(file);
         }
     };
 
-    const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        if (!isSigning) return;
-        const canvas = signatureCanvasRef.current;
-        if (!canvas) return;
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-            ctx.lineTo((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
-            ctx.stroke();
-        }
-    };
 
-    const stopDrawing = () => {
-        setIsSigning(false);
-        if (!signatureDate) {
-            setSignatureDate(new Date().toISOString().split("T")[0]);
-        }
-    };
-
-    const clearSignature = () => {
-        const canvas = signatureCanvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-        setSignatureDate("");
-    };
 
     const validateForm = () => {
         // At least one professional link required
@@ -163,21 +132,13 @@ export default function EmploymentPage() {
             return false;
         }
 
-        // Check signature
-        const canvas = signatureCanvasRef.current;
-        if (!canvas) return false;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return false;
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const hasSignature = imageData.data.some(pixel => pixel !== 0);
-        
-        if (!hasSignature) {
-            setMessage("Please provide your digital signature");
+        if (!cvFile) {
+            setMessage("Please upload your CV/Resume (PDF only)");
             return false;
         }
 
-        if (!cvFile) {
-            setMessage("Please upload your CV/Resume (PDF only)");
+        if (!userImage) {
+            setMessage("Please upload your photo");
             return false;
         }
 
@@ -195,9 +156,6 @@ export default function EmploymentPage() {
         }
 
         try {
-            const canvas = signatureCanvasRef.current;
-            const signatureDataUrl = canvas?.toDataURL() || "";
-
             const submitData = new FormData();
             Object.entries(formData).forEach(([key, value]) => {
                 if (Array.isArray(value)) {
@@ -211,8 +169,10 @@ export default function EmploymentPage() {
                 submitData.append("cv", cvFile);
             }
             
-            submitData.append("signature", signatureDataUrl);
-            submitData.append("signatureDate", signatureDate);
+            if (userImage) {
+                submitData.append("userImage", userImage);
+            }
+            
             submitData.append("submittedAt", new Date().toISOString());
             submitData.append("companyName", "FirstStep");
             submitData.append("employerName", "Abderrahmane Raquibi");
@@ -437,6 +397,24 @@ export default function EmploymentPage() {
                                         {cvFile && <p className="mt-2 text-sm text-emerald-400">✓ {cvFile.name} uploaded</p>}
                                     </div>
                                     <p className="mt-2 text-xs text-white/50">Maximum file size: 5MB</p>
+                                </div>
+
+                                <div>
+                                    <label className="text-sm font-medium text-white/90 mb-2 flex items-center gap-2">
+                                        <Image size={16} className="text-emerald-400" />
+                                        Your Photo *
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageUpload}
+                                            required
+                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-emerald-500 file:text-gray-900 file:font-medium hover:file:bg-emerald-400"
+                                        />
+                                        {userImage && <p className="mt-2 text-sm text-emerald-400">✓ {userImage.name} uploaded</p>}
+                                    </div>
+                                    <p className="mt-2 text-xs text-white/50">Maximum file size: 2MB</p>
                                 </div>
 
                                 <div>
@@ -694,58 +672,22 @@ export default function EmploymentPage() {
                             </div>
                         </Card>
 
-                        {/* Section 6: Digital Signature */}
+                        {/* Final Agreement Confirmation */}
                         <Card className="p-8">
-                            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
-                                <div className="size-10 bg-red-500/10 rounded-lg flex items-center justify-center">
-                                    <PenTool className="text-red-400" size={20} />
-                                </div>
-                                <h3 className="text-xl font-bold">6. Digital Signature *</h3>
-                            </div>
-                            <div className="space-y-4">
-                                <p className="text-sm text-white/70">
-                                    Sign below using your mouse or touchscreen to finalize this employment agreement:
-                                </p>
-                                <div className="relative">
-                                    <canvas
-                                        ref={signatureCanvasRef}
-                                        width={600}
-                                        height={200}
-                                        onMouseDown={startDrawing}
-                                        onMouseMove={draw}
-                                        onMouseUp={stopDrawing}
-                                        onMouseLeave={stopDrawing}
-                                        className="w-full border-2 border-white/20 rounded-xl bg-white/5 cursor-crosshair hover:border-red-400/50 transition-colors"
+                            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                                <label className="flex items-start gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        name="agreementAccepted"
+                                        checked={formData.agreementAccepted}
+                                        onChange={handleChange}
+                                        required
+                                        className="size-5 mt-0.5 rounded border-white/20 bg-white/5 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0"
                                     />
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={clearSignature}
-                                    className="px-4 py-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-all text-sm font-medium border border-red-500/20"
-                                >
-                                    Clear Signature
-                                </button>
-                                {signatureDate && (
-                                    <p className="text-sm text-emerald-400 flex items-center gap-2">
-                                        <CheckCircle size={16} />
-                                        Signed on {signatureDate}
-                                    </p>
-                                )}
-                                <div className="bg-white/5 rounded-xl p-6 border border-white/10 mt-6">
-                                    <label className="flex items-start gap-3 cursor-pointer group">
-                                        <input
-                                            type="checkbox"
-                                            name="agreementAccepted"
-                                            checked={formData.agreementAccepted}
-                                            onChange={handleChange}
-                                            required
-                                            className="size-5 mt-0.5 rounded border-white/20 bg-white/5 text-red-500 focus:ring-red-500 focus:ring-offset-0"
-                                        />
-                                        <span className="text-sm text-white/70 group-hover:text-white/90 transition-colors">
-                                            I confirm all information provided is accurate and I agree to the terms of this employment agreement. *
-                                        </span>
-                                    </label>
-                                </div>
+                                    <span className="text-sm text-white/70 group-hover:text-white/90 transition-colors">
+                                        <strong className="text-white">Final Confirmation:</strong> I confirm all information provided is accurate and I agree to the terms of this employment agreement. *
+                                    </span>
+                                </label>
                             </div>
                         </Card>
 

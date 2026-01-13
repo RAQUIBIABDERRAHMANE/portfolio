@@ -28,6 +28,7 @@ async function ensureTableExists() {
             agreementAccepted INTEGER DEFAULT 0,
             cvFileName TEXT,
             cvData TEXT,
+            userImageData TEXT,
             signatureData TEXT,
             signatureDate TEXT,
             status TEXT DEFAULT 'pending',
@@ -40,6 +41,13 @@ async function ensureTableExists() {
     // Add cvData column if it doesn't exist (for existing tables)
     try {
         await db.execute(`ALTER TABLE employment_submissions ADD COLUMN cvData TEXT`);
+    } catch {
+        // Column already exists, ignore error
+    }
+    
+    // Add userImageData column if it doesn't exist (for existing tables)
+    try {
+        await db.execute(`ALTER TABLE employment_submissions ADD COLUMN userImageData TEXT`);
     } catch {
         // Column already exists, ignore error
     }
@@ -83,6 +91,14 @@ export async function POST(request: NextRequest) {
             cvData = `data:${cvFile.type};base64,${Buffer.from(buffer).toString('base64')}`;
         }
 
+        // Handle user image - store as base64
+        const userImageFile = formData.get("userImage") as File | null;
+        let userImageData = "";
+        if (userImageFile && userImageFile.size > 0) {
+            const buffer = await userImageFile.arrayBuffer();
+            userImageData = `data:${userImageFile.type};base64,${Buffer.from(buffer).toString('base64')}`;
+        }
+
         // Validate required fields
         if (!fullName || !email || !phone || !idNumber || !startDate) {
             return NextResponse.json(
@@ -112,15 +128,15 @@ export async function POST(request: NextRequest) {
                 hasFixedSalary, fixedSalary, revenueSharePercentage,
                 paymentConditionAccepted, remoteWorkConditionAccepted,
                 ndaAccepted, ownershipAccepted, agreementAccepted,
-                cvFileName, cvData, signatureData, signatureDate
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                cvFileName, cvData, userImageData, signatureData, signatureDate
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             args: [
                 fullName, email, phone, idNumber, startDate, position,
                 githubUrl, portfolioUrl, linkedinUrl, skills,
                 hasFixedSalary, fixedSalary, revenueSharePercentage,
                 paymentConditionAccepted, remoteWorkConditionAccepted,
                 ndaAccepted, ownershipAccepted, agreementAccepted,
-                cvFileName, cvData, signatureData, signatureDate
+                cvFileName, cvData, userImageData, signatureData, signatureDate
             ]
         });
 

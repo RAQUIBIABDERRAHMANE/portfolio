@@ -68,6 +68,7 @@ interface EmploymentSubmission {
     revenueSharePercentage: string;
     cvFileName: string;
     cvData: string;
+    userImageData: string;
     status: 'pending' | 'approved' | 'rejected';
     submittedAt: string;
 }
@@ -300,6 +301,15 @@ export default function AdminDashboard() {
         fetchUsers();
         fetchPages();
         fetchApplications();
+
+        // Auto-refresh data every 5 seconds
+        const interval = setInterval(() => {
+            fetchUsers();
+            fetchPages();
+            fetchApplications();
+        }, 5000);
+
+        return () => clearInterval(interval);
     }, [router]);
 
     const handleLogout = async () => {
@@ -797,10 +807,19 @@ export default function AdminDashboard() {
                                             className="bg-[#0a0f1a] border border-cyan-500/20 rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
                                             onClick={(e) => e.stopPropagation()}
                                         >
-                                            <div className="flex justify-between items-start mb-6">
-                                                <div>
-                                                    <h3 className="text-2xl font-black text-white">{selectedApplication.fullName}</h3>
-                                                    <p className="text-cyan-400">{selectedApplication.position}</p>
+                                            <div className="flex justify-between items-start mb-6 gap-4">
+                                                <div className="flex items-center gap-4">
+                                                    {selectedApplication.userImageData && (
+                                                        <img 
+                                                            src={selectedApplication.userImageData} 
+                                                            alt={selectedApplication.fullName}
+                                                            className="size-20 rounded-full object-cover border-2 border-cyan-500/30"
+                                                        />
+                                                    )}
+                                                    <div>
+                                                        <h3 className="text-2xl font-black text-white">{selectedApplication.fullName}</h3>
+                                                        <p className="text-cyan-400">{selectedApplication.position}</p>
+                                                    </div>
                                                 </div>
                                                 <button
                                                     onClick={() => setSelectedApplication(null)}

@@ -8,10 +8,12 @@ import { AlertCircle, X, Bell } from "lucide-react";
 export const NotificationManager = () => {
     const { subscribeToPush } = usePushNotifications();
     const [showDeniedPopup, setShowDeniedPopup] = useState(false);
+    const [userDismissed, setUserDismissed] = useState(false);
 
     useEffect(() => {
         const handlePermission = async () => {
             if (!("Notification" in window)) return;
+            if (userDismissed) return; // Don't show if user dismissed it
 
             // Function to request permission and handle the result
             const requestLoop = async () => {
@@ -26,9 +28,11 @@ export const NotificationManager = () => {
                     } else {
                         // User denied
                         console.log("Notification permission denied.");
-                        setShowDeniedPopup(true);
-                        // Hide after 10 seconds
-                        setTimeout(() => setShowDeniedPopup(false), 10000);
+                        if (!userDismissed) {
+                            setShowDeniedPopup(true);
+                            // Hide after 10 seconds
+                            setTimeout(() => setShowDeniedPopup(false), 10000);
+                        }
                     }
                 } catch (err) {
                     console.error("Error requesting notification permission:", err);
@@ -42,13 +46,15 @@ export const NotificationManager = () => {
             } else if (Notification.permission === 'granted') {
                 subscribeToPush(true);
             } else if (Notification.permission === 'denied') {
-                setShowDeniedPopup(true);
-                setTimeout(() => setShowDeniedPopup(false), 10000);
+                if (!userDismissed) {
+                    setShowDeniedPopup(true);
+                    setTimeout(() => setShowDeniedPopup(false), 10000);
+                }
             }
         };
 
         handlePermission();
-    }, [subscribeToPush]);
+    }, [subscribeToPush, userDismissed]);
 
     return (
         <AnimatePresence>
@@ -77,8 +83,15 @@ export const NotificationManager = () => {
                             </button>
                         </div>
                         <button
-                            onClick={() => setShowDeniedPopup(false)}
-                            className="text-gray-500 hover:text-white transition-colors pt-1"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setUserDismissed(true);
+                                setShowDeniedPopup(false);
+                            }}
+                            className="text-white hover:text-red-200 bg-red-500/80 hover:bg-red-600 border border-red-400/50 rounded-lg p-1 transition-colors cursor-pointer flex-shrink-0"
+                            type="button"
+                            aria-label="Close notification"
                         >
                             <X size={20} />
                         </button>
