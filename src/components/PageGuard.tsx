@@ -28,13 +28,13 @@ export function PageGuard({ children, pagePath }: PageGuardProps) {
         const checkPageStatus = async () => {
             try {
                 // Extract the first segment of the path (e.g., /event/123 -> event)
-                const pathSegment = path.split("/")[1];
+                const pathSegment = path.split("/")[1]?.trim().toLowerCase();
                 if (!pathSegment) {
                     setStatus("enabled");
                     return;
                 }
 
-                const res = await fetch(`/api/pages/${pathSegment}`);
+                const res = await fetch(`/api/pages/${pathSegment}`, { cache: "no-store" });
                 const data: PageStatus = await res.json();
                 
                 setPageStatus(data);

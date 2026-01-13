@@ -70,7 +70,13 @@ export async function POST(request: NextRequest) {
 
         await ensureTableExists();
 
-        const { page_path, page_name, is_enabled, disabled_message, redirect_path } = await request.json();
+        const body = await request.json();
+        const rawPath = body.page_path || body.pagePath;
+        const page_path = (rawPath || "").trim().toLowerCase().replace(/^\/+/, "").replace(/\/+$/, "");
+        const page_name = body.page_name || body.pageName || page_path;
+        const is_enabled = body.is_enabled;
+        const disabled_message = body.disabled_message;
+        const redirect_path = body.redirect_path;
 
         if (!page_path || !page_name) {
             return NextResponse.json(
@@ -89,9 +95,9 @@ export async function POST(request: NextRequest) {
                   redirect_path = excluded.redirect_path,
                   updated_at = CURRENT_TIMESTAMP`,
             args: [
-                page_path, 
+                "/" + page_path, 
                 page_name, 
-                is_enabled ? 1 : 1, 
+                is_enabled !== undefined ? (is_enabled ? 1 : 0) : 0, 
                 disabled_message || "Cette page est temporairement indisponible.", 
                 redirect_path || null
             ]

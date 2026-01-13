@@ -1,10 +1,6 @@
-import fs from 'fs';
-import path from 'path';
+import db from './sqlite';
 
-const BLOGS_FILE_PATH = path.join(process.cwd(), 'src/data/blogs.json');
-
-// Interface pour les blogs
-interface Blog {
+export interface Blog {
   id: number;
   title: string;
   slug: string;
@@ -25,321 +21,297 @@ interface Blog {
   updated_at?: string;
 }
 
-interface BlogsData {
-  blogs: Blog[];
-}
-
-const USE_DB = process.env.USE_DB === 'true';
-
-let pool: any = null;
-if (USE_DB) {
+// Ensure table exists
+async function ensureBlogsTable() {
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS blogs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      slug TEXT NOT NULL UNIQUE,
+      excerpt TEXT NOT NULL,
+      content TEXT NOT NULL,
+      author TEXT NOT NULL,
+      date TEXT,
+      read_time TEXT DEFAULT '5 min read',
+      category TEXT NOT NULL,
+      tags TEXT,
+      image TEXT,
+      meta_description TEXT,
+      meta_keywords TEXT,
+      is_published INTEGER DEFAULT 0,
+      is_featured INTEGER DEFAULT 0,
+      view_count INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  
+  // Add date column if it doesn't exist (migration for existing tables)
   try {
-    // importer dynamiquement pour éviter les erreurs quand mysql2 n'est pas installé
-    // utiliser chemin relatif pour require dans ce module
-    // @ts-ignore
-    pool = require('./db').default;
-  } catch (err) {
-    console.warn('USE_DB=true mais la connexion MySQL n\'a pas pu être initialisée:', err);
-    pool = null;
+    await db.execute(`ALTER TABLE blogs ADD COLUMN date TEXT`);
+  } catch (e) {
+    // Column already exists, ignore
   }
 }
 
-// Helper: map DB rows to Blog interface
-function mapRowToBlog(row: any): Blog {
-  return {
-    id: row.id,
-    title: row.title,
-    slug: row.slug,
-    excerpt: row.excerpt,
-    content: row.content,
-    author: row.author,
-    date: row.date,
-    read_time: row.read_time || row.readTime || '5 min read',
-    category: row.category,
-    tags: row.tags || '',
-    image: row.image || '',
-    meta_description: row.meta_description || row.metaDescription || '',
-    meta_keywords: row.meta_keywords || row.metaKeywords || '',
-    is_published: Boolean(row.is_published || row.isPublished),
-    is_featured: Boolean(row.is_featured || row.isFeatured),
-    view_count: row.view_count || 0,
-    created_at: row.created_at || row.createdAt,
-    updated_at: row.updated_at || row.updatedAt,
-  };
-}
-
-// Lire tous les blogs (fallback file-based)
-export async function readBlogs(): Promise<Blog[]> {
-  if (USE_DB && pool) {
-    try {
-      const [rows] = await pool.query('SELECT * FROM blogs');
-      // @ts-ignore
-      return rows.map(mapRowToBlog);
-    } catch (error) {
-      console.error('Error reading blogs from DB:', error);
-      // fallback to file
-    }
-  }
-
+// Get published blogs
+export async function getPublishedBlogs(): Promise<Blog[]> {
   try {
-    const fileContent = fs.readFileSync(BLOGS_FILE_PATH, 'utf8');
-    const data: BlogsData = JSON.parse(fileContent);
-    return data.blogs;
+    await ensureBlogsTable();
+    const result = await db.execute('SELECT * FROM blogs WHERE is_published = 1 ORDER BY created_at DESC');
+    return result.rows.map((row: any) => ({
+      id: Number(row.id),
+      title: String(row.title),
+      slug: String(row.slug),
+      excerpt: String(row.excerpt),
+      content: String(row.content),
+      author: String(row.author),
+      date: String(row.date),
+      read_time: String(row.read_time || '5 min read'),
+      category: String(row.category),
+      tags: String(row.tags || ''),
+      image: String(row.image || ''),
+      meta_description: String(row.meta_description || ''),
+      meta_keywords: String(row.meta_keywords || ''),
+      is_published: Boolean(row.is_published),
+      is_featured: Boolean(row.is_featured),
+      view_count: Number(row.view_count || 0),
+      created_at: String(row.created_at),
+      updated_at: String(row.updated_at),
+    }));
   } catch (error) {
-    console.error('Error reading blogs file:', error);
+    console.error('Error fetching published blogs:', error);
     return [];
   }
 }
 
-// Écrire tous les blogs (file-based only)
-export async function writeBlogs(blogs: Blog[]): Promise<boolean> {
+// Get all blogs (admin)
+export async function getAllBlogs(): Promise<Blog[]> {
   try {
-    const data: BlogsData = { blogs };
-    fs.writeFileSync(BLOGS_FILE_PATH, JSON.stringify(data, null, 2), 'utf8');
-    return true;
+    await ensureBlogsTable();
+    const result = await db.execute('SELECT * FROM blogs ORDER BY created_at DESC');
+    return result.rows.map((row: any) => ({
+      id: Number(row.id),
+      title: String(row.title),
+      slug: String(row.slug),
+      excerpt: String(row.excerpt),
+      content: String(row.content),
+      author: String(row.author),
+      date: String(row.date),
+      read_time: String(row.read_time || '5 min read'),
+      category: String(row.category),
+      tags: String(row.tags || ''),
+      image: String(row.image || ''),
+      meta_description: String(row.meta_description || ''),
+      meta_keywords: String(row.meta_keywords || ''),
+      is_published: Boolean(row.is_published),
+      is_featured: Boolean(row.is_featured),
+      view_count: Number(row.view_count || 0),
+      created_at: String(row.created_at),
+      updated_at: String(row.updated_at),
+    }));
   } catch (error) {
-    console.error('Error writing blogs file:', error);
-    return false;
+    console.error('Error fetching all blogs:', error);
+    return [];
   }
 }
 
-// Obtenir tous les blogs publiés
-export async function getPublishedBlogs(): Promise<Blog[]> {
-  if (USE_DB && pool) {
-    try {
-      const [rows] = await pool.query('SELECT * FROM blogs WHERE is_published = 1 ORDER BY date DESC');
-      // @ts-ignore
-      return rows.map(mapRowToBlog);
-    } catch (error) {
-      console.error('Error fetching published blogs from DB:', error);
-    }
-  }
-
-  const blogs = await readBlogs();
-  return blogs.filter(blog => blog.is_published);
-}
-
-// Obtenir les blogs mis en avant
+// Get featured blogs
 export async function getFeaturedBlogs(limit?: number): Promise<Blog[]> {
-  if (USE_DB && pool) {
-    try {
-      let sql = 'SELECT * FROM blogs WHERE is_featured = 1 AND is_published = 1 ORDER BY date DESC';
-      if (limit) sql += ' LIMIT ' + Number(limit);
-      const [rows] = await pool.query(sql);
-      // @ts-ignore
-      return rows.map(mapRowToBlog);
-    } catch (error) {
-      console.error('Error fetching featured blogs from DB:', error);
-    }
+  try {
+    await ensureBlogsTable();
+    let sql = 'SELECT * FROM blogs WHERE is_featured = 1 AND is_published = 1 ORDER BY created_at DESC';
+    if (limit) sql += ` LIMIT ${Number(limit)}`;
+    const result = await db.execute(sql);
+    return result.rows.map((row: any) => ({
+      id: Number(row.id),
+      title: String(row.title),
+      slug: String(row.slug),
+      excerpt: String(row.excerpt),
+      content: String(row.content),
+      author: String(row.author),
+      date: String(row.date),
+      read_time: String(row.read_time || '5 min read'),
+      category: String(row.category),
+      tags: String(row.tags || ''),
+      image: String(row.image || ''),
+      meta_description: String(row.meta_description || ''),
+      meta_keywords: String(row.meta_keywords || ''),
+      is_published: Boolean(row.is_published),
+      is_featured: Boolean(row.is_featured),
+      view_count: Number(row.view_count || 0),
+      created_at: String(row.created_at),
+      updated_at: String(row.updated_at),
+    }));
+  } catch (error) {
+    console.error('Error fetching featured blogs:', error);
+    return [];
   }
-
-  const blogs = await readBlogs();
-  const featuredBlogs = blogs.filter(blog => blog.is_featured && blog.is_published);
-  if (limit) return featuredBlogs.slice(0, limit);
-  return featuredBlogs;
 }
 
-// Obtenir un blog par slug
+// Get blog by slug
 export async function getBlogBySlug(slug: string): Promise<Blog | null> {
-  if (USE_DB && pool) {
-    try {
-      const [rows] = await pool.query('SELECT * FROM blogs WHERE slug = ? AND is_published = 1 LIMIT 1', [slug]);
-      // @ts-ignore
-      if (rows.length === 0) return null;
-      // @ts-ignore
-      return mapRowToBlog(rows[0]);
-    } catch (error) {
-      console.error('Error fetching blog by slug from DB:', error);
-    }
+  try {
+    await ensureBlogsTable();
+    const result = await db.execute({
+      sql: 'SELECT * FROM blogs WHERE slug = ? AND is_published = 1 LIMIT 1',
+      args: [slug]
+    });
+    if (result.rows.length === 0) return null;
+    const row = result.rows[0] as any;
+    return {
+      id: Number(row.id),
+      title: String(row.title),
+      slug: String(row.slug),
+      excerpt: String(row.excerpt),
+      content: String(row.content),
+      author: String(row.author),
+      date: String(row.date),
+      read_time: String(row.read_time || '5 min read'),
+      category: String(row.category),
+      tags: String(row.tags || ''),
+      image: String(row.image || ''),
+      meta_description: String(row.meta_description || ''),
+      meta_keywords: String(row.meta_keywords || ''),
+      is_published: Boolean(row.is_published),
+      is_featured: Boolean(row.is_featured),
+      view_count: Number(row.view_count || 0),
+      created_at: String(row.created_at),
+      updated_at: String(row.updated_at),
+    };
+  } catch (error) {
+    console.error('Error fetching blog by slug:', error);
+    return null;
   }
-
-  const blogs = await readBlogs();
-  return blogs.find(blog => blog.slug === slug && blog.is_published) || null;
 }
 
-// Obtenir un blog par ID
+// Get blog by ID
 export async function getBlogById(id: number): Promise<Blog | null> {
-  if (USE_DB && pool) {
-    try {
-      const [rows] = await pool.query('SELECT * FROM blogs WHERE id = ? LIMIT 1', [id]);
-      // @ts-ignore
-      if (rows.length === 0) return null;
-      // @ts-ignore
-      return mapRowToBlog(rows[0]);
-    } catch (error) {
-      console.error('Error fetching blog by id from DB:', error);
-    }
+  try {
+    await ensureBlogsTable();
+    const result = await db.execute({
+      sql: 'SELECT * FROM blogs WHERE id = ? LIMIT 1',
+      args: [id]
+    });
+    if (result.rows.length === 0) return null;
+    const row = result.rows[0] as any;
+    return {
+      id: Number(row.id),
+      title: String(row.title),
+      slug: String(row.slug),
+      excerpt: String(row.excerpt),
+      content: String(row.content),
+      author: String(row.author),
+      date: String(row.date),
+      read_time: String(row.read_time || '5 min read'),
+      category: String(row.category),
+      tags: String(row.tags || ''),
+      image: String(row.image || ''),
+      meta_description: String(row.meta_description || ''),
+      meta_keywords: String(row.meta_keywords || ''),
+      is_published: Boolean(row.is_published),
+      is_featured: Boolean(row.is_featured),
+      view_count: Number(row.view_count || 0),
+      created_at: String(row.created_at),
+      updated_at: String(row.updated_at),
+    };
+  } catch (error) {
+    console.error('Error fetching blog by id:', error);
+    return null;
   }
-
-  const blogs = await readBlogs();
-  return blogs.find(blog => blog.id === id) || null;
 }
 
-// Ajouter un nouveau blog
+// Add blog
 export async function addBlog(blogData: Omit<Blog, 'id' | 'created_at' | 'updated_at' | 'view_count'>): Promise<Blog | null> {
-  if (USE_DB && pool) {
-    try {
-      const sql = `INSERT INTO blogs (title, slug, excerpt, content, category, author, read_time, tags, is_published, is_featured, image, meta_description, meta_keywords, date, view_count, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NOW(), NOW())`;
-      const params = [
+  try {
+    await ensureBlogsTable();
+    const result = await db.execute({
+      sql: `INSERT INTO blogs (title, slug, excerpt, content, author, date, read_time, category, tags, image, meta_description, meta_keywords, is_published, is_featured, view_count, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+      args: [
         blogData.title,
         blogData.slug,
         blogData.excerpt,
         blogData.content,
-        blogData.category,
         blogData.author,
+        blogData.date || new Date().toISOString().split('T')[0],
         blogData.read_time || '5 min read',
+        blogData.category,
         blogData.tags || '',
-        blogData.is_published ? 1 : 0,
-        blogData.is_featured ? 1 : 0,
         blogData.image || '',
         blogData.meta_description || blogData.excerpt,
         blogData.meta_keywords || '',
-        blogData.date || new Date().toISOString().split('T')[0],
-      ];
-
-      const [result] = await pool.query(sql, params);
-      // @ts-ignore
-      const insertId = result.insertId;
-      return await getBlogById(insertId);
-    } catch (error) {
-      console.error('Error adding blog to DB:', error);
-      return null;
-    }
-  }
-
-  try {
-    const blogs = await readBlogs();
-    // Vérifier si le slug existe déjà
-    const existingBlog = blogs.find(blog => blog.slug === blogData.slug);
-    if (existingBlog) {
-      throw new Error('Un blog avec ce slug existe déjà');
-    }
-
-    const newId = blogs.length > 0 ? Math.max(...blogs.map(blog => blog.id)) + 1 : 1;
-    const newBlog: Blog = {
-      ...blogData,
-      id: newId,
-      view_count: 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    blogs.unshift(newBlog);
-    const success = await writeBlogs(blogs);
-    return success ? newBlog : null;
+        blogData.is_published ? 1 : 0,
+        blogData.is_featured ? 1 : 0,
+      ]
+    });
+    return getBlogById(Number(result.lastInsertRowid));
   } catch (error) {
     console.error('Error adding blog:', error);
     return null;
   }
 }
 
-// Mettre à jour un blog
-export async function updateBlog(id: number, updates: Partial<Omit<Blog, 'id' | 'created_at'>>): Promise<Blog | null> {
-  if (USE_DB && pool) {
-    try {
-      const fields: string[] = [];
-      const params: any[] = [];
-      if (updates.title) { fields.push('title = ?'); params.push(updates.title); }
-      if (updates.slug) { fields.push('slug = ?'); params.push(updates.slug); }
-      if (updates.excerpt) { fields.push('excerpt = ?'); params.push(updates.excerpt); }
-      if (updates.content) { fields.push('content = ?'); params.push(updates.content); }
-      if (updates.category) { fields.push('category = ?'); params.push(updates.category); }
-      if (updates.author) { fields.push('author = ?'); params.push(updates.author); }
-      if (updates.read_time) { fields.push('read_time = ?'); params.push(updates.read_time); }
-      if (updates.tags) { fields.push('tags = ?'); params.push(updates.tags); }
-      if (typeof updates.is_published === 'boolean') { fields.push('is_published = ?'); params.push(updates.is_published ? 1 : 0); }
-      if (typeof updates.is_featured === 'boolean') { fields.push('is_featured = ?'); params.push(updates.is_featured ? 1 : 0); }
-      if (updates.image) { fields.push('image = ?'); params.push(updates.image); }
-      if (updates.meta_description) { fields.push('meta_description = ?'); params.push(updates.meta_description); }
-      if (updates.meta_keywords) { fields.push('meta_keywords = ?'); params.push(updates.meta_keywords); }
-
-      if (fields.length === 0) return await getBlogById(id);
-
-      const sql = `UPDATE blogs SET ${fields.join(', ')}, updated_at = NOW() WHERE id = ?`;
-      params.push(id);
-      await pool.query(sql, params);
-      return await getBlogById(id);
-    } catch (error) {
-      console.error('Error updating blog in DB:', error);
-      return null;
-    }
-  }
-
+// Update blog
+export async function updateBlog(id: number, updates: Partial<Omit<Blog, 'id' | 'created_at' | 'updated_at'>>): Promise<Blog | null> {
   try {
-    const blogs = await readBlogs();
-    const blogIndex = blogs.findIndex(blog => blog.id === id);
-    if (blogIndex === -1) return null;
+    await ensureBlogsTable();
+    const fields: string[] = [];
+    const params: any[] = [];
+    
+    if (updates.title) { fields.push('title = ?'); params.push(updates.title); }
+    if (updates.slug) { fields.push('slug = ?'); params.push(updates.slug); }
+    if (updates.excerpt) { fields.push('excerpt = ?'); params.push(updates.excerpt); }
+    if (updates.content) { fields.push('content = ?'); params.push(updates.content); }
+    if (updates.category) { fields.push('category = ?'); params.push(updates.category); }
+    if (updates.author) { fields.push('author = ?'); params.push(updates.author); }
+    if (updates.read_time) { fields.push('read_time = ?'); params.push(updates.read_time); }
+    if (updates.tags) { fields.push('tags = ?'); params.push(updates.tags); }
+    if (updates.date) { fields.push('date = ?'); params.push(updates.date); }
+    if (typeof updates.is_published === 'boolean') { fields.push('is_published = ?'); params.push(updates.is_published ? 1 : 0); }
+    if (typeof updates.is_featured === 'boolean') { fields.push('is_featured = ?'); params.push(updates.is_featured ? 1 : 0); }
+    if (updates.image) { fields.push('image = ?'); params.push(updates.image); }
+    if (updates.meta_description) { fields.push('meta_description = ?'); params.push(updates.meta_description); }
+    if (updates.meta_keywords) { fields.push('meta_keywords = ?'); params.push(updates.meta_keywords); }
 
-    if (updates.slug) {
-      const existingBlog = blogs.find(blog => blog.slug === updates.slug && blog.id !== id);
-      if (existingBlog) throw new Error('Un blog avec ce slug existe déjà');
-    }
+    if (fields.length === 0) return await getBlogById(id);
 
-    blogs[blogIndex] = {
-      ...blogs[blogIndex],
-      ...updates,
-      updated_at: new Date().toISOString(),
-    };
-
-    const success = await writeBlogs(blogs);
-    return success ? blogs[blogIndex] : null;
+    const sql = `UPDATE blogs SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
+    params.push(id);
+    await db.execute({ sql, args: params });
+    return await getBlogById(id);
   } catch (error) {
     console.error('Error updating blog:', error);
     return null;
   }
 }
 
-// Supprimer un blog
+// Delete blog
 export async function deleteBlog(id: number): Promise<boolean> {
-  if (USE_DB && pool) {
-    try {
-      await pool.query('DELETE FROM blogs WHERE id = ?', [id]);
-      return true;
-    } catch (error) {
-      console.error('Error deleting blog from DB:', error);
-      return false;
-    }
-  }
-
   try {
-    const blogs = await readBlogs();
-    const filteredBlogs = blogs.filter(blog => blog.id !== id);
-    if (filteredBlogs.length === blogs.length) return false;
-    return await writeBlogs(filteredBlogs as Blog[]);
+    await ensureBlogsTable();
+    await db.execute({
+      sql: 'DELETE FROM blogs WHERE id = ?',
+      args: [id]
+    });
+    return true;
   } catch (error) {
     console.error('Error deleting blog:', error);
     return false;
   }
 }
 
-// Incrémenter le nombre de vues
+// Increment view count
 export async function incrementViewCount(slug: string): Promise<boolean> {
-  if (USE_DB && pool) {
-    try {
-      await pool.query('UPDATE blogs SET view_count = view_count + 1 WHERE slug = ?', [slug]);
-      return true;
-    } catch (error) {
-      console.error('Error incrementing view count in DB:', error);
-      return false;
-    }
-  }
-
   try {
-    const blogs = await readBlogs();
-    const blogIndex = blogs.findIndex(blog => blog.slug === slug);
-    if (blogIndex === -1) return false;
-    blogs[blogIndex].view_count += 1;
-    blogs[blogIndex].updated_at = new Date().toISOString();
-    return await writeBlogs(blogs);
+    await ensureBlogsTable();
+    await db.execute({
+      sql: 'UPDATE blogs SET view_count = view_count + 1 WHERE slug = ?',
+      args: [slug]
+    });
+    return true;
   } catch (error) {
     console.error('Error incrementing view count:', error);
     return false;
   }
-}
-
-// Obtenir le prochain ID disponible
-export async function getNextId(): Promise<number> {
-  const blogs = await readBlogs();
-  return blogs.length > 0 ? Math.max(...blogs.map(blog => blog.id)) + 1 : 1;
 }

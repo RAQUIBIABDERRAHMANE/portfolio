@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/sqlite";
-import { isAuthenticated } from "@/lib/auth";
+import { getUser, isAuthenticated, isUserActive } from "@/lib/auth";
 import nodemailer from "nodemailer";
 
 // Ensure employment_submissions table exists
@@ -8,6 +8,7 @@ async function ensureTableExists() {
     await db.execute(`
         CREATE TABLE IF NOT EXISTS employment_submissions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            userId INTEGER,
             fullName TEXT NOT NULL,
             email TEXT NOT NULL,
             phone TEXT NOT NULL,
@@ -51,11 +52,32 @@ async function ensureTableExists() {
     } catch {
         // Column already exists, ignore error
     }
+
+    // Add userId column if it doesn't exist (for existing tables)
+    try {
+        await db.execute(`ALTER TABLE employment_submissions ADD COLUMN userId INTEGER`);
+    } catch {
+        // Column already exists, ignore error
+    }
 }
 
 // POST - Create new employment submission
 export async function POST(request: NextRequest) {
     try {
+        const user = getUser();
+        if (!user) {
+            return NextResponse.json({ error: "Please log in to submit." }, { status: 401 });
+        }
+
+        if (!user.userId) {
+            return NextResponse.json({ error: "User profile incomplete." }, { status: 400 });
+        }
+
+        const userActive = user.userId ? await isUserActive(user.userId) : false;
+        if (!userActive) {
+            return NextResponse.json({ error: "Your account is deactivated." }, { status: 403 });
+        }
+
         await ensureTableExists();
 
         const formData = await request.formData();
@@ -107,10 +129,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Check for duplicate submissions
+        // Check for duplicate submissions for this user
         const existing = await db.execute({
-            sql: "SELECT id FROM employment_submissions WHERE email = ? AND status = 'pending'",
-            args: [email]
+            sql: "SELECT id FROM employment_submissions WHERE userId = ? AND status = 'pending'",
+            args: [user.userId]
         });
 
         if (existing.rows.length > 0) {
@@ -123,14 +145,16 @@ export async function POST(request: NextRequest) {
         // Insert into database
         const result = await db.execute({
             sql: `INSERT INTO employment_submissions (
+                userId,
                 fullName, email, phone, idNumber, startDate, position,
                 githubUrl, portfolioUrl, linkedinUrl, skills,
                 hasFixedSalary, fixedSalary, revenueSharePercentage,
                 paymentConditionAccepted, remoteWorkConditionAccepted,
                 ndaAccepted, ownershipAccepted, agreementAccepted,
                 cvFileName, cvData, userImageData, signatureData, signatureDate
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             args: [
+                user.userId || null,
                 fullName, email, phone, idNumber, startDate, position,
                 githubUrl, portfolioUrl, linkedinUrl, skills,
                 hasFixedSalary, fixedSalary, revenueSharePercentage,
@@ -249,15 +273,27 @@ export async function POST(request: NextRequest) {
 // GET - Retrieve all submissions (admin only)
 export async function GET(request: NextRequest) {
     try {
-        if (!isAuthenticated()) {
+        const user = getUser();
+        if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         await ensureTableExists();
-        
-        const result = await db.execute(
-            "SELECT * FROM employment_submissions ORDER BY submittedAt DESC"
-        );
+
+        let result;
+        if (user.role === 'admin') {
+            result = await db.execute(
+                "SELECT * FROM employment_submissions ORDER BY submittedAt DESC"
+            );
+        } else {
+            if (!user.userId) {
+                return NextResponse.json({ error: 'Profile incomplete' }, { status: 400 });
+            }
+            result = await db.execute({
+                sql: "SELECT * FROM employment_submissions WHERE userId = ? ORDER BY submittedAt DESC",
+                args: [user.userId]
+            });
+        }
 
         return NextResponse.json({
             success: true,

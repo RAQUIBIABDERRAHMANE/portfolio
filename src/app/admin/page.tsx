@@ -30,7 +30,9 @@ import {
     Calendar,
     Code,
     DollarSign,
-    Download
+    Download,
+    Edit3,
+    RefreshCw
 } from "lucide-react";
 
 interface User {
@@ -73,16 +75,41 @@ interface EmploymentSubmission {
     submittedAt: string;
 }
 
+interface Blog {
+    id: number;
+    title: string;
+    slug: string;
+    excerpt: string;
+    content: string;
+    author: string;
+    date: string;
+    read_time: string;
+    category: string;
+    tags: string;
+    image: string;
+    meta_description: string;
+    meta_keywords: string;
+    is_published: boolean;
+    is_featured: boolean;
+    view_count: number;
+    created_at?: string;
+    updated_at?: string;
+}
+
 export default function AdminDashboard() {
     const [users, setUsers] = useState<User[]>([]);
     const [pages, setPages] = useState<PageSetting[]>([]);
     const [applications, setApplications] = useState<EmploymentSubmission[]>([]);
+    const [blogs, setBlogs] = useState<Blog[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [activeTab, setActiveTab] = useState("overview");
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedApplication, setSelectedApplication] = useState<EmploymentSubmission | null>(null);
     const [updatingStatus, setUpdatingStatus] = useState<number | null>(null);
+    const [editingApplication, setEditingApplication] = useState(false);
+    const [appEditData, setAppEditData] = useState<Partial<EmploymentSubmission>>({});
+    const [savingApplication, setSavingApplication] = useState(false);
     const router = useRouter();
 
     const [pushData, setPushData] = useState({ title: "", body: "", url: "" });
@@ -91,6 +118,27 @@ export default function AdminDashboard() {
     const [savingPages, setSavingPages] = useState<{ [key: string]: boolean }>({});
     const [newPage, setNewPage] = useState({ page_path: "", page_name: "", disabled_message: "" });
     const [showAddPage, setShowAddPage] = useState(false);
+
+    // Blog states
+    const [showBlogForm, setShowBlogForm] = useState(false);
+    const [editingBlog, setEditingBlog] = useState<Blog | null>(null);
+    const [blogFormData, setBlogFormData] = useState<Partial<Blog>>({
+        title: "",
+        slug: "",
+        excerpt: "",
+        content: "",
+        category: "",
+        author: "",
+        read_time: "5 min read",
+        tags: "",
+        image: "",
+        meta_description: "",
+        meta_keywords: "",
+        is_published: false,
+        is_featured: false,
+        date: new Date().toISOString().split('T')[0],
+    });
+    const [savingBlog, setSavingBlog] = useState(false);
 
     const handleSendNotification = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -135,7 +183,7 @@ export default function AdminDashboard() {
     };
 
     const handleTogglePage = async (page: PageSetting) => {
-        const pathKey = page.page_path.replace("/", "");
+        const pathKey = page.page_path.toLowerCase().trim().replace(/^\/+/, "").replace(/\/+$/, "");
         setSavingPages(prev => ({ ...prev, [pathKey]: true }));
         
         try {
@@ -186,13 +234,14 @@ export default function AdminDashboard() {
         if (!newPage.page_path || !newPage.page_name) return;
         
         try {
+            const normalizedPath = newPage.page_path.trim().toLowerCase().replace(/^\/+/, "").replace(/\/+$/, "");
             const res = await fetch("/api/admin/pages", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    page_path: newPage.page_path.startsWith("/") ? newPage.page_path : "/" + newPage.page_path,
-                    page_name: newPage.page_name,
-                    is_enabled: true,
+                    page_path: normalizedPath,
+                    page_name: newPage.page_name || normalizedPath,
+                    is_enabled: false,
                     disabled_message: newPage.disabled_message || "Cette page est temporairement indisponible.",
                 }),
             });
@@ -278,6 +327,120 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleEditApplication = () => {
+        if (!selectedApplication) return;
+        setAppEditData({
+            fixedSalary: selectedApplication.fixedSalary,
+            revenueSharePercentage: selectedApplication.revenueSharePercentage,
+            hasFixedSalary: selectedApplication.hasFixedSalary,
+            position: selectedApplication.position,
+            startDate: selectedApplication.startDate,
+            skills: selectedApplication.skills,
+        });
+        setEditingApplication(true);
+    };
+
+    const handleSaveApplication = async () => {
+        if (!selectedApplication) return;
+        setSavingApplication(true);
+        try {
+            const response = await fetch(`/api/employment/${selectedApplication.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(appEditData),
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setApplications(apps => apps.map(app => 
+                    app.id === selectedApplication.id ? { ...app, ...appEditData } : app
+                ));
+                setSelectedApplication({ ...selectedApplication, ...appEditData } as EmploymentSubmission);
+                setEditingApplication(false);
+            } else {
+                alert('Failed to save changes');
+            }
+        } catch (err) {
+            alert('Failed to save changes');
+        } finally {
+            setSavingApplication(false);
+        }
+    };
+
+    const fetchBlogs = async () => {
+        try {
+            const response = await fetch("/api/admin/blogs");
+            if (response.ok) {
+                const data = await response.json();
+                setBlogs(data.blogs || []);
+            }
+        } catch (err) {
+            console.error("Failed to fetch blogs:", err);
+        }
+    };
+
+    const handleSaveBlog = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSavingBlog(true);
+        try {
+            const method = editingBlog ? 'PATCH' : 'POST';
+            const endpoint = editingBlog ? `/api/admin/blogs/${editingBlog.id}` : '/api/admin/blogs';
+            
+            const response = await fetch(endpoint, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(blogFormData),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (editingBlog) {
+                    setBlogs(blogs.map(b => b.id === editingBlog.id ? data.blog : b));
+                } else {
+                    setBlogs([data.blog, ...blogs]);
+                }
+                setShowBlogForm(false);
+                setEditingBlog(null);
+                setBlogFormData({
+                    title: "",
+                    slug: "",
+                    excerpt: "",
+                    content: "",
+                    category: "",
+                    author: "",
+                    read_time: "5 min read",
+                    tags: "",
+                    image: "",
+                    meta_description: "",
+                    meta_keywords: "",
+                    is_published: false,
+                    is_featured: false,
+                    date: new Date().toISOString().split('T')[0],
+                });
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Failed to save blog');
+            }
+        } catch (err) {
+            alert('Failed to save blog');
+        } finally {
+            setSavingBlog(false);
+        }
+    };
+
+    const handleDeleteBlog = async (blogId: number) => {
+        if (!confirm('Are you sure you want to delete this blog?')) return;
+        try {
+            const response = await fetch(`/api/admin/blogs/${blogId}`, { method: 'DELETE' });
+            if (response.ok) {
+                setBlogs(blogs.filter(b => b.id !== blogId));
+            } else {
+                alert('Failed to delete blog');
+            }
+        } catch (err) {
+            alert('Failed to delete blog');
+        }
+    };
+
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -301,12 +464,14 @@ export default function AdminDashboard() {
         fetchUsers();
         fetchPages();
         fetchApplications();
+        fetchBlogs();
 
         // Auto-refresh data every 5 seconds
         const interval = setInterval(() => {
             fetchUsers();
             fetchPages();
             fetchApplications();
+            fetchBlogs();
         }, 5000);
 
         return () => clearInterval(interval);
@@ -359,6 +524,7 @@ export default function AdminDashboard() {
                         { id: "users", label: "Registry", icon: <Users size={20} /> },
                         { id: "applications", label: "Applications", icon: <Briefcase size={20} />, badge: applications.filter(a => a.status === 'pending').length },
                         { id: "pages", label: "Pages", icon: <FileText size={20} /> },
+                        { id: "blogs", label: "Blogs", icon: <Code size={20} /> },
                         { id: "push", label: "Comms", icon: <Bell size={20} /> },
                     ] as Array<{ id: string; label: string; icon: JSX.Element; badge?: number }>).map((item) => (
                         <button
@@ -844,27 +1010,97 @@ export default function AdminDashboard() {
                                                 </div>
                                                 <div className="space-y-1">
                                                     <p className="text-[10px] text-gray-500 uppercase tracking-wider">Start Date</p>
-                                                    <p className="text-white">{new Date(selectedApplication.startDate).toLocaleDateString()}</p>
+                                                    {editingApplication ? (
+                                                        <input
+                                                            type="date"
+                                                            value={appEditData.startDate || ''}
+                                                            onChange={(e) => setAppEditData({ ...appEditData, startDate: e.target.value })}
+                                                            className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                                                        />
+                                                    ) : (
+                                                        <p className="text-white">{new Date(selectedApplication.startDate).toLocaleDateString()}</p>
+                                                    )}
                                                 </div>
                                                 <div className="space-y-1">
                                                     <p className="text-[10px] text-gray-500 uppercase tracking-wider">Fixed Salary</p>
-                                                    <p className="text-white">{selectedApplication.hasFixedSalary ? (selectedApplication.fixedSalary || 'Yes') : 'No'}</p>
+                                                    {editingApplication ? (
+                                                        <div className="flex items-center gap-3">
+                                                            <label className="flex items-center gap-2 text-white text-sm">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={!!appEditData.hasFixedSalary}
+                                                                    onChange={(e) => setAppEditData({ ...appEditData, hasFixedSalary: e.target.checked ? 1 : 0 })}
+                                                                    className="size-4"
+                                                                />
+                                                                Has Salary
+                                                            </label>
+                                                            {appEditData.hasFixedSalary ? (
+                                                                <input
+                                                                    type="text"
+                                                                    value={appEditData.fixedSalary || ''}
+                                                                    onChange={(e) => setAppEditData({ ...appEditData, fixedSalary: e.target.value })}
+                                                                    placeholder="e.g. $5000"
+                                                                    className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                                                                />
+                                                            ) : null}
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-white">{selectedApplication.hasFixedSalary ? (selectedApplication.fixedSalary || 'Yes') : 'No'}</p>
+                                                    )}
                                                 </div>
                                                 <div className="space-y-1">
                                                     <p className="text-[10px] text-gray-500 uppercase tracking-wider">Revenue Share</p>
-                                                    <p className="font-bold text-emerald-400">{selectedApplication.revenueSharePercentage}%</p>
+                                                    {editingApplication ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                max="100"
+                                                                value={appEditData.revenueSharePercentage || ''}
+                                                                onChange={(e) => setAppEditData({ ...appEditData, revenueSharePercentage: e.target.value })}
+                                                                className="w-24 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                                                            />
+                                                            <span className="text-emerald-400 font-bold">%</span>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="font-bold text-emerald-400">{selectedApplication.revenueSharePercentage}%</p>
+                                                    )}
                                                 </div>
                                             </div>
 
                                             <div className="mb-6">
+                                                <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">Position</p>
+                                                {editingApplication ? (
+                                                    <input
+                                                        type="text"
+                                                        value={appEditData.position || ''}
+                                                        onChange={(e) => setAppEditData({ ...appEditData, position: e.target.value })}
+                                                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                                                    />
+                                                ) : (
+                                                    <p className="text-cyan-400 font-medium">{selectedApplication.position}</p>
+                                                )}
+                                            </div>
+
+                                            <div className="mb-6">
                                                 <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">Skills & Technologies</p>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {selectedApplication.skills?.split(', ').map((skill, i) => (
-                                                        <span key={i} className="px-3 py-1 bg-cyan-500/10 text-cyan-400 text-sm rounded-lg font-medium">
-                                                            {skill}
-                                                        </span>
-                                                    ))}
-                                                </div>
+                                                {editingApplication ? (
+                                                    <input
+                                                        type="text"
+                                                        value={appEditData.skills || ''}
+                                                        onChange={(e) => setAppEditData({ ...appEditData, skills: e.target.value })}
+                                                        placeholder="React, Node.js, TypeScript"
+                                                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                                                    />
+                                                ) : (
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {selectedApplication.skills?.split(', ').map((skill, i) => (
+                                                            <span key={i} className="px-3 py-1 bg-cyan-500/10 text-cyan-400 text-sm rounded-lg font-medium">
+                                                                {skill}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <div className="flex flex-wrap gap-3 mb-6">
@@ -895,35 +1131,346 @@ export default function AdminDashboard() {
                                             </div>
 
                                             <div className="flex gap-3 pt-6 border-t border-gray-800">
-                                                {selectedApplication.status === 'pending' && (
+                                                {editingApplication ? (
                                                     <>
                                                         <button
-                                                            onClick={() => updateApplicationStatus(selectedApplication.id, 'approved')}
-                                                            disabled={updatingStatus === selectedApplication.id}
+                                                            onClick={handleSaveApplication}
+                                                            disabled={savingApplication}
                                                             className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500 text-black rounded-xl font-bold hover:bg-emerald-400 transition-all disabled:opacity-50"
                                                         >
-                                                            <CheckCircle size={18} /> Approve
+                                                            {savingApplication ? (
+                                                                <RefreshCw size={18} className="animate-spin" />
+                                                            ) : (
+                                                                <Save size={18} />
+                                                            )}
+                                                            {savingApplication ? 'Saving...' : 'Save Changes'}
                                                         </button>
                                                         <button
-                                                            onClick={() => updateApplicationStatus(selectedApplication.id, 'rejected')}
-                                                            disabled={updatingStatus === selectedApplication.id}
-                                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-400 transition-all disabled:opacity-50"
+                                                            onClick={() => setEditingApplication(false)}
+                                                            disabled={savingApplication}
+                                                            className="px-4 py-3 bg-gray-800 text-gray-400 rounded-xl font-bold hover:bg-gray-700 transition-all disabled:opacity-50"
                                                         >
-                                                            <XCircle size={18} /> Reject
+                                                            Cancel
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            onClick={handleEditApplication}
+                                                            className="flex items-center justify-center gap-2 px-4 py-3 bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-xl font-bold hover:bg-cyan-500/30 transition-all"
+                                                        >
+                                                            <Edit3 size={18} /> Edit
+                                                        </button>
+                                                        {selectedApplication.status === 'pending' && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => updateApplicationStatus(selectedApplication.id, 'approved')}
+                                                                    disabled={updatingStatus === selectedApplication.id}
+                                                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500 text-black rounded-xl font-bold hover:bg-emerald-400 transition-all disabled:opacity-50"
+                                                                >
+                                                                    <CheckCircle size={18} /> Approve
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => updateApplicationStatus(selectedApplication.id, 'rejected')}
+                                                                    disabled={updatingStatus === selectedApplication.id}
+                                                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-400 transition-all disabled:opacity-50"
+                                                                >
+                                                                    <XCircle size={18} /> Reject
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                        <button
+                                                            onClick={() => deleteApplication(selectedApplication.id)}
+                                                            className="px-4 py-3 bg-gray-800 text-gray-400 rounded-xl font-bold hover:bg-red-900 hover:text-red-400 transition-all"
+                                                        >
+                                                            <Trash2 size={18} />
                                                         </button>
                                                     </>
                                                 )}
-                                                <button
-                                                    onClick={() => deleteApplication(selectedApplication.id)}
-                                                    className="px-4 py-3 bg-gray-800 text-gray-400 rounded-xl font-bold hover:bg-red-900 hover:text-red-400 transition-all"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
                                             </div>
                                         </motion.div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
+                        </div>
+                    )}
+
+                    {activeTab === "blogs" && (
+                        <div className="space-y-8">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-3xl font-black text-white uppercase tracking-tighter">Blog Manager</h3>
+                                    <p className="text-gray-500 text-sm font-medium">Create, edit, publish, or feature blog posts</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setEditingBlog(null);
+                                        setBlogFormData({
+                                            title: "",
+                                            slug: "",
+                                            excerpt: "",
+                                            content: "",
+                                            category: "",
+                                            author: "",
+                                            read_time: "5 min read",
+                                            tags: "",
+                                            image: "",
+                                            meta_description: "",
+                                            meta_keywords: "",
+                                            is_published: false,
+                                            is_featured: false,
+                                            date: new Date().toISOString().split('T')[0],
+                                        });
+                                        setShowBlogForm(true);
+                                    }}
+                                    className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-cyan-500 text-[#020617] font-black text-sm hover:bg-cyan-400 transition-all uppercase tracking-tighter"
+                                >
+                                    <Plus size={16} /> New Blog
+                                </button>
+                            </div>
+
+                            <Card className="overflow-hidden border-cyan-500/10">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-cyan-500/5 border-b border-cyan-500/10 text-xs uppercase tracking-widest text-gray-400">
+                                            <th className="px-4 py-3">Title</th>
+                                            <th className="px-4 py-3">Status</th>
+                                            <th className="px-4 py-3">Featured</th>
+                                            <th className="px-4 py-3">Date</th>
+                                            <th className="px-4 py-3">Views</th>
+                                            <th className="px-4 py-3 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {blogs.map((blog) => (
+                                            <tr key={blog.id} className="border-b border-gray-900/60 hover:bg-gray-900/30 transition-colors text-sm">
+                                                <td className="px-4 py-3">
+                                                    <div className="font-bold text-white">{blog.title}</div>
+                                                    <div className="text-[10px] text-gray-500 font-mono">/{blog.slug}</div>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${blog.is_published ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30" : "bg-red-500/10 text-red-400 border border-red-500/30"}`}>
+                                                        {blog.is_published ? "Published" : "Draft"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${blog.is_featured ? "bg-amber-500/10 text-amber-400 border border-amber-500/30" : "bg-gray-800 text-gray-400 border border-gray-700"}`}>
+                                                        {blog.is_featured ? "Featured" : "Standard"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-gray-400 text-xs">{blog.date}</td>
+                                                <td className="px-4 py-3 text-gray-400 text-xs">{blog.view_count}</td>
+                                                <td className="px-4 py-3 text-right space-x-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingBlog(blog);
+                                                            setBlogFormData({ ...blog });
+                                                            setShowBlogForm(true);
+                                                        }}
+                                                        className="px-3 py-2 rounded-lg bg-gray-800 text-gray-300 text-xs font-bold hover:bg-gray-700 transition-all"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteBlog(blog.id)}
+                                                        className="px-3 py-2 rounded-lg bg-red-500/10 text-red-400 text-xs font-bold border border-red-500/20 hover:bg-red-500/20 transition-all"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {blogs.length === 0 && (
+                                            <tr>
+                                                <td colSpan={6} className="text-center py-10 text-gray-600 font-mono text-sm">No blogs yet. Create the first post.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </Card>
+
+                            {showBlogForm && (
+                                <Card className="p-8 border-cyan-500/20">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div>
+                                            <h4 className="text-2xl font-black text-white uppercase tracking-tight">{editingBlog ? "Edit Blog" : "New Blog"}</h4>
+                                            <p className="text-gray-500 text-sm">Fill the fields below then save</p>
+                                        </div>
+                                        <button
+                                            onClick={() => { setShowBlogForm(false); setEditingBlog(null); }}
+                                            className="text-gray-400 hover:text-white"
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
+
+                                    <form onSubmit={handleSaveBlog} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Title</label>
+                                            <input
+                                                required
+                                                value={blogFormData.title || ""}
+                                                onChange={(e) => setBlogFormData({ ...blogFormData, title: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="Blog title"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Slug</label>
+                                            <input
+                                                required
+                                                value={blogFormData.slug || ""}
+                                                onChange={(e) => setBlogFormData({ ...blogFormData, slug: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="my-blog-post"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2 lg:col-span-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Excerpt</label>
+                                            <textarea
+                                                required
+                                                value={blogFormData.excerpt || ""}
+                                                onChange={(e) => setBlogFormData({ ...blogFormData, excerpt: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500 h-24"
+                                                placeholder="Short summary"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2 lg:col-span-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Content (Markdown allowed)</label>
+                                            <textarea
+                                                required
+                                                value={blogFormData.content || ""}
+                                                onChange={(e) => setBlogFormData({ ...blogFormData, content: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500 h-48"
+                                                placeholder="Full article content"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Category</label>
+                                            <input
+                                                required
+                                                value={blogFormData.category || ""}
+                                                onChange={(e) => setBlogFormData({ ...blogFormData, category: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="Frontend"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Author</label>
+                                            <input
+                                                required
+                                                value={blogFormData.author || ""}
+                                                onChange={(e) => setBlogFormData({ ...blogFormData, author: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="Author name"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Date</label>
+                                            <input
+                                                type="date"
+                                                value={blogFormData.date || new Date().toISOString().split('T')[0]}
+                                                onChange={(e) => setBlogFormData({ ...blogFormData, date: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Read Time</label>
+                                            <input
+                                                value={blogFormData.read_time || ""}
+                                                onChange={(e) => setBlogFormData({ ...blogFormData, read_time: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="5 min read"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Tags</label>
+                                            <input
+                                                value={blogFormData.tags || ""}
+                                                onChange={(e) => setBlogFormData({ ...blogFormData, tags: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="Next.js, React"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Image URL</label>
+                                            <input
+                                                value={blogFormData.image || ""}
+                                                onChange={(e) => setBlogFormData({ ...blogFormData, image: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="/images/blog-cover.jpg"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Meta Description</label>
+                                            <input
+                                                value={blogFormData.meta_description || ""}
+                                                onChange={(e) => setBlogFormData({ ...blogFormData, meta_description: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="SEO description"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Meta Keywords</label>
+                                            <input
+                                                value={blogFormData.meta_keywords || ""}
+                                                onChange={(e) => setBlogFormData({ ...blogFormData, meta_keywords: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="keyword1, keyword2"
+                                            />
+                                        </div>
+
+                                        <div className="flex items-center gap-4 lg:col-span-2">
+                                            <label className="flex items-center gap-2 text-sm text-gray-300">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!blogFormData.is_published}
+                                                    onChange={(e) => setBlogFormData({ ...blogFormData, is_published: e.target.checked })}
+                                                    className="size-4"
+                                                />
+                                                <span>Published</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 text-sm text-gray-300">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!blogFormData.is_featured}
+                                                    onChange={(e) => setBlogFormData({ ...blogFormData, is_featured: e.target.checked })}
+                                                    className="size-4"
+                                                />
+                                                <span>Featured</span>
+                                            </label>
+                                        </div>
+
+                                        <div className="lg:col-span-2 flex items-center gap-4 justify-end">
+                                            <button
+                                                type="button"
+                                                onClick={() => { setShowBlogForm(false); setEditingBlog(null); }}
+                                                className="px-6 py-3 rounded-xl bg-gray-800 text-gray-300 font-bold text-sm hover:bg-gray-700 transition-all"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                disabled={savingBlog}
+                                                className="px-6 py-3 rounded-xl bg-emerald-500 text-[#020617] font-black text-sm hover:bg-emerald-400 transition-all disabled:opacity-50 uppercase tracking-tighter"
+                                            >
+                                                {savingBlog ? "Saving..." : editingBlog ? "Update Blog" : "Create Blog"}
+                                            </button>
+                                        </div>
+                                    </form>
+                                </Card>
+                            )}
                         </div>
                     )}
 

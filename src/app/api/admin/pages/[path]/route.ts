@@ -18,7 +18,8 @@ export async function GET(
 ) {
     try {
         const { path } = await params;
-        const pagePath = "/" + path;
+        const normalized = (path || "").trim().toLowerCase().replace(/^\/+/, "").replace(/\/+$/, "");
+        const pagePath = "/" + normalized;
 
         const result = await db.execute({
             sql: "SELECT * FROM page_settings WHERE page_path = ?",
@@ -30,7 +31,7 @@ export async function GET(
             return NextResponse.json({ 
                 is_enabled: true,
                 page_path: pagePath,
-                page_name: path,
+                page_name: normalized,
                 disabled_message: null
             });
         }
@@ -65,7 +66,8 @@ export async function PATCH(
         }
 
         const { path } = await params;
-        const pagePath = "/" + path;
+        const normalized = (path || "").trim().toLowerCase().replace(/^\/+/, "").replace(/\/+$/, "");
+        const pagePath = "/" + normalized;
         const body = await request.json();
         const { is_enabled, disabled_message, redirect_path, page_name } = body;
 

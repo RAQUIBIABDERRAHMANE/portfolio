@@ -8,11 +8,12 @@ export async function GET(
 ) {
     try {
         const { path } = await params;
-        const pagePath = "/" + path;
+        const normalized = (path || "").trim().toLowerCase().replace(/^\/+/, "").replace(/\/+$/, "");
+        const pagePath = "/" + normalized;
 
         const result = await db.execute({
-            sql: "SELECT is_enabled, disabled_message, redirect_path FROM page_settings WHERE page_path = ?",
-            args: [pagePath]
+            sql: "SELECT is_enabled, disabled_message, redirect_path FROM page_settings WHERE page_path = ? OR page_path = ?",
+            args: [pagePath, pagePath.replace(/^\//, "")]
         });
 
         if (result.rows.length === 0) {

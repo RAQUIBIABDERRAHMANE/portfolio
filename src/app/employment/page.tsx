@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, FormEvent, useRef } from "react";
+import { useState, useEffect, FormEvent, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { HeaderSection } from "@/components/HeaderSection";
 import { Card } from "@/components/Card";
@@ -39,10 +40,12 @@ const techStackOptions = [
 ];
 
 export default function EmploymentPage() {
+    const router = useRouter();
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [message, setMessage] = useState("");
     const [cvFile, setCvFile] = useState<File | null>(null);
     const [userImage, setUserImage] = useState<File | null>(null);
+    const [authLoading, setAuthLoading] = useState(true);
     
     const [formData, setFormData] = useState({
         // Section 1: Agreement & Identity
@@ -71,6 +74,25 @@ export default function EmploymentPage() {
         ndaAccepted: false,
         ownershipAccepted: false
     });
+
+    useEffect(() => {
+        const verifyAuth = async () => {
+            try {
+                const res = await fetch("/api/auth/check");
+                const data = await res.json();
+                if (!res.ok || !data.authenticated) {
+                    router.replace(`/register?redirect=${encodeURIComponent("/employment")}`);
+                    return;
+                }
+            } catch (err) {
+                router.replace(`/register?redirect=${encodeURIComponent("/employment")}`);
+                return;
+            } finally {
+                setAuthLoading(false);
+            }
+        };
+        verifyAuth();
+    }, [router]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
@@ -191,7 +213,7 @@ export default function EmploymentPage() {
                     setMessage(dbError.error || "You already have a pending application.");
                     return;
                 }
-                throw new Error(dbError.error || "Database save failed");
+                throw new Error(dbError.error || "Server Side failed");
             }
 
             // Also send to webhook for notifications/processing
@@ -216,6 +238,16 @@ export default function EmploymentPage() {
     const inputClass = "w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-white/40 transition-all";
     const labelClass = "block text-sm font-medium text-white/90 mb-2 flex items-center gap-2";
     const sectionClass = "space-y-6";
+
+    if (authLoading) {
+        return (
+            <PageGuard>
+                <div className="min-h-screen bg-[#020617] text-white flex items-center justify-center">
+                    <div className="text-cyan-400 animate-pulse text-lg font-semibold">Checking your session...</div>
+                </div>
+            </PageGuard>
+        );
+    }
 
     if (status === "success") {
         return (
