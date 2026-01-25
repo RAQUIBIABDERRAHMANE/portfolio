@@ -117,6 +117,11 @@ export default function RootLayout({
             }),
           }}
         />
+        <script
+          async
+          crossOrigin="anonymous"
+          src="https://tweakcn.com/live-preview.min.js"
+        />
       </head>
       <body className={inter.className}>
         <PWAInstaller />
