@@ -32,7 +32,14 @@ import {
     DollarSign,
     Download,
     Edit3,
-    RefreshCw
+    RefreshCw,
+    Layers,
+    Link as LinkIcon,
+    Star,
+    GripVertical,
+    X as XIcon,
+    Paperclip,
+    AlertCircle
 } from "lucide-react";
 
 interface User {
@@ -73,6 +80,32 @@ interface EmploymentSubmission {
     userImageData: string;
     status: 'pending' | 'approved' | 'rejected';
     submittedAt: string;
+}
+
+interface ProjectDownloadFile {
+    name: string;
+    filename: string;
+    url: string;
+    size?: number;
+}
+
+interface Project {
+    id: number;
+    title: string;
+    company: string;
+    year: string;
+    description: string;
+    results: string;
+    link: string;
+    link_text: string;
+    image_url: string;
+    color: string;
+    download_files: string; // JSON array of ProjectDownloadFile
+    is_published: boolean;
+    is_featured: boolean;
+    sort_order: number;
+    created_at?: string;
+    updated_at?: string;
 }
 
 interface Blog {
@@ -139,6 +172,30 @@ export default function AdminDashboard() {
         date: new Date().toISOString().split('T')[0],
     });
     const [savingBlog, setSavingBlog] = useState(false);
+
+    // Project states
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [showProjectForm, setShowProjectForm] = useState(false);
+    const [editingProject, setEditingProject] = useState<Project | null>(null);
+    const [projectFormData, setProjectFormData] = useState<Partial<Project>>({
+        title: "",
+        company: "",
+        year: new Date().getFullYear().toString(),
+        description: "",
+        results: "[]",
+        link: "",
+        link_text: "View Project",
+        image_url: "",
+        color: "from-cyan-500 to-blue-500",
+        is_published: true,
+        is_featured: false,
+        sort_order: 0,
+    });
+    const [projectResultsInput, setProjectResultsInput] = useState("");
+    const [savingProject, setSavingProject] = useState(false);
+    const [projectDownloadFiles, setProjectDownloadFiles] = useState<ProjectDownloadFile[]>([]);
+    const [uploadingFile, setUploadingFile] = useState(false);
+    const [fileDisplayName, setFileDisplayName] = useState("");
 
     const handleSendNotification = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -366,6 +423,124 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleUploadProjectFile = async (file: File) => {
+        setUploadingFile(true);
+        try {
+            const form = new FormData();
+            form.append("file", file);
+            form.append("name", fileDisplayName.trim() || file.name);
+            const res = await fetch("/api/admin/upload", { method: "POST", body: form });
+            const data = await res.json();
+            if (res.ok) {
+                setProjectDownloadFiles(prev => [...prev, data.file]);
+                setFileDisplayName("");
+            } else {
+                alert(data.error || "Upload failed");
+            }
+        } catch {
+            alert("Upload failed");
+        } finally {
+            setUploadingFile(false);
+        }
+    };
+
+    const handleRemoveProjectFile = async (filename: string) => {
+        if (!confirm("Remove this download file?")) return;
+        try {
+            await fetch("/api/admin/upload/delete", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ filename }),
+            });
+        } catch {}
+        setProjectDownloadFiles(prev => prev.filter(f => f.filename !== filename));
+    };
+
+    const fetchProjects = async () => {
+        try {
+            const response = await fetch("/api/admin/projects");
+            if (response.ok) {
+                const data = await response.json();
+                setProjects(data.projects || []);
+            }
+        } catch (err) {
+            console.error("Failed to fetch projects:", err);
+        }
+    };
+
+    const handleSaveProject = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSavingProject(true);
+        try {
+            // Build results array from textarea
+            let resultsArr: { title: string }[] = [];
+            try { resultsArr = JSON.parse(projectFormData.results || "[]"); } catch {}
+            // If projectResultsInput is set, parse it line-by-line
+            if (projectResultsInput.trim()) {
+                resultsArr = projectResultsInput.split("\n").filter(l => l.trim()).map(l => ({ title: l.trim() }));
+            }
+
+            const payload = {
+                ...projectFormData,
+                results: JSON.stringify(resultsArr),
+                download_files: JSON.stringify(projectDownloadFiles),
+            };
+
+            const method = editingProject ? "PATCH" : "POST";
+            const endpoint = editingProject
+                ? `/api/admin/projects/${editingProject.id}`
+                : "/api/admin/projects";
+
+            const response = await fetch(endpoint, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (editingProject) {
+                    setProjects(projects.map(p => p.id === editingProject.id ? data.project : p));
+                } else {
+                    setProjects([data.project, ...projects]);
+                }
+                setShowProjectForm(false);
+                setEditingProject(null);
+                setProjectResultsInput("");
+                setProjectDownloadFiles([]);
+                setFileDisplayName("");
+                setProjectFormData({
+                    title: "", company: "", year: new Date().getFullYear().toString(),
+                    description: "", results: "[]", link: "", link_text: "View Project",
+                    image_url: "", color: "from-cyan-500 to-blue-500",
+                    download_files: "[]",
+                    is_published: true, is_featured: false, sort_order: 0,
+                });
+            } else {
+                const data = await response.json();
+                alert(data.error || "Failed to save project");
+            }
+        } catch (err) {
+            alert("Failed to save project");
+        } finally {
+            setSavingProject(false);
+        }
+    };
+
+    const handleDeleteProject = async (id: number) => {
+        if (!confirm("Are you sure you want to delete this project?")) return;
+        try {
+            const response = await fetch(`/api/admin/projects/${id}`, { method: "DELETE" });
+            if (response.ok) {
+                setProjects(projects.filter(p => p.id !== id));
+            } else {
+                alert("Failed to delete project");
+            }
+        } catch (err) {
+            alert("Failed to delete project");
+        }
+    };
+
     const fetchBlogs = async () => {
         try {
             const response = await fetch("/api/admin/blogs");
@@ -465,6 +640,7 @@ export default function AdminDashboard() {
         fetchPages();
         fetchApplications();
         fetchBlogs();
+        fetchProjects();
 
         // Auto-refresh data every 5 seconds
         const interval = setInterval(() => {
@@ -472,6 +648,7 @@ export default function AdminDashboard() {
             fetchPages();
             fetchApplications();
             fetchBlogs();
+            fetchProjects();
         }, 5000);
 
         return () => clearInterval(interval);
@@ -525,6 +702,7 @@ export default function AdminDashboard() {
                         { id: "applications", label: "Applications", icon: <Briefcase size={20} />, badge: applications.filter(a => a.status === 'pending').length },
                         { id: "pages", label: "Pages", icon: <FileText size={20} /> },
                         { id: "blogs", label: "Blogs", icon: <Code size={20} /> },
+                        { id: "projects", label: "Projects", icon: <Layers size={20} /> },
                         { id: "push", label: "Comms", icon: <Bell size={20} /> },
                     ] as Array<{ id: string; label: string; icon: JSX.Element; badge?: number }>).map((item) => (
                         <button
@@ -1466,6 +1644,362 @@ export default function AdminDashboard() {
                                                 className="px-6 py-3 rounded-xl bg-emerald-500 text-[#020617] font-black text-sm hover:bg-emerald-400 transition-all disabled:opacity-50 uppercase tracking-tighter"
                                             >
                                                 {savingBlog ? "Saving..." : editingBlog ? "Update Blog" : "Create Blog"}
+                                            </button>
+                                        </div>
+                                    </form>
+                                </Card>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === "projects" && (
+                        <div className="space-y-8">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-3xl font-black text-white uppercase tracking-tighter">Projects Manager</h3>
+                                    <p className="text-gray-500 text-sm font-medium">Add, edit, publish or delete portfolio projects</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setEditingProject(null);
+                                        setProjectResultsInput("");
+                                        setProjectDownloadFiles([]);
+                                        setFileDisplayName("");
+                                        setProjectFormData({
+                                            title: "", company: "", year: new Date().getFullYear().toString(),
+                                            description: "", results: "[]", link: "", link_text: "View Project",
+                                            image_url: "", color: "from-cyan-500 to-blue-500",
+                                            download_files: "[]",
+                                            is_published: true, is_featured: false, sort_order: 0,
+                                        });
+                                        setShowProjectForm(true);
+                                    }}
+                                    className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-cyan-500 text-[#020617] font-black text-sm hover:bg-cyan-400 transition-all uppercase tracking-tighter"
+                                >
+                                    <Plus size={16} /> New Project
+                                </button>
+                            </div>
+
+                            {/* Projects table */}
+                            <Card className="overflow-hidden border-cyan-500/10">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-cyan-500/5 border-b border-cyan-500/10 text-xs uppercase tracking-widest text-gray-400">
+                                            <th className="px-4 py-3">Project</th>
+                                            <th className="px-4 py-3">Company / Year</th>
+                                            <th className="px-4 py-3">Status</th>
+                                            <th className="px-4 py-3">Featured</th>
+                                            <th className="px-4 py-3">Order</th>
+                                            <th className="px-4 py-3 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {projects.map((project) => (
+                                            <tr key={project.id} className="border-b border-gray-900/60 hover:bg-gray-900/30 transition-colors text-sm">
+                                                <td className="px-4 py-3">
+                                                    <div className="font-bold text-white">{project.title}</div>
+                                                    {project.link && (
+                                                        <a href={project.link} target="_blank" rel="noopener noreferrer"
+                                                           className="text-[10px] text-cyan-400 font-mono hover:underline flex items-center gap-1 mt-0.5">
+                                                            <LinkIcon size={10} /> {project.link.length > 40 ? project.link.slice(0, 40) + '...' : project.link}
+                                                        </a>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-3 text-gray-400 text-xs">
+                                                    <span className="font-bold text-white">{project.company}</span>
+                                                    <span className="ml-2 text-gray-500">{project.year}</span>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                                        project.is_published
+                                                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                                                            : "bg-red-500/10 text-red-400 border border-red-500/30"
+                                                    }`}>
+                                                        {project.is_published ? "Published" : "Hidden"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                                        project.is_featured
+                                                            ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
+                                                            : "bg-gray-800 text-gray-400 border border-gray-700"
+                                                    }`}>
+                                                        {project.is_featured ? "Featured" : "Standard"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-gray-400 text-xs font-mono">{project.sort_order}</td>
+                                                <td className="px-4 py-3 text-right space-x-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingProject(project);
+                                                            setProjectFormData({ ...project });
+                                                            // Populate the textarea from results JSON
+                                                            try {
+                                                                const arr: { title: string }[] = JSON.parse(project.results || "[]");
+                                                                setProjectResultsInput(arr.map(r => r.title).join("\n"));
+                                                            } catch {
+                                                                setProjectResultsInput("");
+                                                            }
+                                                            // Populate download files
+                                                            try {
+                                                                setProjectDownloadFiles(JSON.parse(project.download_files || "[]"));
+                                                            } catch {
+                                                                setProjectDownloadFiles([]);
+                                                            }
+                                                            setFileDisplayName("");
+                                                            setShowProjectForm(true);
+                                                        }}
+                                                        className="px-3 py-2 rounded-lg bg-gray-800 text-gray-300 text-xs font-bold hover:bg-gray-700 transition-all"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteProject(project.id)}
+                                                        className="px-3 py-2 rounded-lg bg-red-500/10 text-red-400 text-xs font-bold border border-red-500/20 hover:bg-red-500/20 transition-all"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {projects.length === 0 && (
+                                            <tr>
+                                                <td colSpan={6} className="text-center py-10 text-gray-600 font-mono text-sm">No projects yet. Add your first project.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </Card>
+
+                            {/* Project form */}
+                            {showProjectForm && (
+                                <Card className="p-8 border-cyan-500/20">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div>
+                                            <h4 className="text-2xl font-black text-white uppercase tracking-tight">{editingProject ? "Edit Project" : "New Project"}</h4>
+                                            <p className="text-gray-500 text-sm">Fill the fields below then save</p>
+                                        </div>
+                                        <button
+                                            onClick={() => { setShowProjectForm(false); setEditingProject(null); }}
+                                            className="text-gray-400 hover:text-white"
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
+
+                                    <form onSubmit={handleSaveProject} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Title *</label>
+                                            <input
+                                                required
+                                                value={projectFormData.title || ""}
+                                                onChange={(e) => setProjectFormData({ ...projectFormData, title: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="My Awesome Project"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Company *</label>
+                                            <input
+                                                required
+                                                value={projectFormData.company || ""}
+                                                onChange={(e) => setProjectFormData({ ...projectFormData, company: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="Company / Client name"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Year *</label>
+                                            <input
+                                                required
+                                                value={projectFormData.year || ""}
+                                                onChange={(e) => setProjectFormData({ ...projectFormData, year: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="2025"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Sort Order</label>
+                                            <input
+                                                type="number"
+                                                value={projectFormData.sort_order ?? 0}
+                                                onChange={(e) => setProjectFormData({ ...projectFormData, sort_order: Number(e.target.value) })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="0"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2 lg:col-span-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Description</label>
+                                            <textarea
+                                                value={projectFormData.description || ""}
+                                                onChange={(e) => setProjectFormData({ ...projectFormData, description: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500 h-24"
+                                                placeholder="Short project description"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2 lg:col-span-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Key Results (one per line)</label>
+                                            <textarea
+                                                value={projectResultsInput}
+                                                onChange={(e) => setProjectResultsInput(e.target.value)}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500 h-36"
+                                                placeholder={"Real-time performance and scalability\nCross-platform device accessibility\nCost-effective implementation"}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Project Link</label>
+                                            <input
+                                                value={projectFormData.link || ""}
+                                                onChange={(e) => setProjectFormData({ ...projectFormData, link: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="https://github.com/..."
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Link Button Text</label>
+                                            <input
+                                                value={projectFormData.link_text || ""}
+                                                onChange={(e) => setProjectFormData({ ...projectFormData, link_text: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="View Source Code"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Image URL</label>
+                                            <input
+                                                value={projectFormData.image_url || ""}
+                                                onChange={(e) => setProjectFormData({ ...projectFormData, image_url: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="/images/project.jpg or https://..."
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Gradient Color (Tailwind)</label>
+                                            <input
+                                                value={projectFormData.color || ""}
+                                                onChange={(e) => setProjectFormData({ ...projectFormData, color: e.target.value })}
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                placeholder="from-cyan-500 to-blue-500"
+                                            />
+                                        </div>
+
+                                        {/* Download Files Section */}
+                                        <div className="space-y-4 lg:col-span-2 border border-cyan-500/10 rounded-xl p-5 bg-gray-950/30">
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] flex items-center gap-2">
+                                                <Download size={12} /> Downloadable Files (.apk, .exe, .zip, .pdf…)
+                                            </label>
+
+                                            {/* Existing files list */}
+                                            {projectDownloadFiles.length > 0 && (
+                                                <div className="space-y-2">
+                                                    {projectDownloadFiles.map((f) => (
+                                                        <div key={f.filename} className="flex items-center justify-between gap-3 bg-gray-900/50 border border-gray-800 rounded-lg px-4 py-2">
+                                                            <div className="flex items-center gap-2 min-w-0">
+                                                                <Paperclip size={14} className="text-cyan-400 flex-shrink-0" />
+                                                                <div className="min-w-0">
+                                                                    <p className="text-white text-sm font-bold truncate">{f.name}</p>
+                                                                    <p className="text-gray-500 text-[10px] font-mono truncate">{f.filename}{f.size ? ` · ${(f.size / 1024).toFixed(1)} KB` : ""}</p>
+                                                                </div>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleRemoveProjectFile(f.filename)}
+                                                                className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all flex-shrink-0"
+                                                            >
+                                                                <XIcon size={14} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* Upload new file */}
+                                            <div className="space-y-2">
+                                                <input
+                                                    type="text"
+                                                    value={fileDisplayName}
+                                                    onChange={(e) => setFileDisplayName(e.target.value)}
+                                                    placeholder="Display name (optional, e.g. Download Android APK)"
+                                                    className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-cyan-500 placeholder:text-gray-700"
+                                                />
+                                                <label className={`flex items-center justify-center gap-3 w-full px-4 py-5 rounded-xl border-2 border-dashed transition-all cursor-pointer ${
+                                                    uploadingFile
+                                                        ? "border-cyan-500/50 bg-cyan-500/5"
+                                                        : "border-gray-700 hover:border-cyan-500/50 hover:bg-cyan-500/5"
+                                                }`}>
+                                                    <input
+                                                        type="file"
+                                                        accept=".apk,.aab,.ipa,.exe,.msi,.dmg,.deb,.zip,.tar.gz,.gz,.rar,.pdf,.jar,.war"
+                                                        className="hidden"
+                                                        disabled={uploadingFile}
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) handleUploadProjectFile(file);
+                                                            e.target.value = "";
+                                                        }}
+                                                    />
+                                                    {uploadingFile ? (
+                                                        <>
+                                                            <div className="size-4 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+                                                            <span className="text-cyan-400 text-sm font-bold">Uploading…</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Download size={16} className="text-gray-500" />
+                                                            <span className="text-gray-500 text-sm">Click to choose a file to upload</span>
+                                                        </>
+                                                    )}
+                                                </label>
+                                                <p className="text-[10px] text-gray-600 flex items-center gap-1">
+                                                    <AlertCircle size={10} /> Allowed: .apk .aab .ipa .exe .msi .dmg .zip .pdf - Max 100 MB
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-6 lg:col-span-2">
+                                            <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!projectFormData.is_published}
+                                                    onChange={(e) => setProjectFormData({ ...projectFormData, is_published: e.target.checked })}
+                                                    className="size-4"
+                                                />
+                                                <span>Published (visible on site)</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!projectFormData.is_featured}
+                                                    onChange={(e) => setProjectFormData({ ...projectFormData, is_featured: e.target.checked })}
+                                                    className="size-4"
+                                                />
+                                                <span>Featured</span>
+                                            </label>
+                                        </div>
+
+                                        <div className="lg:col-span-2 flex items-center gap-4 justify-end">
+                                            <button
+                                                type="button"
+                                                onClick={() => { setShowProjectForm(false); setEditingProject(null); }}
+                                                className="px-6 py-3 rounded-xl bg-gray-800 text-gray-300 font-bold text-sm hover:bg-gray-700 transition-all"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                disabled={savingProject}
+                                                className="px-6 py-3 rounded-xl bg-emerald-500 text-[#020617] font-black text-sm hover:bg-emerald-400 transition-all disabled:opacity-50 uppercase tracking-tighter"
+                                            >
+                                                {savingProject ? "Saving..." : editingProject ? "Update Project" : "Create Project"}
                                             </button>
                                         </div>
                                     </form>

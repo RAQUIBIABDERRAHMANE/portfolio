@@ -10,8 +10,11 @@ import Image from "next/image";
 import { HeaderSection } from "@/components/HeaderSection";
 import { Card } from "@/components/Card";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { Download } from "lucide-react";
 
-const portfolioProjects = [
+// Static fallback projects (used when database is empty)
+const staticProjects = [
   {
     company: "EquipTrack",
     year: "2025",
@@ -20,21 +23,19 @@ const portfolioProjects = [
       { title: "Manage all equipment in one place" },
       { title: "Track equipment movements between services" },
       { title: "Filter by department or service" },
-      {
-        title: "Easily add new equipment",
-      },
+      { title: "Easily add new equipment" },
       { title: "Status indicators: available, moved, or broken" },
       { title: "Visualize usage with movement charts" },
     ],
     link: "https://github.com/ABDERRAHMANERAQUIBI/EquipTrack",
-    image: DefpImage,
+    image: DefpImage as any,
     text: "GitHub Source Code",
     color: "from-blue-500 to-violet-500",
   },
   {
     company: "First POS",
     year: "2025",
-    title: "POS System ",
+    title: "POS System",
     results: [
       { title: "Modern web-based architecture system" },
       { title: "Real-time performance and scalability" },
@@ -43,7 +44,7 @@ const portfolioProjects = [
       { title: "Easy maintenance and updates" },
     ],
     link: "https://github.com/RAQUIBIABDERRAHMANE/POS",
-    image: POS,
+    image: POS as any,
     text: "Get Source Code",
     color: "from-violet-500 to-purple-500",
   },
@@ -57,7 +58,7 @@ const portfolioProjects = [
       { title: "Increased mobile traffic by 35%" },
     ],
     link: "https://buymeacoffee.com/anaser_25/e/297849",
-    image: VirtualRLandingPage,
+    image: VirtualRLandingPage as any,
     text: "Get Source Code",
     color: "from-purple-500 to-pink-500",
   },
@@ -67,20 +68,71 @@ const portfolioProjects = [
     title: "Medical website",
     results: [
       { title: "Developing a medical website" },
-      { title: "Develeped and maintained client websites" },
+      { title: "Developed and maintained client websites" },
       { title: "Collaborated with cross-functional teams" },
-      {
-        title: "Implemented responsive design and cross-browser compatibility",
-      },
+      { title: "Implemented responsive design and cross-browser compatibility" },
     ],
     link: "https://medicareplus.ma/",
-    image: MedicareplusImage,
-    text: "Vist Live Site",
+    image: MedicareplusImage as any,
+    text: "Visit Live Site",
     color: "from-pink-500 to-red-500",
   },
 ];
 
+interface DBProject {
+  id: number;
+  title: string;
+  company: string;
+  year: string;
+  description: string;
+  results: string;
+  link: string;
+  link_text: string;
+  image_url: string;
+  color: string;
+  download_files: string; // JSON array
+  is_published: boolean;
+  is_featured: boolean;
+  sort_order: number;
+}
+
 export const ProjectsSection = () => {
+  const [dbProjects, setDbProjects] = useState<DBProject[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/projects")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.projects) && data.projects.length > 0) {
+          setDbProjects(data.projects);
+        }
+      })
+      .catch(() => {/* fall through to static */})
+      .finally(() => setLoaded(true));
+  }, []);
+
+  // Build unified project list: DB projects if any, otherwise static fallback
+  const portfolioProjects = loaded && dbProjects.length > 0
+    ? dbProjects.map((p) => {
+        let results: { title: string }[] = [];
+        try { results = JSON.parse(p.results); } catch { results = []; }
+        let downloads: { name: string; url: string; filename: string }[] = [];
+        try { downloads = JSON.parse(p.download_files || '[]'); } catch { downloads = []; }
+        return {
+          company: p.company,
+          year: p.year,
+          title: p.title,
+          results,
+          link: p.link,
+          image: p.image_url || null,
+          text: p.link_text,
+          color: p.color,
+          downloads,
+        };
+      })
+    : staticProjects.map(p => ({ ...p, downloads: [] as { name: string; url: string; filename: string }[] }));
+
   return (
     <section className="py-16 lg:py-24 scroll-smooth" id="project">
       <div className="container">
@@ -153,15 +205,21 @@ export const ProjectsSection = () => {
                         background: 'linear-gradient(135deg, rgba(0, 255, 249, 0.2) 0%, transparent 50%)',
                       }}
                     />
-                    <Image
-                      src={project.image}
-                      alt={project.title}
-                      className="object-cover transition-transform duration-300 group-hover:scale-110"
-                      fill
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      loading={projectIndex < 2 ? "eager" : "lazy"}
-                      priority={projectIndex < 2}
-                    />
+                    {project.image ? (
+                      <Image
+                        src={project.image}
+                        alt={project.title}
+                        className="object-cover transition-transform duration-300 group-hover:scale-110"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        loading={projectIndex < 2 ? "eager" : "lazy"}
+                        priority={projectIndex < 2}
+                      />
+                    ) : (
+                      <div className={`absolute inset-0 bg-gradient-to-br ${project.color} opacity-20 flex items-center justify-center`}>
+                        <span className="text-white/30 text-4xl font-black uppercase tracking-widest">{project.company?.charAt(0)}</span>
+                      </div>
+                    )}
                     {/* Corner accents */}
                     <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-neon-cyan opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
                     <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-neon-cyan opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
@@ -219,6 +277,39 @@ export const ProjectsSection = () => {
                       transition={{ duration: 0.3 }}
                     />
                   </motion.a>
+
+                  {/* Download buttons */}
+                  {project.downloads && project.downloads.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {project.downloads.map((dl) => (
+                        <motion.a
+                          key={dl.url}
+                          href={dl.url}
+                          download
+                          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg relative overflow-hidden group/dl"
+                          style={{
+                            background: 'rgba(168, 85, 247, 0.08)',
+                            border: '1px solid rgba(168, 85, 247, 0.4)',
+                          }}
+                          whileHover={{
+                            scale: 1.02,
+                            boxShadow: '0 0 16px rgba(168, 85, 247, 0.35)',
+                          }}
+                          whileTap={{ scale: 0.97 }}
+                        >
+                          <Download size={14} className="text-purple-400 relative z-10 flex-shrink-0" />
+                          <span className="relative z-10 text-purple-300 font-medium text-sm">{dl.name}</span>
+                          <motion.div
+                            className="absolute inset-0"
+                            style={{ background: 'rgba(168, 85, 247, 0.15)' }}
+                            initial={{ x: '-100%' }}
+                            whileHover={{ x: 0 }}
+                            transition={{ duration: 0.3 }}
+                          />
+                        </motion.a>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </Card>
             </motion.div>
