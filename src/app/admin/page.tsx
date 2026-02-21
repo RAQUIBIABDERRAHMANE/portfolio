@@ -1274,6 +1274,7 @@ export default function AdminDashboard() {
                                             <div className="flex justify-between items-start mb-6 gap-4">
                                                 <div className="flex items-center gap-4">
                                                     {selectedApplication.userImageData && (
+                                                        // eslint-disable-next-line @next/next/no-img-element
                                                         <img 
                                                             src={selectedApplication.userImageData} 
                                                             alt={selectedApplication.fullName}

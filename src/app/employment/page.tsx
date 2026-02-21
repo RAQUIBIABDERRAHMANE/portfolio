@@ -26,7 +26,7 @@ import {
     Building2,
     Code,
     CreditCard,
-    Image
+    Image as ImageIcon
 } from "lucide-react";
 
 const techStackOptions = [
@@ -437,7 +437,7 @@ export default function EmploymentPage() {
 
                                 <div>
                                     <label className="text-sm font-medium text-white/90 mb-2 flex items-center gap-2">
-                                        <Image size={16} className="text-emerald-400" />
+                                        <ImageIcon size={16} className="text-emerald-400" />
                                         Your Photo *
                                     </label>
                                     <div className="relative">
