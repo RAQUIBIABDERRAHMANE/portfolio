@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/sqlite';
+import { verifyToken } from '@/lib/auth';
 import crypto from 'crypto';
 
 const COUNTRY_NAMES: Record<string, string> = {
@@ -94,10 +95,22 @@ export async function POST(request: NextRequest) {
     const device = detectDevice(userAgent);
     const browser = detectBrowser(userAgent);
 
+    // Utilisateur connecté : lecture du cookie JWT
+    let userId: number | null = null;
+    let userName: string | null = null;
+    const authToken = request.cookies.get('auth_token')?.value;
+    if (authToken) {
+      const authUser = verifyToken(authToken);
+      if (authUser) {
+        userId = authUser.userId ?? null;
+        userName = authUser.email;
+      }
+    }
+
     await db.execute({
       sql: `INSERT INTO analytics_pageviews
-              (pathname, referrer, country, country_code, user_agent, ip_hash, session_id, device_type, browser)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              (pathname, referrer, country, country_code, user_agent, ip_hash, session_id, device_type, browser, user_id, user_name)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         pathname.slice(0, 200),
         cleanRef || null,
@@ -108,6 +121,8 @@ export async function POST(request: NextRequest) {
         sessionId || null,
         device,
         browser,
+        userId,
+        userName,
       ],
     });
 

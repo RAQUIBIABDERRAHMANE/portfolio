@@ -69,6 +69,8 @@ export const initDb = async () => {
     'ALTER TABLE analytics_pageviews ADD COLUMN session_id TEXT',
     'ALTER TABLE analytics_pageviews ADD COLUMN device_type TEXT',
     'ALTER TABLE analytics_pageviews ADD COLUMN browser TEXT',
+    'ALTER TABLE analytics_pageviews ADD COLUMN user_id INTEGER',
+    'ALTER TABLE analytics_pageviews ADD COLUMN user_name TEXT',
   ];
   for (const sql of analyticsMigrations) {
     try { await db.execute(sql); } catch { /* already exists */ }

@@ -157,7 +157,7 @@ export async function GET(request: NextRequest) {
 
     // ── Live feed ─────────────────────────────────────────────────
     const recentR = await db.execute(`
-      SELECT pathname, country, device_type, browser, created_at
+      SELECT pathname, country, device_type, browser, user_id, user_name, created_at
       FROM analytics_pageviews
       ORDER BY created_at DESC LIMIT 25
     `);
@@ -166,6 +166,8 @@ export async function GET(request: NextRequest) {
       country: r.country,
       device: r.device_type,
       browser: r.browser,
+      userId: r.user_id ?? null,
+      userName: r.user_name ?? null,
       createdAt: r.created_at,
     }));
 

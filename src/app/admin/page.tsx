@@ -228,7 +228,7 @@ export default function AdminDashboard() {
         daily: { day: string; views: number; unique: number }[];
         devices: { device: string; views: number }[];
         browsers: { browser: string; views: number }[];
-        recent: { pathname: string; country: string; device: string; browser: string; createdAt: string }[];
+        recent: { pathname: string; country: string; device: string; browser: string; userId: number | null; userName: string | null; createdAt: string }[];
     } | null>(null);
     const [projects, setProjects] = useState<Project[]>([]);
     const [showProjectForm, setShowProjectForm] = useState(false);
@@ -2710,11 +2710,18 @@ export default function AdminDashboard() {
                                                     </h3>
                                                     <div className="space-y-1 max-h-64 overflow-y-auto">
                                                         {recent.map((r, i) => (
-                                                            <div key={i} className="flex items-center gap-2 py-1.5 border-b border-gray-800/40">
-                                                                <div className="size-1.5 rounded-full bg-cyan-500 animate-pulse shrink-0" />
+                                                            <div key={i} className={`flex items-center gap-2 py-1.5 border-b border-gray-800/40 ${r.userName ? 'bg-green-500/5 rounded-lg px-1' : ''}`}>
+                                                                <div className={`size-1.5 rounded-full shrink-0 animate-pulse ${r.userName ? 'bg-green-400' : 'bg-cyan-500'}`} />
                                                                 <span className="text-gray-300 font-mono text-xs truncate flex-1">{r.pathname || '/'}</span>
+                                                                {r.userName ? (
+                                                                    <span className="text-[9px] font-bold text-green-400 bg-green-400/10 border border-green-400/20 px-1.5 py-0.5 rounded-full shrink-0 max-w-[90px] truncate" title={r.userName}>
+                                                                        👤 {r.userName.split('@')[0]}
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-[9px] text-gray-700 shrink-0">anon</span>
+                                                                )}
                                                                 <span className="text-[10px] shrink-0">{r.device === 'mobile' ? '📱' : r.device === 'tablet' ? '📟' : '💻'}</span>
-                                                                <span className="text-gray-600 text-[10px] shrink-0 max-w-[60px] truncate">{r.country || '—'}</span>
+                                                                <span className="text-gray-600 text-[10px] shrink-0 max-w-[55px] truncate">{r.country || '—'}</span>
                                                                 <span className="text-gray-700 text-[10px] shrink-0 font-mono">
                                                                     {new Date(r.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                                                                 </span>
