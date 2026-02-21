@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/Card";
@@ -214,6 +214,7 @@ export default function AdminDashboard() {
 
     // Analytics state
     const [analyticsRange, setAnalyticsRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
+    const analyticsRangeRef = useRef<string>('30d');
     const [analyticsLoading, setAnalyticsLoading] = useState(false);
     const [analyticsData, setAnalyticsData] = useState<{
         range: string;
@@ -535,8 +536,9 @@ export default function AdminDashboard() {
     };
 
     const fetchAnalytics = async (range?: string) => {
-        const r = range || analyticsRange;
-        setAnalyticsLoading(true);
+        const r = range ?? analyticsRangeRef.current;
+        // Spinner uniquement au premier chargement ou changement de plage
+        if (!analyticsData || range !== undefined) setAnalyticsLoading(true);
         try {
             const response = await fetch(`/api/admin/analytics?range=${r}`);
             if (response.ok) {
@@ -2461,7 +2463,7 @@ export default function AdminDashboard() {
                                         {(['7d', '30d', '90d', 'all'] as const).map((r) => (
                                             <button
                                                 key={r}
-                                                onClick={() => { setAnalyticsRange(r); fetchAnalytics(r); }}
+                                                onClick={() => { setAnalyticsRange(r); analyticsRangeRef.current = r; fetchAnalytics(r); }}
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all ${
                                                     analyticsRange === r
                                                         ? 'bg-cyan-500 text-black'
