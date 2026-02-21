@@ -146,6 +146,7 @@ export const Header = () => {
               { label: "Technologies", href: "/#technologies" },
               { label: "Project", href: "/#project" },
               { label: "About", href: "/#about" },
+              { label: "Booking", href: "/booking" },
             ].map((link, i) => (
               <motion.a
                 key={link.label}
@@ -267,6 +268,7 @@ export const Header = () => {
                   { label: "Technologies", href: "/#technologies", icon: <Cpu size={22} /> },
                   { label: "Projects", href: "/#project", icon: <MessageSquare size={22} /> },
                   { label: "About Me", href: "/#about", icon: <User size={22} /> },
+                  { label: "Booking", href: "/booking", icon: <Calendar size={22} /> },
                 ].map((link) => (
                   <Link
                     key={link.label}

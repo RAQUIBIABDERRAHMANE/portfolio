@@ -28,6 +28,7 @@ import {
     Mail,
     Phone,
     Calendar,
+    CalendarDays,
     Code,
     DollarSign,
     Download,
@@ -39,7 +40,10 @@ import {
     GripVertical,
     X as XIcon,
     Paperclip,
-    AlertCircle
+    AlertCircle,
+    ToggleLeft,
+    ToggleRight,
+    MessageSquare
 } from "lucide-react";
 
 interface User {
@@ -108,6 +112,28 @@ interface Project {
     updated_at?: string;
 }
 
+interface Reservation {
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+    service_type: string;
+    date: string;
+    time_slot: string;
+    message: string;
+    status: 'pending' | 'confirmed' | 'cancelled';
+    admin_notes: string;
+    created_at: string;
+}
+
+interface AvailabilitySlot {
+    id: number;
+    day_of_week: number;
+    start_time: string;
+    is_active: number;
+    duration_minutes: number;
+}
+
 interface Blog {
     id: number;
     title: string;
@@ -172,6 +198,15 @@ export default function AdminDashboard() {
         date: new Date().toISOString().split('T')[0],
     });
     const [savingBlog, setSavingBlog] = useState(false);
+
+    // Booking states
+    const [reservations, setReservations] = useState<Reservation[]>([]);
+    const [availabilitySlots, setAvailabilitySlots] = useState<AvailabilitySlot[]>([]);
+    const [bookingSubTab, setBookingSubTab] = useState<'reservations' | 'availability'>('reservations');
+    const [updatingReservation, setUpdatingReservation] = useState<number | null>(null);
+    const [reservationNotes, setReservationNotes] = useState<{ [id: number]: string }>({});
+    const [newSlot, setNewSlot] = useState({ day_of_week: 1, start_time: "09:00", duration_minutes: 45 });
+    const [addingSlot, setAddingSlot] = useState(false);
 
     // Project states
     const [projects, setProjects] = useState<Project[]>([]);
@@ -456,6 +491,86 @@ export default function AdminDashboard() {
         setProjectDownloadFiles(prev => prev.filter(f => f.filename !== filename));
     };
 
+    const fetchReservations = async () => {
+        try {
+            const response = await fetch("/api/admin/reservations");
+            if (response.ok) {
+                const data = await response.json();
+                setReservations(data.reservations || []);
+            }
+        } catch (err) {
+            console.error("Failed to fetch reservations:", err);
+        }
+    };
+
+    const fetchAvailability = async () => {
+        try {
+            const response = await fetch("/api/admin/availability");
+            if (response.ok) {
+                const data = await response.json();
+                setAvailabilitySlots(data.slots || []);
+            }
+        } catch (err) {
+            console.error("Failed to fetch availability:", err);
+        }
+    };
+
+    const handleUpdateReservation = async (id: number, status: 'confirmed' | 'cancelled') => {
+        setUpdatingReservation(id);
+        try {
+            const notes = reservationNotes[id] || "";
+            await fetch(`/api/admin/reservations/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status, admin_notes: notes }),
+            });
+            setReservations(prev => prev.map(r => r.id === id ? { ...r, status, admin_notes: notes } : r));
+        } catch { alert("Failed to update"); }
+        finally { setUpdatingReservation(null); }
+    };
+
+    const handleDeleteReservation = async (id: number) => {
+        if (!confirm("Delete this reservation?")) return;
+        await fetch(`/api/admin/reservations/${id}`, { method: "DELETE" });
+        setReservations(prev => prev.filter(r => r.id !== id));
+    };
+
+    const handleToggleSlot = async (slot: AvailabilitySlot) => {
+        await fetch(`/api/admin/availability/${slot.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ is_active: slot.is_active ? 0 : 1 }),
+        });
+        setAvailabilitySlots(prev => prev.map(s => s.id === slot.id ? { ...s, is_active: s.is_active ? 0 : 1 } : s));
+    };
+
+    const handleDeleteSlot = async (id: number) => {
+        if (!confirm("Delete this slot?")) return;
+        await fetch(`/api/admin/availability/${id}`, { method: "DELETE" });
+        setAvailabilitySlots(prev => prev.filter(s => s.id !== id));
+    };
+
+    const handleAddSlot = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setAddingSlot(true);
+        try {
+            const res = await fetch("/api/admin/availability", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newSlot),
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setAvailabilitySlots(prev => [...prev, data.slot]);
+                setNewSlot({ day_of_week: 1, start_time: "09:00", duration_minutes: 45 });
+            } else {
+                const d = await res.json();
+                alert(d.error || "Failed to add slot");
+            }
+        } catch { alert("Failed to add slot"); }
+        finally { setAddingSlot(false); }
+    };
+
     const fetchProjects = async () => {
         try {
             const response = await fetch("/api/admin/projects");
@@ -641,6 +756,8 @@ export default function AdminDashboard() {
         fetchApplications();
         fetchBlogs();
         fetchProjects();
+        fetchReservations();
+        fetchAvailability();
 
         // Auto-refresh data every 5 seconds
         const interval = setInterval(() => {
@@ -649,6 +766,8 @@ export default function AdminDashboard() {
             fetchApplications();
             fetchBlogs();
             fetchProjects();
+            fetchReservations();
+            fetchAvailability();
         }, 5000);
 
         return () => clearInterval(interval);
@@ -703,6 +822,7 @@ export default function AdminDashboard() {
                         { id: "pages", label: "Pages", icon: <FileText size={20} /> },
                         { id: "blogs", label: "Blogs", icon: <Code size={20} /> },
                         { id: "projects", label: "Projects", icon: <Layers size={20} /> },
+                        { id: "booking", label: "Booking", icon: <CalendarDays size={20} />, badge: reservations.filter(r => r.status === 'pending').length },
                         { id: "push", label: "Comms", icon: <Bell size={20} /> },
                     ] as Array<{ id: string; label: string; icon: JSX.Element; badge?: number }>).map((item) => (
                         <button
@@ -2088,6 +2208,187 @@ export default function AdminDashboard() {
                                     </Card>
                                 </motion.div>
                             </AnimatePresence>
+                        </div>
+                    )}
+                    {activeTab === "booking" && (
+                        <div className="space-y-8">
+                            <div>
+                                <h2 className="text-3xl font-black text-white mb-1 uppercase tracking-tight">Booking Manager</h2>
+                                <p className="text-gray-500 text-sm">Manage reservations and availability slots</p>
+                            </div>
+
+                            {/* Sub-tab selector */}
+                            <div className="flex gap-2">
+                                {([['reservations', 'Reservations'], ['availability', 'Availability']] as [string, string][]).map(([id, label]) => (
+                                    <button key={id} onClick={() => setBookingSubTab(id as any)}
+                                        className={`px-5 py-2 rounded-xl text-sm font-black transition-all ${
+                                            bookingSubTab === id
+                                                ? "bg-cyan-500/10 border border-cyan-500/30 text-cyan-400"
+                                                : "text-gray-500 hover:text-gray-300 border border-transparent"
+                                        }`}>
+                                        {label}
+                                        {id === 'reservations' && reservations.filter(r => r.status === 'pending').length > 0 && (
+                                            <span className="ml-2 bg-amber-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">
+                                                {reservations.filter(r => r.status === 'pending').length}
+                                            </span>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* ── Reservations ── */}
+                            {bookingSubTab === 'reservations' && (
+                                <Card className="p-6">
+                                    {reservations.length === 0 ? (
+                                        <p className="text-gray-500 text-center py-12 font-bold">No reservations yet.</p>
+                                    ) : (
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-sm">
+                                                <thead>
+                                                    <tr className="border-b border-gray-800">
+                                                        {['Name', 'Service', 'Date', 'Time', 'Status', 'Notes', 'Actions'].map(h => (
+                                                            <th key={h} className="text-left py-3 px-4 text-[10px] font-black uppercase tracking-widest text-gray-500">{h}</th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-900">
+                                                    {reservations.map(r => (
+                                                        <tr key={r.id} className="hover:bg-gray-900/40 transition-colors">
+                                                            <td className="py-3 px-4">
+                                                                <p className="font-bold text-white text-sm">{r.name}</p>
+                                                                <p className="text-gray-500 text-xs">{r.email}</p>
+                                                            </td>
+                                                            <td className="py-3 px-4 text-gray-400 text-xs max-w-[120px] truncate">{r.service_type}</td>
+                                                            <td className="py-3 px-4 text-gray-300 text-xs">{r.date}</td>
+                                                            <td className="py-3 px-4 text-gray-300 text-xs">{r.time_slot}</td>
+                                                            <td className="py-3 px-4">
+                                                                <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                                                    r.status === 'confirmed' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                                                                    : r.status === 'cancelled' ? 'bg-red-500/10 text-red-400 border border-red-500/30'
+                                                                    : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                                                                }`}>{r.status}</span>
+                                                            </td>
+                                                            <td className="py-3 px-4">
+                                                                <input
+                                                                    value={reservationNotes[r.id] ?? r.admin_notes ?? ''}
+                                                                    onChange={e => setReservationNotes(prev => ({ ...prev, [r.id]: e.target.value }))}
+                                                                    className="bg-gray-950 border border-gray-800 rounded-lg px-3 py-1 text-xs text-white w-32 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                                    placeholder="Add note..."
+                                                                />
+                                                            </td>
+                                                            <td className="py-3 px-4">
+                                                                <div className="flex items-center gap-2">
+                                                                    {r.status !== 'confirmed' && (
+                                                                        <button
+                                                                            disabled={updatingReservation === r.id}
+                                                                            onClick={() => handleUpdateReservation(r.id, 'confirmed')}
+                                                                            className="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-lg hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                                                                            title="Confirm"
+                                                                        >
+                                                                            <CheckCircle size={14} />
+                                                                        </button>
+                                                                    )}
+                                                                    {r.status !== 'cancelled' && (
+                                                                        <button
+                                                                            disabled={updatingReservation === r.id}
+                                                                            onClick={() => handleUpdateReservation(r.id, 'cancelled')}
+                                                                            className="p-1.5 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-all disabled:opacity-50"
+                                                                            title="Cancel"
+                                                                        >
+                                                                            <XCircle size={14} />
+                                                                        </button>
+                                                                    )}
+                                                                    <button
+                                                                        onClick={() => handleDeleteReservation(r.id)}
+                                                                        className="p-1.5 bg-gray-800 text-gray-400 rounded-lg hover:bg-red-500/10 hover:text-red-400 transition-all"
+                                                                        title="Delete"
+                                                                    >
+                                                                        <Trash2 size={14} />
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </Card>
+                            )}
+
+                            {/* ── Availability ── */}
+                            {bookingSubTab === 'availability' && (
+                                <div className="space-y-6">
+                                    {/* Add slot form */}
+                                    <Card className="p-6">
+                                        <h3 className="text-sm font-black text-cyan-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                            <Plus size={14} /> Add New Slot
+                                        </h3>
+                                        <form onSubmit={handleAddSlot} className="flex flex-wrap gap-4 items-end">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Day</label>
+                                                <select
+                                                    value={newSlot.day_of_week}
+                                                    onChange={e => setNewSlot(s => ({ ...s, day_of_week: Number(e.target.value) }))}
+                                                    className="bg-gray-950 border border-gray-800 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                >
+                                                    {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((d, i) => (
+                                                        <option key={d} value={i}>{d}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Time</label>
+                                                <input type="time" value={newSlot.start_time}
+                                                    onChange={e => setNewSlot(s => ({ ...s, start_time: e.target.value }))}
+                                                    className="bg-gray-950 border border-gray-800 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Duration (min)</label>
+                                                <input type="number" value={newSlot.duration_minutes} min={15} max={180} step={15}
+                                                    onChange={e => setNewSlot(s => ({ ...s, duration_minutes: Number(e.target.value) }))}
+                                                    className="bg-gray-950 border border-gray-800 rounded-xl px-4 py-2 text-white text-sm w-24 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                />
+                                            </div>
+                                            <button type="submit" disabled={addingSlot}
+                                                className="px-5 py-2 bg-cyan-500 text-[#020617] rounded-xl font-black text-sm hover:bg-cyan-400 transition-all disabled:opacity-50">
+                                                {addingSlot ? 'Adding...' : 'Add Slot'}
+                                            </button>
+                                        </form>
+                                    </Card>
+
+                                    {/* Slots grouped by day */}
+                                    {(['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'] as const).map((day, dayIdx) => {
+                                        const daySlots = availabilitySlots.filter(s => s.day_of_week === dayIdx);
+                                        if (daySlots.length === 0) return null;
+                                        return (
+                                            <Card key={day} className="p-6">
+                                                <h3 className="text-xs font-black text-cyan-500 uppercase tracking-[0.3em] mb-4">{day}</h3>
+                                                <div className="flex flex-wrap gap-3">
+                                                    {daySlots.sort((a, b) => a.start_time.localeCompare(b.start_time)).map(slot => (
+                                                        <div key={slot.id} className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-bold transition-all ${
+                                                            slot.is_active
+                                                                ? 'border-cyan-500/30 bg-cyan-500/5 text-cyan-300'
+                                                                : 'border-gray-800 bg-gray-900/30 text-gray-600'
+                                                        }`}>
+                                                            <span>{slot.start_time}</span>
+                                                            <button onClick={() => handleToggleSlot(slot)} className="hover:opacity-80 transition-opacity">
+                                                                {slot.is_active
+                                                                    ? <ToggleRight size={18} className="text-cyan-400" />
+                                                                    : <ToggleLeft size={18} className="text-gray-600" />}
+                                                            </button>
+                                                            <button onClick={() => handleDeleteSlot(slot.id)} className="text-gray-700 hover:text-red-400 transition-colors">
+                                                                <Trash2 size={12} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </Card>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
