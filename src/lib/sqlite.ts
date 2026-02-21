@@ -43,6 +43,26 @@ export const initDb = async () => {
   } catch (e) {
     // Column might already exist
   }
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS analytics_pageviews (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      pathname TEXT NOT NULL,
+      referrer TEXT,
+      country TEXT,
+      country_code TEXT,
+      user_agent TEXT,
+      ip_hash TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  await db.execute(`
+    CREATE INDEX IF NOT EXISTS idx_analytics_created_at ON analytics_pageviews(created_at);
+  `);
+  await db.execute(`
+    CREATE INDEX IF NOT EXISTS idx_analytics_pathname ON analytics_pageviews(pathname);
+  `);
 };
 
 // Auto-init only if in development or locally

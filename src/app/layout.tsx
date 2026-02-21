@@ -88,6 +88,7 @@ export const metadata: Metadata = {
 
 import PWAInstaller from "@/components/PWAInstaller";
 import { NotificationManager } from "@/components/NotificationManager";
+import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 
 export default function RootLayout({
   children,
@@ -126,6 +127,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <PWAInstaller />
         <NotificationManager />
+        <AnalyticsTracker />
         {children}
       </body>
     </html>

@@ -43,7 +43,11 @@ import {
     AlertCircle,
     ToggleLeft,
     ToggleRight,
-    MessageSquare
+    MessageSquare,
+    BarChart2,
+    Globe,
+    TrendingUp,
+    Activity
 } from "lucide-react";
 
 interface User {
@@ -208,7 +212,15 @@ export default function AdminDashboard() {
     const [newSlot, setNewSlot] = useState({ day_of_week: 1, start_time: "09:00", duration_minutes: 45 });
     const [addingSlot, setAddingSlot] = useState(false);
 
-    // Project states
+    // Analytics state
+    const [analyticsData, setAnalyticsData] = useState<{
+        stats: { total: number; today: number; thisWeek: number; thisMonth: number; uniqueVisitors: number; uniqueToday: number };
+        topPages: { pathname: string; views: number }[];
+        topCountries: { country: string; countryCode: string; views: number }[];
+        topReferrers: { referrer: string; views: number }[];
+        daily: { day: string; views: number }[];
+        recent: { pathname: string; country: string; createdAt: string }[];
+    } | null>(null);
     const [projects, setProjects] = useState<Project[]>([]);
     const [showProjectForm, setShowProjectForm] = useState(false);
     const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -515,6 +527,18 @@ export default function AdminDashboard() {
         }
     };
 
+    const fetchAnalytics = async () => {
+        try {
+            const response = await fetch("/api/admin/analytics");
+            if (response.ok) {
+                const data = await response.json();
+                setAnalyticsData(data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch analytics:", err);
+        }
+    };
+
     const handleUpdateReservation = async (id: number, status: 'confirmed' | 'cancelled') => {
         setUpdatingReservation(id);
         try {
@@ -758,6 +782,7 @@ export default function AdminDashboard() {
         fetchProjects();
         fetchReservations();
         fetchAvailability();
+        fetchAnalytics();
 
         // Auto-refresh data every 5 seconds
         const interval = setInterval(() => {
@@ -768,6 +793,7 @@ export default function AdminDashboard() {
             fetchProjects();
             fetchReservations();
             fetchAvailability();
+            fetchAnalytics();
         }, 5000);
 
         return () => clearInterval(interval);
@@ -823,6 +849,7 @@ export default function AdminDashboard() {
                         { id: "blogs", label: "Blogs", icon: <Code size={20} /> },
                         { id: "projects", label: "Projects", icon: <Layers size={20} /> },
                         { id: "booking", label: "Booking", icon: <CalendarDays size={20} />, badge: reservations.filter(r => r.status === 'pending').length },
+                        { id: "analytics", label: "Analytics", icon: <BarChart2 size={20} /> },
                         { id: "push", label: "Comms", icon: <Bell size={20} /> },
                     ] as Array<{ id: string; label: string; icon: JSX.Element; badge?: number }>).map((item) => (
                         <button
@@ -2389,6 +2416,170 @@ export default function AdminDashboard() {
                                         );
                                     })}
                                 </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* ── Analytics ─────────────────────────── */}
+                    {activeTab === "analytics" && (
+                        <div className="space-y-8">
+                            <div className="flex items-center gap-3">
+                                <BarChart2 size={24} className="text-cyan-400" />
+                                <h2 className="text-2xl font-black text-white uppercase tracking-widest">Analytics</h2>
+                                <span className="text-xs text-gray-600 font-mono ml-auto">Last 30 days</span>
+                            </div>
+
+                            {!analyticsData ? (
+                                <div className="flex items-center justify-center py-20">
+                                    <div className="size-8 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Stats cards */}
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                        {[
+                                            { label: "Total Views", value: analyticsData.stats.total, icon: <Eye size={18} />, color: "text-cyan-400" },
+                                            { label: "Today", value: analyticsData.stats.today, icon: <Activity size={18} />, color: "text-green-400" },
+                                            { label: "This Week", value: analyticsData.stats.thisWeek, icon: <TrendingUp size={18} />, color: "text-blue-400" },
+                                            { label: "This Month", value: analyticsData.stats.thisMonth, icon: <BarChart2 size={18} />, color: "text-purple-400" },
+                                            { label: "Unique Visitors", value: analyticsData.stats.uniqueVisitors, icon: <Users size={18} />, color: "text-yellow-400" },
+                                            { label: "Unique Today", value: analyticsData.stats.uniqueToday, icon: <Globe size={18} />, color: "text-pink-400" },
+                                        ].map((s) => (
+                                            <Card key={s.label} className="p-4 border border-cyan-500/10 bg-[#050816]/60 rounded-xl text-center space-y-2">
+                                                <div className={`flex justify-center ${s.color}`}>{s.icon}</div>
+                                                <div className="text-2xl font-black text-white">{s.value.toLocaleString()}</div>
+                                                <div className="text-[10px] text-gray-500 uppercase tracking-widest">{s.label}</div>
+                                            </Card>
+                                        ))}
+                                    </div>
+
+                                    {/* Daily chart (CSS bars) */}
+                                    {analyticsData.daily.length > 0 && (() => {
+                                        const maxViews = Math.max(...analyticsData.daily.map(d => d.views), 1);
+                                        return (
+                                            <Card className="p-6 border border-cyan-500/10 bg-[#050816]/60 rounded-xl">
+                                                <h3 className="text-xs font-black text-cyan-500 uppercase tracking-widest mb-6">Page Views — Last 30 Days</h3>
+                                                <div className="flex items-end gap-1 h-32">
+                                                    {analyticsData.daily.map((d) => (
+                                                        <div key={d.day} className="flex-1 flex flex-col items-center gap-1 group relative">
+                                                            <div
+                                                                className="w-full bg-cyan-500/80 rounded-sm transition-all group-hover:bg-cyan-400"
+                                                                style={{ height: `${Math.max(2, (d.views / maxViews) * 100)}%` }}
+                                                            />
+                                                            <div className="absolute bottom-full mb-1 hidden group-hover:flex flex-col items-center pointer-events-none z-10">
+                                                                <div className="bg-gray-900 border border-cyan-500/30 rounded px-2 py-1 text-[10px] text-white whitespace-nowrap">
+                                                                    {d.day}: {d.views}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <div className="flex justify-between text-[9px] text-gray-600 mt-2">
+                                                    <span>{analyticsData.daily[0]?.day}</span>
+                                                    <span>{analyticsData.daily[analyticsData.daily.length - 1]?.day}</span>
+                                                </div>
+                                            </Card>
+                                        );
+                                    })()}
+
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                        {/* Top pages */}
+                                        <Card className="lg:col-span-2 p-6 border border-cyan-500/10 bg-[#050816]/60 rounded-xl">
+                                            <h3 className="text-xs font-black text-cyan-500 uppercase tracking-widest mb-4">Top Pages</h3>
+                                            {analyticsData.topPages.length === 0 ? (
+                                                <p className="text-gray-600 text-sm">No data yet.</p>
+                                            ) : (() => {
+                                                const max = Math.max(...analyticsData.topPages.map(p => p.views), 1);
+                                                return (
+                                                    <div className="space-y-3">
+                                                        {analyticsData.topPages.map((p) => (
+                                                            <div key={p.pathname} className="space-y-1">
+                                                                <div className="flex justify-between text-xs">
+                                                                    <span className="text-gray-300 font-mono truncate max-w-[70%]">{p.pathname || '/'}</span>
+                                                                    <span className="text-cyan-400 font-bold">{p.views.toLocaleString()}</span>
+                                                                </div>
+                                                                <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
+                                                                    <div
+                                                                        className="h-full bg-cyan-500 rounded-full"
+                                                                        style={{ width: `${(p.views / max) * 100}%` }}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                );
+                                            })()}
+                                        </Card>
+
+                                        {/* Top countries */}
+                                        <Card className="p-6 border border-cyan-500/10 bg-[#050816]/60 rounded-xl">
+                                            <h3 className="text-xs font-black text-cyan-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                <Globe size={14} /> Countries
+                                            </h3>
+                                            {analyticsData.topCountries.length === 0 ? (
+                                                <p className="text-gray-600 text-sm">No data yet.</p>
+                                            ) : (() => {
+                                                const max = Math.max(...analyticsData.topCountries.map(c => c.views), 1);
+                                                return (
+                                                    <div className="space-y-3">
+                                                        {analyticsData.topCountries.map((c) => (
+                                                            <div key={c.country} className="space-y-1">
+                                                                <div className="flex justify-between text-xs">
+                                                                    <span className="text-gray-300 truncate max-w-[70%]">{c.country}</span>
+                                                                    <span className="text-purple-400 font-bold">{c.views}</span>
+                                                                </div>
+                                                                <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
+                                                                    <div
+                                                                        className="h-full bg-purple-500 rounded-full"
+                                                                        style={{ width: `${(c.views / max) * 100}%` }}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                );
+                                            })()}
+                                        </Card>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {/* Top referrers */}
+                                        <Card className="p-6 border border-cyan-500/10 bg-[#050816]/60 rounded-xl">
+                                            <h3 className="text-xs font-black text-cyan-500 uppercase tracking-widest mb-4">Top Referrers</h3>
+                                            {analyticsData.topReferrers.length === 0 ? (
+                                                <p className="text-gray-600 text-sm">All direct traffic.</p>
+                                            ) : (
+                                                <div className="space-y-2">
+                                                    {analyticsData.topReferrers.map((r) => (
+                                                        <div key={r.referrer} className="flex justify-between items-center py-2 border-b border-gray-800/50">
+                                                            <span className="text-gray-300 text-xs font-mono">{r.referrer}</span>
+                                                            <span className="text-green-400 text-xs font-bold">{r.views}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </Card>
+
+                                        {/* Recent hits */}
+                                        <Card className="p-6 border border-cyan-500/10 bg-[#050816]/60 rounded-xl">
+                                            <h3 className="text-xs font-black text-cyan-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                <Activity size={14} /> Live Feed
+                                            </h3>
+                                            <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
+                                                {analyticsData.recent.map((r, i) => (
+                                                    <div key={i} className="flex items-center gap-3 py-1.5 border-b border-gray-800/40">
+                                                        <div className="size-1.5 rounded-full bg-cyan-500 animate-pulse shrink-0" />
+                                                        <span className="text-gray-300 font-mono text-xs truncate flex-1">{r.pathname || '/'}</span>
+                                                        <span className="text-gray-600 text-[10px] shrink-0">{r.country || '—'}</span>
+                                                        <span className="text-gray-700 text-[10px] shrink-0 font-mono">
+                                                            {new Date(r.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </Card>
+                                    </div>
+                                </>
                             )}
                         </div>
                     )}
