@@ -58,9 +58,19 @@ export default function BookingPage() {
   useEffect(() => {
     fetch("/api/auth/check")
       .then((r) => r.json())
-      .then((d) =>
-        setAuthStatus(d.authenticated ? "authenticated" : "unauthenticated")
-      )
+      .then((d) => {
+        if (d.authenticated) {
+          setAuthStatus("authenticated");
+          setForm((prev) => ({
+            ...prev,
+            name: d.fullName || "",
+            email: d.email || "",
+            phone: d.phone || "",
+          }));
+        } else {
+          setAuthStatus("unauthenticated");
+        }
+      })
       .catch(() => setAuthStatus("unauthenticated"));
   }, []);
 
@@ -528,6 +538,12 @@ export default function BookingPage() {
                       </div>
 
                       <form onSubmit={handleSubmit} className="space-y-5">
+                        {/* Auto-fill notice */}
+                        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500/5 border border-cyan-500/20 text-[11px] text-cyan-400">
+                          <Lock size={12} className="shrink-0" />
+                          <span>Your profile info has been pre-filled automatically.</span>
+                        </div>
+
                         {/* Name */}
                         <div className="space-y-2">
                           <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em]">
@@ -536,17 +552,15 @@ export default function BookingPage() {
                           <div className="relative">
                             <User
                               size={16}
-                              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
+                              className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-500/60"
                             />
                             <input
                               required
+                              readOnly
                               value={form.name}
-                              onChange={(e) =>
-                                setForm({ ...form, name: e.target.value })
-                              }
-                              className="w-full bg-gray-950 border border-gray-800 rounded-xl pl-11 pr-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all"
-                              placeholder="Your full name"
+                              className="w-full bg-gray-950/60 border border-cyan-500/20 rounded-xl pl-11 pr-10 py-3 text-gray-300 cursor-default select-none focus:outline-none"
                             />
+                            <Lock size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600" />
                           </div>
                         </div>
 
@@ -558,18 +572,16 @@ export default function BookingPage() {
                           <div className="relative">
                             <Mail
                               size={16}
-                              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
+                              className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-500/60"
                             />
                             <input
                               required
                               type="email"
+                              readOnly
                               value={form.email}
-                              onChange={(e) =>
-                                setForm({ ...form, email: e.target.value })
-                              }
-                              className="w-full bg-gray-950 border border-gray-800 rounded-xl pl-11 pr-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all"
-                              placeholder="your@email.com"
+                              className="w-full bg-gray-950/60 border border-cyan-500/20 rounded-xl pl-11 pr-10 py-3 text-gray-300 cursor-default select-none focus:outline-none"
                             />
+                            <Lock size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600" />
                           </div>
                         </div>
 
@@ -581,16 +593,15 @@ export default function BookingPage() {
                           <div className="relative">
                             <Phone
                               size={16}
-                              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
+                              className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-500/60"
                             />
                             <input
+                              readOnly
                               value={form.phone}
-                              onChange={(e) =>
-                                setForm({ ...form, phone: e.target.value })
-                              }
-                              className="w-full bg-gray-950 border border-gray-800 rounded-xl pl-11 pr-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all"
-                              placeholder="+212 6XX XXX XXX"
+                              className="w-full bg-gray-950/60 border border-cyan-500/20 rounded-xl pl-11 pr-10 py-3 text-gray-300 cursor-default select-none focus:outline-none"
+                              placeholder="Not set in profile"
                             />
+                            <Lock size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600" />
                           </div>
                         </div>
 
