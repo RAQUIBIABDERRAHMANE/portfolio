@@ -77,9 +77,7 @@ export const initDb = async () => {
   }
 };
 
-// Auto-init only if in development or locally
-if (process.env.NODE_ENV === 'development' || !process.env.VERCEL) {
-  initDb().catch(console.error);
-}
+// Always run migrations on every cold start (safe: all ALTER TABLE wrapped in try/catch)
+initDb().catch(console.error);
 
 export default db;

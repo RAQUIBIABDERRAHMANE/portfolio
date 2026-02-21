@@ -217,6 +217,7 @@ export default function AdminDashboard() {
     const analyticsRangeRef = useRef<string>('30d');
     const analyticsHasDataRef = useRef(false);
     const [analyticsLoading, setAnalyticsLoading] = useState(false);
+    const [analyticsError, setAnalyticsError] = useState<string | null>(null);
     const [analyticsData, setAnalyticsData] = useState<{
         range: string;
         stats: { total: number; today: number; thisWeek: number; thisMonth: number; uniqueVisitors: number; uniqueToday: number; liveVisitors: number };
@@ -538,8 +539,8 @@ export default function AdminDashboard() {
 
     const fetchAnalytics = async (range?: string) => {
         const r = range ?? analyticsRangeRef.current;
-        // Spinner uniquement si aucune donnée n'a encore été reçue
         if (!analyticsHasDataRef.current) setAnalyticsLoading(true);
+        setAnalyticsError(null);
         try {
             const response = await fetch(`/api/admin/analytics?range=${r}`);
             if (response.ok) {
@@ -547,10 +548,13 @@ export default function AdminDashboard() {
                 analyticsHasDataRef.current = true;
                 setAnalyticsData(data);
             } else {
-                console.error("Analytics API error:", response.status, await response.text());
+                const text = await response.text();
+                console.error("Analytics API error:", response.status, text);
+                if (!analyticsHasDataRef.current) setAnalyticsError(`Erreur API ${response.status}: ${text.slice(0, 120)}`);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("Failed to fetch analytics:", err);
+            if (!analyticsHasDataRef.current) setAnalyticsError(err?.message || 'Erreur réseau');
         } finally {
             setAnalyticsLoading(false);
         }
@@ -2465,7 +2469,7 @@ export default function AdminDashboard() {
                                         {(['7d', '30d', '90d', 'all'] as const).map((r) => (
                                             <button
                                                 key={r}
-                                                onClick={() => { setAnalyticsRange(r); analyticsRangeRef.current = r; analyticsHasDataRef.current = false; setAnalyticsData(null); fetchAnalytics(r); }}
+                                                onClick={() => { setAnalyticsRange(r); analyticsRangeRef.current = r; analyticsHasDataRef.current = false; setAnalyticsData(null); setAnalyticsError(null); fetchAnalytics(r); }}
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all ${
                                                     analyticsRange === r
                                                         ? 'bg-cyan-500 text-black'
@@ -2476,7 +2480,12 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
 
-                                {!analyticsData ? (
+                                {analyticsError ? (
+                                    <div className="flex flex-col items-center justify-center py-20 gap-3">
+                                        <span className="text-red-400 text-sm font-mono text-center max-w-md">{analyticsError}</span>
+                                        <button onClick={() => fetchAnalytics()} className="px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-cyan-400 text-xs hover:bg-cyan-500/20 transition-all">Réessayer</button>
+                                    </div>
+                                ) : !analyticsData ? (
                                     <div className="flex items-center justify-center py-20">
                                         <div className="size-8 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
                                     </div>
