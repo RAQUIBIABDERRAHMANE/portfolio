@@ -63,6 +63,16 @@ export const initDb = async () => {
   await db.execute(`
     CREATE INDEX IF NOT EXISTS idx_analytics_pathname ON analytics_pageviews(pathname);
   `);
+
+  // Analytics column migrations
+  const analyticsMigrations = [
+    'ALTER TABLE analytics_pageviews ADD COLUMN session_id TEXT',
+    'ALTER TABLE analytics_pageviews ADD COLUMN device_type TEXT',
+    'ALTER TABLE analytics_pageviews ADD COLUMN browser TEXT',
+  ];
+  for (const sql of analyticsMigrations) {
+    try { await db.execute(sql); } catch { /* already exists */ }
+  }
 };
 
 // Auto-init only if in development or locally
