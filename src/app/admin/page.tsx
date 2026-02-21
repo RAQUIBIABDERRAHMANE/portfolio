@@ -215,6 +215,7 @@ export default function AdminDashboard() {
     // Analytics state
     const [analyticsRange, setAnalyticsRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
     const analyticsRangeRef = useRef<string>('30d');
+    const analyticsHasDataRef = useRef(false);
     const [analyticsLoading, setAnalyticsLoading] = useState(false);
     const [analyticsData, setAnalyticsData] = useState<{
         range: string;
@@ -537,12 +538,13 @@ export default function AdminDashboard() {
 
     const fetchAnalytics = async (range?: string) => {
         const r = range ?? analyticsRangeRef.current;
-        // Spinner uniquement au premier chargement ou changement de plage
-        if (!analyticsData || range !== undefined) setAnalyticsLoading(true);
+        // Spinner uniquement si aucune donnée n'a encore été reçue
+        if (!analyticsHasDataRef.current) setAnalyticsLoading(true);
         try {
             const response = await fetch(`/api/admin/analytics?range=${r}`);
             if (response.ok) {
                 const data = await response.json();
+                analyticsHasDataRef.current = true;
                 setAnalyticsData(data);
             } else {
                 console.error("Analytics API error:", response.status, await response.text());
@@ -2463,7 +2465,7 @@ export default function AdminDashboard() {
                                         {(['7d', '30d', '90d', 'all'] as const).map((r) => (
                                             <button
                                                 key={r}
-                                                onClick={() => { setAnalyticsRange(r); analyticsRangeRef.current = r; fetchAnalytics(r); }}
+                                                onClick={() => { setAnalyticsRange(r); analyticsRangeRef.current = r; analyticsHasDataRef.current = false; setAnalyticsData(null); fetchAnalytics(r); }}
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all ${
                                                     analyticsRange === r
                                                         ? 'bg-cyan-500 text-black'
@@ -2474,12 +2476,10 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
 
-                                {analyticsLoading ? (
+                                {!analyticsData ? (
                                     <div className="flex items-center justify-center py-20">
                                         <div className="size-8 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
                                     </div>
-                                ) : !analyticsData ? (
-                                    <div className="flex items-center justify-center py-20 text-gray-500 text-sm">Aucune donnée disponible.</div>
                                 ) : (() => {
                                     const { stats, trend, topPages, topCountries, topReferrers, daily, devices, browsers, recent, uniqueSessions } = analyticsData;
                                     const totalDev = devices.reduce((s, d) => s + d.views, 0) || 1;
