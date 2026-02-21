@@ -19,7 +19,8 @@ import {
   LayoutDashboard,
   LogOut,
   MessageSquare,
-  Smartphone
+  Smartphone,
+  Calendar,
 } from "lucide-react";
 
 const navVariants = {
