@@ -291,8 +291,8 @@ export const ProjectsSection = () => {
                       {project.downloads.map((dl) => (
                         <motion.a
                           key={dl.url}
-                          href={dl.url}
-                          download
+                          href={`/api/download?path=${encodeURIComponent(dl.url.replace(/^\//, ''))}`}
+                          download={dl.filename || dl.name || true}
                           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg relative overflow-hidden group/dl"
                           style={{
                             background: 'rgba(168, 85, 247, 0.08)',
