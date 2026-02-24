@@ -79,9 +79,11 @@ function mapRow(row: any): Project {
 export async function getPublishedProjects(): Promise<Project[]> {
   try {
     await ensureProjectsTable();
+    // Use != 0 to match both integer 1 and any truthy stored value
     const result = await db.execute(
-      'SELECT * FROM projects WHERE is_published = 1 ORDER BY sort_order ASC, created_at DESC'
+      'SELECT * FROM projects WHERE is_published != 0 ORDER BY sort_order ASC, created_at DESC'
     );
+    console.log('[getPublishedProjects] found', result.rows.length, 'rows');
     return result.rows.map(mapRow);
   } catch (error) {
     console.error('Error fetching published projects:', error);

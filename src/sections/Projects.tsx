@@ -102,13 +102,20 @@ export const ProjectsSection = () => {
 
   useEffect(() => {
     fetch("/api/projects")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) {
+          console.error("[Projects] API error:", r.status, r.statusText);
+          return { projects: [] };
+        }
+        return r.json();
+      })
       .then((data) => {
+        console.log("[Projects] API response:", data.projects?.length, "projects");
         if (Array.isArray(data.projects) && data.projects.length > 0) {
           setDbProjects(data.projects);
         }
       })
-      .catch(() => {/* fall through to static */})
+      .catch((err) => { console.error("[Projects] fetch failed:", err); })
       .finally(() => setLoaded(true));
   }, []);
 
