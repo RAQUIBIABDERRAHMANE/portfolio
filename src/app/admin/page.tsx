@@ -253,6 +253,7 @@ export default function AdminDashboard() {
     const [projectDownloadFiles, setProjectDownloadFiles] = useState<ProjectDownloadFile[]>([]);
     const [uploadingFile, setUploadingFile] = useState(false);
     const [fileDisplayName, setFileDisplayName] = useState("");
+    const [uploadingProjectImage, setUploadingProjectImage] = useState(false);
 
     const handleSendNotification = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -2042,12 +2043,66 @@ export default function AdminDashboard() {
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Image URL</label>
+                                            <label className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] ml-1">Image du projet</label>
+                                            {/* Preview */}
+                                            {projectFormData.image_url && (
+                                                <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-gray-800 bg-gray-900">
+                                                    <img src={projectFormData.image_url} alt="preview" className="w-full h-full object-cover" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setProjectFormData({ ...projectFormData, image_url: '' })}
+                                                        className="absolute top-2 right-2 bg-red-600/80 hover:bg-red-600 text-white rounded-full p-1 text-xs leading-none"
+                                                        title="Supprimer l'image"
+                                                    >✕</button>
+                                                </div>
+                                            )}
+                                            {/* Upload zone */}
+                                            <label className={`flex flex-col items-center justify-center gap-2 w-full py-6 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+                                                uploadingProjectImage
+                                                    ? 'border-cyan-500/50 bg-cyan-500/5'
+                                                    : 'border-gray-700 hover:border-cyan-500/50 hover:bg-cyan-500/5'
+                                            }`}>
+                                                {uploadingProjectImage ? (
+                                                    <>
+                                                        <div className="size-6 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
+                                                        <span className="text-xs text-gray-400">Upload en cours…</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="size-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                                        <span className="text-xs text-gray-400">{projectFormData.image_url ? 'Changer l\'image' : 'Choisir une image'} (JPG, PNG, WebP — max 5 MB)</span>
+                                                    </>
+                                                )}
+                                                <input
+                                                    type="file"
+                                                    accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+                                                    className="hidden"
+                                                    disabled={uploadingProjectImage}
+                                                    onChange={async (e) => {
+                                                        const f = e.target.files?.[0];
+                                                        if (!f) return;
+                                                        setUploadingProjectImage(true);
+                                                        try {
+                                                            const fd = new FormData();
+                                                            fd.append('file', f);
+                                                            const res = await fetch('/api/admin/upload/image', { method: 'POST', body: fd });
+                                                            const data = await res.json();
+                                                            if (res.ok) {
+                                                                setProjectFormData(prev => ({ ...prev, image_url: data.url }));
+                                                            } else {
+                                                                alert(data.error || 'Upload échoué');
+                                                            }
+                                                        } catch { alert('Upload échoué'); }
+                                                        finally { setUploadingProjectImage(false); e.target.value = ''; }
+                                                    }}
+                                                />
+                                            </label>
+                                            {/* URL manuelle en fallback */}
                                             <input
                                                 value={projectFormData.image_url || ""}
                                                 onChange={(e) => setProjectFormData({ ...projectFormData, image_url: e.target.value })}
-                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
-                                                placeholder="/images/project.jpg or https://..."
+                                                className="w-full bg-[#030712] border border-gray-800 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-cyan-500 text-gray-500 placeholder:text-gray-700"
+                                                placeholder="ou coller une URL externe…"
                                             />
                                         </div>
 
