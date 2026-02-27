@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getPublishedProjects } from '@/lib/projectUtils';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const projects = await getPublishedProjects();

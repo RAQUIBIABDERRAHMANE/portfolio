@@ -101,7 +101,7 @@ export const ProjectsSection = () => {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    fetch("/api/projects")
+    fetch("/api/projects", { cache: "no-store" })
       .then((r) => {
         if (!r.ok) {
           console.error("[Projects] API error:", r.status, r.statusText);
