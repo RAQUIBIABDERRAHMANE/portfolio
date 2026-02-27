@@ -35,3 +35,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env
+
+# uploaded files (ephemeral on Vercel, not stored in git)
+/public/uploads/
