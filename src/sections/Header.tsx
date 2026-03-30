@@ -21,6 +21,7 @@ import {
   MessageSquare,
   Smartphone,
   Calendar,
+  Code,
 } from "lucide-react";
 
 const navVariants = {
@@ -148,6 +149,7 @@ export const Header = () => {
               { label: "Project", href: "/#project" },
               { label: "About", href: "/#about" },
               { label: "Booking", href: "/booking" },
+              { label: "Contribute", href: "/contribute" },
             ].map((link, i) => (
               <motion.a
                 key={link.label}
@@ -270,6 +272,7 @@ export const Header = () => {
                   { label: "Projects", href: "/#project", icon: <MessageSquare size={22} /> },
                   { label: "About Me", href: "/#about", icon: <User size={22} /> },
                   { label: "Booking", href: "/booking", icon: <Calendar size={22} /> },
+                  { label: "Contribute", href: "/contribute", icon: <Code size={22} /> },
                 ].map((link) => (
                   <Link
                     key={link.label}

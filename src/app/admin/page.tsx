@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/Card";
+import { ContributionsTab } from "./ContributionsTab";
 import {
     Send,
     Users,
@@ -47,7 +48,9 @@ import {
     BarChart2,
     Globe,
     TrendingUp,
-    Activity
+    Activity,
+    Github,
+    GitBranch
 } from "lucide-react";
 
 interface User {
@@ -870,6 +873,7 @@ export default function AdminDashboard() {
                         { id: "pages", label: "Pages", icon: <FileText size={20} /> },
                         { id: "blogs", label: "Blogs", icon: <Code size={20} /> },
                         { id: "projects", label: "Projects", icon: <Layers size={20} /> },
+                        { id: "contributions", label: "Contributions", icon: <Github size={20} /> },
                         { id: "booking", label: "Booking", icon: <CalendarDays size={20} />, badge: reservations.filter(r => r.status === 'pending').length },
                         { id: "analytics", label: "Analytics", icon: <BarChart2 size={20} /> },
                         { id: "push", label: "Comms", icon: <Bell size={20} /> },
@@ -936,6 +940,8 @@ export default function AdminDashboard() {
                 </header>
 
                 <div className="p-10 space-y-10">
+                    {activeTab === "contributions" && <ContributionsTab />}
+
                     {activeTab === "overview" && (
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                             {/* Stats Card */}
