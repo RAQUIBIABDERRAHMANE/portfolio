@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     type: "website",
     images: [{
-      url: "https://raquibi.com/abderrahmaneraquibi.jpg",
+      url: "/api/og",
       width: 1200,
       height: 630,
       alt: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
     description: "Full-stack developer specializing in Laravel, React, and Next.js",
-    images: ["https://raquibi.com/abderrahmaneraquibi.jpg"],
+    images: ["/api/og"],
     creator: "@ceo_raquibi",
   },
 
@@ -89,6 +89,7 @@ export const metadata: Metadata = {
 import PWAInstaller from "@/components/PWAInstaller";
 import { NotificationManager } from "@/components/NotificationManager";
 import { AnalyticsTracker } from "@/components/AnalyticsTracker";
+import { PageLoader } from "@/components/PageLoader";
 
 export default function RootLayout({
   children,
@@ -125,6 +126,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+        <PageLoader />
         <PWAInstaller />
         <NotificationManager />
         <AnalyticsTracker />
