@@ -10,9 +10,9 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 
 // Import database utilities
-import { getAllBlogs, getBlogBySlug, addBlog, updateBlog, deleteBlog, Blog } from '../src/lib/blogUtils.js';
-import { getAllProjects, getProjectById, addProject, updateProject, deleteProject, Project } from '../src/lib/projectUtils.js';
-import { getAllContributions, getContributionById, addContribution, updateContribution, deleteContribution, Contribution } from '../src/lib/contributionUtils.js';
+import { getAllBlogs, getBlogBySlug, addBlog, updateBlog, deleteBlog, Blog } from '../src/lib/blogUtils';
+import { getAllProjects, getProjectById, addProject, updateProject, deleteProject, Project } from '../src/lib/projectUtils';
+import { getAllContributions, getContributionById, addContribution, updateContribution, deleteContribution, Contribution } from '../src/lib/contributionUtils';
 
 export const server = new Server({
   name: 'portfolio-mcp-server',
