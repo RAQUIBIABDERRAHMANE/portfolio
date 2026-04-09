@@ -305,3 +305,12 @@
   background: linear-gradient(90deg, transparent, rgba(0, 255, 249, 0.1), transparent);
   animation: dataFlow 3s linear infinite;
 }
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/Card";
-import { Github, Edit3, Trash2, Plus, Star, GitFork, X as XIcon, RefreshCw, Eye, EyeOff } from "lucide-react";
+import { Github, Edit3, Trash2, Plus, Star, GitFork, X as XIcon, RefreshCw, Eye, EyeOff, Sparkles } from "lucide-react";
 
 interface Contribution {
     id: number;
@@ -24,6 +24,7 @@ export function ContributionsTab() {
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [saving, setSaving] = useState(false);
+    const [generatingDescription, setGeneratingDescription] = useState(false);
 
     const [formData, setFormData] = useState<Partial<Contribution>>({
         title: "",
@@ -134,6 +135,31 @@ export function ContributionsTab() {
             alert("Error saving");
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleGenerateDescription = async () => {
+        if (!formData.link) {
+            alert("Please enter a GitHub Link first so AI can read the README");
+            return;
+        }
+        setGeneratingDescription(true);
+        try {
+            const res = await fetch("/api/admin/contributions/generate-description", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ link: formData.link })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setFormData(prev => ({ ...prev, description: data.description }));
+            } else {
+                alert(data.error || "Failed to generate description");
+            }
+        } catch (error) {
+            alert("Error generating description");
+        } finally {
+            setGeneratingDescription(false);
         }
     };
 
@@ -261,7 +287,18 @@ export function ContributionsTab() {
                                         <input required type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500 outline-none transition-colors" />
                                     </div>
                                     <div className="col-span-2">
-                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Description</label>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Description</label>
+                                            <button
+                                                type="button"
+                                                onClick={handleGenerateDescription}
+                                                disabled={generatingDescription || !formData.link}
+                                                className="text-[10px] flex items-center gap-1.5 font-black uppercase tracking-widest px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 disabled:opacity-50 transition-colors border border-cyan-500/20"
+                                            >
+                                                {generatingDescription ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                                                Auto-Generate (AI)
+                                            </button>
+                                        </div>
                                         <textarea rows={3} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500 outline-none transition-colors" />
                                     </div>
                                     <div className="col-span-2">
