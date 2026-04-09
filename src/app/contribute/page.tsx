@@ -561,7 +561,7 @@ export default function ContributePage() {
                 <p className="font-bold">
                   New repositories are added regularly.{" "}
                   <a
-                    href="https://github.com/abderrahmaneraquibi"
+                    href="https://github.com/RAQUIBIABDERRAHMANE"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline underline-offset-4 hover:text-white transition-colors"
