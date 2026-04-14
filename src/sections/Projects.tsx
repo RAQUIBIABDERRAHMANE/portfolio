@@ -141,13 +141,32 @@ export const ProjectsSection = () => {
     : staticProjects.map(p => ({ ...p, downloads: [] as { name: string; url: string; filename: string }[] }));
 
   return (
-    <section className="py-16 lg:py-24 scroll-smooth" id="project">
+    <section className="py-16 lg:py-24 scroll-smooth" id="projects">
       <div className="container">
         <HeaderSection
           eyebrow="CURATED WORK"
           title="Featured Case Studies"
           description="Compilation of case studies that evoke my sense of pride"
         />
+        {!loaded ? (
+          <div className="mt-10 md:mt-20 grid grid-cols-1 gap-8 md:grid-cols-2">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 animate-pulse">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="h-4 w-32 bg-white/10 rounded-full" />
+                </div>
+                <div className="h-7 w-3/4 bg-white/10 rounded-lg mb-6" />
+                <div className="aspect-video bg-white/10 rounded-lg mb-6" />
+                <div className="space-y-3">
+                  {[...Array(3)].map((_, j) => (
+                    <div key={j} className="h-4 bg-white/10 rounded-full" style={{ width: `${70 + j * 10}%` }} />
+                  ))}
+                </div>
+                <div className="mt-6 h-10 w-36 bg-white/10 rounded-lg" />
+              </div>
+            ))}
+          </div>
+        ) : (
         <div className="mt-10 md:mt-20 grid grid-cols-1 gap-8 md:grid-cols-2">
           {portfolioProjects.map((project, projectIndex) => (
             <motion.div
@@ -321,6 +340,7 @@ export const ProjectsSection = () => {
             </motion.div>
           ))}
         </div>
+        )}
       </div>
     </section>
   );

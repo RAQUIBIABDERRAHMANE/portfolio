@@ -1,34 +1,48 @@
 "use client";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { FileDown } from "lucide-react";
 
 export const HeroSection = () => {
   const scrollToProjects = () => {
     document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Static positions to avoid SSR/client hydration mismatch
+  const particles = [
+    { left: "5%", top: "10%", dur: 3.2, delay: 0.1 },
+    { left: "15%", top: "80%", dur: 4.1, delay: 0.5 },
+    { left: "25%", top: "30%", dur: 3.8, delay: 1.0 },
+    { left: "35%", top: "60%", dur: 4.5, delay: 0.3 },
+    { left: "45%", top: "20%", dur: 3.0, delay: 0.8 },
+    { left: "55%", top: "75%", dur: 4.2, delay: 1.5 },
+    { left: "65%", top: "40%", dur: 3.6, delay: 0.6 },
+    { left: "75%", top: "55%", dur: 4.8, delay: 0.2 },
+    { left: "85%", top: "15%", dur: 3.3, delay: 1.2 },
+    { left: "90%", top: "85%", dur: 4.0, delay: 0.9 },
+    { left: "10%", top: "45%", dur: 3.7, delay: 1.4 },
+    { left: "20%", top: "90%", dur: 4.3, delay: 0.4 },
+    { left: "30%", top: "5%", dur: 3.1, delay: 1.1 },
+    { left: "40%", top: "70%", dur: 4.6, delay: 0.7 },
+    { left: "50%", top: "35%", dur: 3.4, delay: 1.3 },
+    { left: "60%", top: "88%", dur: 4.9, delay: 0.0 },
+    { left: "70%", top: "25%", dur: 3.9, delay: 1.6 },
+    { left: "80%", top: "65%", dur: 4.4, delay: 0.8 },
+    { left: "92%", top: "50%", dur: 3.5, delay: 1.0 },
+    { left: "3%", top: "95%", dur: 4.7, delay: 0.5 },
+  ];
+
   return (
     <div className="min-h-screen flex items-center relative overflow-hidden scroll-smooth" id="home">
       {/* Animated background particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {particles.map((p, i) => (
           <motion.div
             key={i}
             className="absolute w-1 h-1 bg-neon-cyan rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, -30, 0],
-              opacity: [0.2, 0.8, 0.2],
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: 3 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
+            style={{ left: p.left, top: p.top }}
+            animate={{ y: [0, -30, 0], opacity: [0.2, 0.8, 0.2], scale: [1, 1.5, 1] }}
+            transition={{ duration: p.dur, repeat: Infinity, delay: p.delay }}
           />
         ))}
       </div>
@@ -178,6 +192,28 @@ export const HeroSection = () => {
                 />
               </motion.button>
               
+              <motion.a
+                href="/cv.pdf"
+                download
+                className="group px-8 py-4 rounded-lg font-medium backdrop-blur-sm relative overflow-hidden flex items-center gap-2"
+                style={{
+                  background: 'rgba(168, 85, 247, 0.08)',
+                  border: '1px solid rgba(168, 85, 247, 0.5)',
+                  color: '#a855f7',
+                }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <FileDown size={18} className="relative z-10" />
+                <span className="relative z-10">Download CV</span>
+                <motion.div
+                  className="absolute inset-0"
+                  style={{ background: 'rgba(168, 85, 247, 0.1)' }}
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                />
+              </motion.a>
+
               <motion.a
                 href="https://wa.me/+212665830816"
                 target="_blank"

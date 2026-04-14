@@ -10,6 +10,7 @@ import { TechnologieSection } from "@/sections/Technologies";
 import { TestimonialsSection } from "@/sections/Testimonials";
 import { Metadata } from "next";
 import { ServicesSection } from "@/sections/Services";
+import { BackToTop } from "@/components/BackToTop";
 
 export const metadata: Metadata = {
   title: "Abdo Raquibi | Full-Stack Developer",
@@ -58,6 +59,7 @@ export default function Home() {
           </section>
         </div>
         <Footer />
+        <BackToTop />
       </div>
     </main>
   );

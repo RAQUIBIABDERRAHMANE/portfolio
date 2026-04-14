@@ -44,6 +44,12 @@ export const initDb = async () => {
     // Column might already exist
   }
 
+  try {
+    await db.execute('ALTER TABLE subscriptions ADD COLUMN role TEXT DEFAULT "guest"');
+  } catch (e) {
+    // Column might already exist
+  }
+
   await db.execute(`
     CREATE TABLE IF NOT EXISTS analytics_pageviews (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,6 +59,18 @@ export const initDb = async () => {
       country_code TEXT,
       user_agent TEXT,
       ip_hash TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS contact_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      subject TEXT NOT NULL,
+      message TEXT NOT NULL,
+      status TEXT DEFAULT 'unread',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);

@@ -1,10 +1,13 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Inter } from "next/font/google";
-import Script from "next/script";
-import { CyberBackground } from "@/components/CyberBackground";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://raquibi.com'),
@@ -37,11 +40,7 @@ export const metadata: Metadata = {
   ].join(", "),
   authors: [{ name: "Abderrahmane Raquibi" }],
   creator: "Abderrahmane Raquibi",
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-  },
+
   openGraph: {
     title: "Abdo Raquibi | Full-Stack Web Developer Portfolio",
     description: "Full-stack developer specializing in Laravel, React, and Next.js. Building modern web applications with a focus on performance and user experience.",
@@ -118,11 +117,6 @@ export default function RootLayout({
               "description": "Moroccan full-stack developer & entrepreneur specialized in Laravel, React, and SaaS platforms.",
             }),
           }}
-        />
-        <script
-          async
-          crossOrigin="anonymous"
-          src="https://tweakcn.com/live-preview.min.js"
         />
       </head>
       <body className={inter.className}>

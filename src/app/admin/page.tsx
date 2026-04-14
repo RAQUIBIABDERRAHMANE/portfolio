@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/Card";
 import { ContributionsTab } from "./ContributionsTab";
+import { MessagesTab } from "./MessagesTab";
 import {
     Send,
     Users,
@@ -872,6 +873,7 @@ export default function AdminDashboard() {
                         { id: "applications", label: "Applications", icon: <Briefcase size={20} />, badge: applications.filter(a => a.status === 'pending').length },
                         { id: "pages", label: "Pages", icon: <FileText size={20} /> },
                         { id: "blogs", label: "Blogs", icon: <Code size={20} /> },
+                        { id: "messages", label: "Messages", icon: <MessageSquare size={20} /> },
                         { id: "projects", label: "Projects", icon: <Layers size={20} /> },
                         { id: "contributions", label: "Contributions", icon: <Github size={20} /> },
                         { id: "booking", label: "Booking", icon: <CalendarDays size={20} />, badge: reservations.filter(r => r.status === 'pending').length },
@@ -941,6 +943,7 @@ export default function AdminDashboard() {
 
                 <div className="p-10 space-y-10">
                     {activeTab === "contributions" && <ContributionsTab />}
+                    {activeTab === "messages" && <MessagesTab />}
 
                     {activeTab === "overview" && (
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">

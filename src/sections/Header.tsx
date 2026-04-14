@@ -2,7 +2,7 @@
 import { motion, AnimatePresence, useScroll } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Download,
   Menu,
@@ -54,6 +54,7 @@ const itemVariants = {
 export const Header = () => {
   const [auth, setAuth] = useState<{ authenticated: boolean; role?: string }>({ authenticated: false });
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -146,7 +147,7 @@ export const Header = () => {
               { label: "Home", href: "/" },
               { label: "Services", href: "/#services" },
               { label: "Technologies", href: "/#technologies" },
-              { label: "Project", href: "/#project" },
+              { label: "Projects", href: "/#projects" },
               { label: "About", href: "/#about" },
               { label: "Booking", href: "/booking" },
               { label: "Contribute", href: "/contribute" },
@@ -154,7 +155,11 @@ export const Header = () => {
               <motion.a
                 key={link.label}
                 href={link.href}
-                className="nav-item"
+                className={`nav-item ${
+                  pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href.replace('/#', '/')))
+                    ? 'text-cyan-400 font-bold'
+                    : ''
+                }`}
                 variants={itemVariants}
                 whileHover={{ scale: 1.05 }}
                 custom={i}
@@ -269,7 +274,7 @@ export const Header = () => {
                   { label: "Home", href: "/", icon: <Home size={22} /> },
                   { label: "Services", href: "/#services", icon: <Briefcase size={22} /> },
                   { label: "Technologies", href: "/#technologies", icon: <Cpu size={22} /> },
-                  { label: "Projects", href: "/#project", icon: <MessageSquare size={22} /> },
+                  { label: "Projects", href: "/#projects", icon: <MessageSquare size={22} /> },
                   { label: "About Me", href: "/#about", icon: <User size={22} /> },
                   { label: "Booking", href: "/booking", icon: <Calendar size={22} /> },
                   { label: "Contribute", href: "/contribute", icon: <Code size={22} /> },

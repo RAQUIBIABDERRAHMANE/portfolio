@@ -13,18 +13,25 @@ export async function POST(req: Request) {
 
         const subscriptionJson = JSON.stringify(subscription);
         const userId = user?.role === 'client' ? (user.userId ?? null) : null;
+        const subRole = user?.role || 'guest';
 
         // Check if subscription already exists to avoid duplicates
         const existingResult = await db.execute({
-            sql: 'SELECT id FROM subscriptions WHERE subscription = ?',
+            sql: 'SELECT id, role FROM subscriptions WHERE subscription = ?',
             args: [subscriptionJson]
         });
         const existing = existingResult.rows[0];
 
         if (!existing) {
             await db.execute({
-                sql: 'INSERT INTO subscriptions (user_id, subscription) VALUES (?, ?)',
-                args: [userId, subscriptionJson]
+                sql: 'INSERT INTO subscriptions (user_id, subscription, role) VALUES (?, ?, ?)',
+                args: [userId, subscriptionJson, subRole]
+            });
+        } else if (existing.role !== subRole) {
+            // Update role if it changed (e.g., guest logged in as admin)
+            await db.execute({
+                sql: 'UPDATE subscriptions SET role = ? WHERE id = ?',
+                args: [subRole, existing.id]
             });
         }
 

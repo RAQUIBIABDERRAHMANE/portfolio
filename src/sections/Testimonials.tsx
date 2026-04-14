@@ -44,7 +44,7 @@ const testimonials = [
     name: "ALMOU Oualid",
     position: "Web Designer @ FreeLancer",
     text: "Working on the same team with Abdo was a good experience, because he's very creative and pays close attention to design details and any problem on the project. He's great at analyzing problems and finding solutions, and he's also a good listener when it comes to other people's suggestions.",
-    avatar: "/images/memoji-avatar-3.webp",
+    avatar: "/images/memoji-avatar-5.webp",
     rating: 5,
   },
 ];
