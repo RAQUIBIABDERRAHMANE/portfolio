@@ -1,4 +1,6 @@
+
 "use client";
+import { ApiKeyManager } from "@/components/ApiKeyManager";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/sections/Header";
@@ -132,6 +134,10 @@ export default function ClientDashboard() {
 
                         {/* Main Content */}
                         <div className="w-full md:w-2/3 space-y-6">
+                            <Card className="p-6 mb-6 border-white/10 bg-gradient-to-br from-gray-900/60 to-gray-800/80">
+                                <ApiKeyManager />
+                            </Card>
+
                             {hasApplications && (
                                 <Card className="p-6 border-cyan-500/20 bg-gradient-to-br from-gray-900/60 via-gray-900 to-gray-800/80 shadow-lg shadow-cyan-500/10">
                                     <div className="grid sm:grid-cols-3 gap-4">

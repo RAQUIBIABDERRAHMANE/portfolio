@@ -17,6 +17,7 @@ export const initDb = async () => {
       phone TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
       password TEXT,
+      api_key TEXT UNIQUE,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
@@ -34,6 +35,12 @@ export const initDb = async () => {
   // Migration for existing databases
   try {
     await db.execute('ALTER TABLE users ADD COLUMN password TEXT');
+  } catch (e) {
+    // Column might already exist
+  }
+
+  try {
+    await db.execute('ALTER TABLE users ADD COLUMN api_key TEXT');
   } catch (e) {
     // Column might already exist
   }

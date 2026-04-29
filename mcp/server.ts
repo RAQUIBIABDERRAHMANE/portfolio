@@ -13,19 +13,21 @@ import {
 import { getAllBlogs, getBlogBySlug, addBlog, updateBlog, deleteBlog, Blog } from '../src/lib/blogUtils';
 import { getAllProjects, getProjectById, addProject, updateProject, deleteProject, Project } from '../src/lib/projectUtils';
 import { getAllContributions, getContributionById, addContribution, updateContribution, deleteContribution, Contribution } from '../src/lib/contributionUtils';
+import db from '../src/lib/sqlite';
 
-export const server = new Server({
-  name: 'portfolio-mcp-server',
-  version: '1.0.0',
-}, {
-  capabilities: {
-    resources: {},
-    tools: {}
-  }
-});
+export const createServer = (user?: any) => {
+  const server = new Server({
+    name: 'portfolio-mcp-server',
+    version: '1.0.0',
+  }, {
+    capabilities: {
+      resources: {},
+      tools: {}
+    }
+  });
 
-// Resources implementation
-server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  // Resources implementation
+  server.setRequestHandler(ListResourcesRequestSchema, async () => {
   const blogs = await getAllBlogs();
   const projects = await getAllProjects();
   const contributions = await getAllContributions();
@@ -106,8 +108,27 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
 
 // Tools implementation
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: [
+  const tools: any[] = [
+    {
+      name: 'get_my_profile',
+      description: 'Get current user profile',
+      inputSchema: { type: 'object', properties: {} }
+    },
+    {
+      name: 'update_my_profile',
+      description: 'Update current user profile',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          fullName: { type: 'string' },
+          phone: { type: 'string' }
+        }
+      }
+    }
+  ];
+
+  if (user?.role === 'admin') {
+    tools.push(
       {
         name: 'list_blogs',
         description: 'List all blog posts',
@@ -257,8 +278,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['id']
         }
       }
-    ]
-  };
+    );
+  }
+
+  return { tools };
 });
 
 // Call Tool implementation
@@ -266,6 +289,43 @@ server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> =>
   const { name, arguments: args } = request.params;
 
   try {
+    // Non-admin tools
+    if (name === 'get_my_profile') {
+      if (!user?.email) throw new McpError(ErrorCode.InvalidRequest, 'User not authenticated');
+      const [rows]: any = await db.execute('SELECT id, fullName, email, phone FROM users WHERE email = ?', [user.email]);
+      if (rows.length === 0) throw new McpError(ErrorCode.InvalidRequest, 'User profile not found');
+      return { content: [{ type: 'text', text: JSON.stringify(rows[0], null, 2) }] };
+    }
+
+    if (name === 'update_my_profile') {
+      if (!user?.email) throw new McpError(ErrorCode.InvalidRequest, 'User not authenticated');
+      const { fullName, phone } = args as any;
+      
+      const updates = [];
+      const values = [];
+      if (fullName !== undefined) { updates.push('fullName = ?'); values.push(fullName); }
+      if (phone !== undefined) { updates.push('phone = ?'); values.push(phone); }
+      
+      if (updates.length > 0) {
+        values.push(user.email);
+        await db.execute(`UPDATE users SET ${updates.join(', ')} WHERE email = ?`, values);
+      }
+      
+      const [rows]: any = await db.execute('SELECT id, fullName, email, phone FROM users WHERE email = ?', [user.email]);
+      return { content: [{ type: 'text', text: JSON.stringify(rows[0], null, 2) }] };
+    }
+
+    // Admin tools check
+    const adminTools = [
+      'list_blogs', 'add_blog', 'update_blog', 'delete_blog',
+      'list_projects', 'add_project', 'update_project', 'delete_project',
+      'list_contributions', 'add_contribution', 'update_contribution', 'delete_contribution'
+    ];
+
+    if (adminTools.includes(name) && user?.role !== 'admin') {
+      throw new McpError(ErrorCode.InvalidRequest, `Access denied: Admin role required for ${name}`);
+    }
+
     switch (name) {
       // Blogs
       case 'list_blogs': {
@@ -385,15 +445,41 @@ server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> =>
   }
 });
 
+  return server;
+};
+
 // Run the server ONLY if executed directly, not imported
 const run = async () => {
+  let user = undefined;
+
+  if (process.env.MCP_API_KEY) {
+    try {
+      const result = await db.execute({
+        sql: 'SELECT * FROM users WHERE api_key = ?',
+        args: [process.env.MCP_API_KEY]
+      });
+      const rows = Array.isArray(result) ? result[0] : (result as any).rows;
+
+      if (rows && rows.length > 0) {
+        user = rows[0];
+      } else {
+        console.error("Invalid MCP_API_KEY.");
+        process.exit(1);
+      }
+    } catch (e) {
+      console.error("Error validating MCP_API_KEY:", e);
+      process.exit(1);
+    }
+  }
+
   const transport = new StdioServerTransport();
+  const server = createServer(user);
   await server.connect(transport);
   console.error("Portfolio MCP Server running on stdio");
 };
 
 // Simple check to run only when invoked from CLI
-if (process.argv[1] && process.argv[1].endsWith("server.ts")) {
+if (process.argv[1] && (process.argv[1].endsWith("server.ts") || process.argv[1].endsWith("mcp.js"))) {
   run().catch((error) => {
     console.error("Fatal error running server:", error);
     process.exit(1);

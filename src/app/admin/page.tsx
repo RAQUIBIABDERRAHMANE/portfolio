@@ -1,4 +1,6 @@
+
 "use client";
+import { ApiKeyManager } from "@/components/ApiKeyManager";
 
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -946,6 +948,12 @@ export default function AdminDashboard() {
                     {activeTab === "messages" && <MessagesTab />}
 
                     {activeTab === "overview" && (
+                        <div className="mb-8">
+                            <Card className="p-8 border-l-4 border-emerald-500 bg-gray-900/40">
+                                <ApiKeyManager />
+                            </Card>
+                        </div>
+
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                             {/* Stats Card */}
                             <Card className="p-8 border-l-4 border-cyan-500 bg-gray-900/40">
