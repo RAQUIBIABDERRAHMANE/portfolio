@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { JSONRPCMessage } from "@modelcontextprotocol/sdk/types.js";

@@ -1,6 +1,6 @@
 {
   "name": "portfolio-mcp-raquibi",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Portfolio MCP Server by RAQUIBI ABDERRAHMANE",
   "main": "bin/mcp.js",
   "type": "module",
@@ -13,8 +13,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "eventsource": "^3.0.7",
-    "portfolio-mcp-raquibi": "^1.0.0"
+    "eventsource": "^3.0.7"
   },
   "keywords": [
     "mcp",

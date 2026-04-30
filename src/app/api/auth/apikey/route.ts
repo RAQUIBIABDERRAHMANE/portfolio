@@ -4,6 +4,7 @@ import db from '@/lib/sqlite';
 import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 export const revalidate = 0;
 
 export async function GET() {

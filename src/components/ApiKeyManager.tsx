@@ -9,7 +9,7 @@ export function ApiKeyManager() {
     const [copied, setCopied] = useState(false);
 
     useEffect(() => {
-        fetch("/api/auth/apikey", { cache: "no-store" })
+        fetch(`/api/auth/apikey?t=${Date.now()}`, { cache: "no-store" })
             .then(res => res.json())
             .then(data => {
                 if (data.api_key) setApiKey(data.api_key);
