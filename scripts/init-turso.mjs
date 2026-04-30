@@ -57,6 +57,13 @@ async function init() {
             console.log('Password column already exists or table is new.');
         }
 
+        try {
+            await db.execute('ALTER TABLE users ADD COLUMN api_key TEXT');
+            console.log('Added api_key column to users table.');
+        } catch (e) {
+            console.log('api_key column already exists or table is new.');
+        }
+
         console.log('Database initialization complete!');
     } catch (error) {
         console.error('Initialization failed:', error);
