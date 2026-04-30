@@ -58,7 +58,7 @@ export function ApiKeyManager() {
                     </button>
                 </div>
             ) : (
-                <p className="text-sm text-white/50">You don't have an API key yet. Generate one to use the MCP Server.</p>
+                <p className="text-sm text-white/50">You don&apos;t have an API key yet. Generate one to use the MCP Server.</p>
             )}
             
             <div className="flex items-center gap-4 mt-2">

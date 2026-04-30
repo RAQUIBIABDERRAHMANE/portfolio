@@ -948,13 +948,14 @@ export default function AdminDashboard() {
                     {activeTab === "messages" && <MessagesTab />}
 
                     {activeTab === "overview" && (
-                        <div className="mb-8">
-                            <Card className="p-8 border-l-4 border-emerald-500 bg-gray-900/40">
-                                <ApiKeyManager />
-                            </Card>
-                        </div>
+                        <>
+                            <div className="mb-8">
+                                <Card className="p-8 border-l-4 border-emerald-500 bg-gray-900/40">
+                                    <ApiKeyManager />
+                                </Card>
+                            </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                             {/* Stats Card */}
                             <Card className="p-8 border-l-4 border-cyan-500 bg-gray-900/40">
                                 <div className="flex items-center gap-3 mb-4 text-cyan-400">
@@ -993,6 +994,7 @@ export default function AdminDashboard() {
                                 </div>
                             </Card>
                         </div>
+                        </>
                     )}
 
                     {activeTab === "users" && (
