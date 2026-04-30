@@ -9,7 +9,7 @@ export function ApiKeyManager() {
     const [copied, setCopied] = useState(false);
 
     useEffect(() => {
-        fetch("/api/auth/apikey")
+        fetch("/api/auth/apikey", { cache: "no-store" })
             .then(res => res.json())
             .then(data => {
                 if (data.api_key) setApiKey(data.api_key);
@@ -75,6 +75,27 @@ export function ApiKeyManager() {
             <p className="text-xs text-white/40 mt-1">
                 Keep this key secret. You can use it as a Bearer token to connect to the MCP Server and access your account via AI agents.
             </p>
+
+            {apiKey && (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                    <h4 className="text-sm font-semibold text-emerald-400 mb-2">How to add to Claude Desktop</h4>
+                    <p className="text-xs text-white/60 mb-3">Add this to your <code className="bg-black/30 px-1 py-0.5 rounded">claude_desktop_config.json</code> file:</p>
+                    <pre className="bg-black/50 p-3 rounded-lg text-xs text-emerald-300/80 overflow-x-auto border border-white/5">
+{`{
+  "mcpServers": {
+    "portfolio": {
+      "command": "npx",
+      "args": ["-y", "portfolio-mcp-raquibi"],
+      "env": {
+        "PORTFOLIO_URL": "${typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}",
+        "MCP_API_KEY": "${apiKey}"
+      }
+    }
+  }
+}`}
+                    </pre>
+                </div>
+            )}
         </div>
     );
 }

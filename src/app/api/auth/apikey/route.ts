@@ -3,6 +3,9 @@ import { getUser } from '@/lib/auth';
 import db from '@/lib/sqlite';
 import crypto from 'crypto';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
     const user = getUser();
     if (!user || (!user.userId && !user.email)) {
