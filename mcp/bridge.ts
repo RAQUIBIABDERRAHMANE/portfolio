@@ -1,61 +1,81 @@
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { JSONRPCMessage } from "@modelcontextprotocol/sdk/types.js";
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
 
 async function run() {
-    const apiKey = process.env.MCP_API_KEY;
-    const remoteUrl = process.env.PORTFOLIO_URL ? `${process.env.PORTFOLIO_URL}/api/mcp` : "http://localhost:3000/api/mcp";
+  const apiKey = process.env.MCP_API_KEY;
+  const remoteUrl = process.env.PORTFOLIO_URL
+    ? `${process.env.PORTFOLIO_URL}/api/mcp`
+    : "http://localhost:3000/api/mcp";
 
-    if (!apiKey) {
-        console.error("Error: MCP_API_KEY environment variable is required.");
-        process.exit(1);
-    }
+  if (!apiKey) {
+    console.error("Error: MCP_API_KEY environment variable is required.");
+    process.exit(1);
+  }
 
-    // Configure the remote connection to the Next.js server
-    const httpTransport = new StreamableHTTPClientTransport(new URL(remoteUrl), {
-        requestInit: {
-            headers: {
-                "Authorization": `Bearer ${apiKey}`
-            }
-        }
+  // --- Remote client (talks to the Next.js HTTP endpoint) ---
+  const httpTransport = new StreamableHTTPClientTransport(new URL(remoteUrl), {
+    requestInit: {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    },
+  });
+
+  const remoteClient = new Client(
+    { name: "portfolio-bridge-client", version: "1.0.2" },
+    { capabilities: {} }
+  );
+
+  await remoteClient.connect(httpTransport);
+  console.error(`Connected to remote MCP server at ${remoteUrl}`);
+
+  // --- Local server (exposes tools/resources to Claude over stdio) ---
+  const localServer = new Server(
+    { name: "portfolio-mcp-raquibi", version: "1.0.2" },
+    { capabilities: { tools: {}, resources: {} } }
+  );
+
+  // Proxy: list tools
+  localServer.setRequestHandler(ListToolsRequestSchema, async () => {
+    return await remoteClient.listTools();
+  });
+
+  // Proxy: call tool
+  localServer.setRequestHandler(CallToolRequestSchema, async (req) => {
+    return await remoteClient.callTool({
+      name: req.params.name,
+      arguments: req.params.arguments ?? {},
     });
+  });
 
-    const stdio = new StdioServerTransport();
+  // Proxy: list resources
+  localServer.setRequestHandler(ListResourcesRequestSchema, async () => {
+    return await remoteClient.listResources();
+  });
 
-    // Map the messages back and forth
-    stdio.onmessage = async (msg) => {
-        try {
-            await httpTransport.send(msg);
-        } catch (e: any) {
-            console.error("Failed to forward to remote:", e.message);
-        }
-    };
+  // Proxy: read resource
+  localServer.setRequestHandler(ReadResourceRequestSchema, async (req) => {
+    return await remoteClient.readResource({ uri: req.params.uri });
+  });
 
-    httpTransport.onmessage = async (msg) => {
-        try {
-            await stdio.send(msg);
-        } catch (e: any) {
-            console.error("Failed to forward to stdio:", e.message);
-        }
-    };
+  // Start the stdio transport (this keeps the process alive)
+  const stdioTransport = new StdioServerTransport();
+  await localServer.connect(stdioTransport);
 
-    httpTransport.onerror = (err) => {
-        console.error("Remote transport error:", err);
-    };
-
-    stdio.onerror = (err) => {
-        console.error("Stdio transport error:", err);
-    };
-
-    httpTransport.onclose = () => { process.exit(0); };
-    stdio.onclose = () => { httpTransport.close(); process.exit(0); };
-
-    // Connect both transports
-    await httpTransport.start();
-    console.error(`Connected to remote MCP server at ${remoteUrl}`);
+  // Exit cleanly when Claude closes the connection
+  stdioTransport.onclose = async () => {
+    await remoteClient.close();
+    process.exit(0);
+  };
 }
 
-run().catch(e => {
-    console.error("Proxy error:", e.message);
-    process.exit(1);
+run().catch((e) => {
+  console.error("Bridge error:", e.message);
+  process.exit(1);
 });
