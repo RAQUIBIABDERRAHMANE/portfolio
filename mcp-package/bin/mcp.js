@@ -6964,6 +6964,7 @@ var JSONRPCRequestSchema = object({
   id: RequestIdSchema,
   ...RequestSchema.shape
 }).strict();
+var isJSONRPCRequest = (value) => JSONRPCRequestSchema.safeParse(value).success;
 var JSONRPCNotificationSchema = object({
   jsonrpc: literal(JSONRPC_VERSION),
   ...NotificationSchema.shape
@@ -6973,6 +6974,7 @@ var JSONRPCResultResponseSchema = object({
   id: RequestIdSchema,
   result: ResultSchema
 }).strict();
+var isJSONRPCResultResponse = (value) => JSONRPCResultResponseSchema.safeParse(value).success;
 var ErrorCode;
 (function(ErrorCode2) {
   ErrorCode2[ErrorCode2["ConnectionClosed"] = -32e3] = "ConnectionClosed";
@@ -7281,6 +7283,7 @@ var InitializedNotificationSchema = NotificationSchema.extend({
   method: literal("notifications/initialized"),
   params: NotificationsParamsSchema.optional()
 });
+var isInitializedNotification = (value) => InitializedNotificationSchema.safeParse(value).success;
 var PingRequestSchema = RequestSchema.extend({
   method: literal("ping"),
   params: BaseRequestParamsSchema.optional()
@@ -8458,406 +8461,6 @@ var StdioServerTransport = class {
   }
 };
 
-// ../node_modules/eventsource-parser/dist/index.js
-var ParseError = class extends Error {
-  constructor(message, options) {
-    super(message), this.name = "ParseError", this.type = options.type, this.field = options.field, this.value = options.value, this.line = options.line;
-  }
-};
-function noop(_arg) {
-}
-function createParser(callbacks) {
-  if (typeof callbacks == "function")
-    throw new TypeError(
-      "`callbacks` must be an object, got a function instead. Did you mean `{onEvent: fn}`?"
-    );
-  const { onEvent = noop, onError = noop, onRetry = noop, onComment } = callbacks;
-  let incompleteLine = "", isFirstChunk = true, id, data = "", eventType = "";
-  function feed(newChunk) {
-    const chunk = isFirstChunk ? newChunk.replace(/^\xEF\xBB\xBF/, "") : newChunk, [complete, incomplete] = splitLines(`${incompleteLine}${chunk}`);
-    for (const line of complete)
-      parseLine(line);
-    incompleteLine = incomplete, isFirstChunk = false;
-  }
-  function parseLine(line) {
-    if (line === "") {
-      dispatchEvent();
-      return;
-    }
-    if (line.startsWith(":")) {
-      onComment && onComment(line.slice(line.startsWith(": ") ? 2 : 1));
-      return;
-    }
-    const fieldSeparatorIndex = line.indexOf(":");
-    if (fieldSeparatorIndex !== -1) {
-      const field = line.slice(0, fieldSeparatorIndex), offset = line[fieldSeparatorIndex + 1] === " " ? 2 : 1, value = line.slice(fieldSeparatorIndex + offset);
-      processField(field, value, line);
-      return;
-    }
-    processField(line, "", line);
-  }
-  function processField(field, value, line) {
-    switch (field) {
-      case "event":
-        eventType = value;
-        break;
-      case "data":
-        data = `${data}${value}
-`;
-        break;
-      case "id":
-        id = value.includes("\0") ? void 0 : value;
-        break;
-      case "retry":
-        /^\d+$/.test(value) ? onRetry(parseInt(value, 10)) : onError(
-          new ParseError(`Invalid \`retry\` value: "${value}"`, {
-            type: "invalid-retry",
-            value,
-            line
-          })
-        );
-        break;
-      default:
-        onError(
-          new ParseError(
-            `Unknown field "${field.length > 20 ? `${field.slice(0, 20)}\u2026` : field}"`,
-            { type: "unknown-field", field, value, line }
-          )
-        );
-        break;
-    }
-  }
-  function dispatchEvent() {
-    data.length > 0 && onEvent({
-      id,
-      event: eventType || void 0,
-      // If the data buffer's last character is a U+000A LINE FEED (LF) character,
-      // then remove the last character from the data buffer.
-      data: data.endsWith(`
-`) ? data.slice(0, -1) : data
-    }), id = void 0, data = "", eventType = "";
-  }
-  function reset(options = {}) {
-    incompleteLine && options.consume && parseLine(incompleteLine), isFirstChunk = true, id = void 0, data = "", eventType = "", incompleteLine = "";
-  }
-  return { feed, reset };
-}
-function splitLines(chunk) {
-  const lines = [];
-  let incompleteLine = "", searchIndex = 0;
-  for (; searchIndex < chunk.length; ) {
-    const crIndex = chunk.indexOf("\r", searchIndex), lfIndex = chunk.indexOf(`
-`, searchIndex);
-    let lineEnd = -1;
-    if (crIndex !== -1 && lfIndex !== -1 ? lineEnd = Math.min(crIndex, lfIndex) : crIndex !== -1 ? crIndex === chunk.length - 1 ? lineEnd = -1 : lineEnd = crIndex : lfIndex !== -1 && (lineEnd = lfIndex), lineEnd === -1) {
-      incompleteLine = chunk.slice(searchIndex);
-      break;
-    } else {
-      const line = chunk.slice(searchIndex, lineEnd);
-      lines.push(line), searchIndex = lineEnd + 1, chunk[searchIndex - 1] === "\r" && chunk[searchIndex] === `
-` && searchIndex++;
-    }
-  }
-  return [lines, incompleteLine];
-}
-
-// ../node_modules/eventsource/dist/index.js
-var ErrorEvent = class extends Event {
-  /**
-   * Constructs a new `ErrorEvent` instance. This is typically not called directly,
-   * but rather emitted by the `EventSource` object when an error occurs.
-   *
-   * @param type - The type of the event (should be "error")
-   * @param errorEventInitDict - Optional properties to include in the error event
-   */
-  constructor(type, errorEventInitDict) {
-    var _a2, _b;
-    super(type), this.code = (_a2 = errorEventInitDict == null ? void 0 : errorEventInitDict.code) != null ? _a2 : void 0, this.message = (_b = errorEventInitDict == null ? void 0 : errorEventInitDict.message) != null ? _b : void 0;
-  }
-  /**
-   * Node.js "hides" the `message` and `code` properties of the `ErrorEvent` instance,
-   * when it is `console.log`'ed. This makes it harder to debug errors. To ease debugging,
-   * we explicitly include the properties in the `inspect` method.
-   *
-   * This is automatically called by Node.js when you `console.log` an instance of this class.
-   *
-   * @param _depth - The current depth
-   * @param options - The options passed to `util.inspect`
-   * @param inspect - The inspect function to use (prevents having to import it from `util`)
-   * @returns A string representation of the error
-   */
-  [/* @__PURE__ */ Symbol.for("nodejs.util.inspect.custom")](_depth, options, inspect) {
-    return inspect(inspectableError(this), options);
-  }
-  /**
-   * Deno "hides" the `message` and `code` properties of the `ErrorEvent` instance,
-   * when it is `console.log`'ed. This makes it harder to debug errors. To ease debugging,
-   * we explicitly include the properties in the `inspect` method.
-   *
-   * This is automatically called by Deno when you `console.log` an instance of this class.
-   *
-   * @param inspect - The inspect function to use (prevents having to import it from `util`)
-   * @param options - The options passed to `Deno.inspect`
-   * @returns A string representation of the error
-   */
-  [/* @__PURE__ */ Symbol.for("Deno.customInspect")](inspect, options) {
-    return inspect(inspectableError(this), options);
-  }
-};
-function syntaxError(message) {
-  const DomException = globalThis.DOMException;
-  return typeof DomException == "function" ? new DomException(message, "SyntaxError") : new SyntaxError(message);
-}
-function flattenError2(err) {
-  return err instanceof Error ? "errors" in err && Array.isArray(err.errors) ? err.errors.map(flattenError2).join(", ") : "cause" in err && err.cause instanceof Error ? `${err}: ${flattenError2(err.cause)}` : err.message : `${err}`;
-}
-function inspectableError(err) {
-  return {
-    type: err.type,
-    message: err.message,
-    code: err.code,
-    defaultPrevented: err.defaultPrevented,
-    cancelable: err.cancelable,
-    timeStamp: err.timeStamp
-  };
-}
-var __typeError = (msg) => {
-  throw TypeError(msg);
-};
-var __accessCheck = (obj, member, msg) => member.has(obj) || __typeError("Cannot " + msg);
-var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read from private field"), getter ? getter.call(obj) : member.get(obj));
-var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
-var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), member.set(obj, value), value);
-var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
-var _readyState;
-var _url2;
-var _redirectUrl;
-var _withCredentials;
-var _fetch;
-var _reconnectInterval;
-var _reconnectTimer;
-var _lastEventId;
-var _controller;
-var _parser;
-var _onError;
-var _onMessage;
-var _onOpen;
-var _EventSource_instances;
-var connect_fn;
-var _onFetchResponse;
-var _onFetchError;
-var getRequestOptions_fn;
-var _onEvent;
-var _onRetryChange;
-var failConnection_fn;
-var scheduleReconnect_fn;
-var _reconnect;
-var EventSource = class extends EventTarget {
-  constructor(url2, eventSourceInitDict) {
-    var _a2, _b;
-    super(), __privateAdd(this, _EventSource_instances), this.CONNECTING = 0, this.OPEN = 1, this.CLOSED = 2, __privateAdd(this, _readyState), __privateAdd(this, _url2), __privateAdd(this, _redirectUrl), __privateAdd(this, _withCredentials), __privateAdd(this, _fetch), __privateAdd(this, _reconnectInterval), __privateAdd(this, _reconnectTimer), __privateAdd(this, _lastEventId, null), __privateAdd(this, _controller), __privateAdd(this, _parser), __privateAdd(this, _onError, null), __privateAdd(this, _onMessage, null), __privateAdd(this, _onOpen, null), __privateAdd(this, _onFetchResponse, async (response) => {
-      var _a22;
-      __privateGet(this, _parser).reset();
-      const { body, redirected, status, headers } = response;
-      if (status === 204) {
-        __privateMethod(this, _EventSource_instances, failConnection_fn).call(this, "Server sent HTTP 204, not reconnecting", 204), this.close();
-        return;
-      }
-      if (redirected ? __privateSet(this, _redirectUrl, new URL(response.url)) : __privateSet(this, _redirectUrl, void 0), status !== 200) {
-        __privateMethod(this, _EventSource_instances, failConnection_fn).call(this, `Non-200 status code (${status})`, status);
-        return;
-      }
-      if (!(headers.get("content-type") || "").startsWith("text/event-stream")) {
-        __privateMethod(this, _EventSource_instances, failConnection_fn).call(this, 'Invalid content type, expected "text/event-stream"', status);
-        return;
-      }
-      if (__privateGet(this, _readyState) === this.CLOSED)
-        return;
-      __privateSet(this, _readyState, this.OPEN);
-      const openEvent = new Event("open");
-      if ((_a22 = __privateGet(this, _onOpen)) == null || _a22.call(this, openEvent), this.dispatchEvent(openEvent), typeof body != "object" || !body || !("getReader" in body)) {
-        __privateMethod(this, _EventSource_instances, failConnection_fn).call(this, "Invalid response body, expected a web ReadableStream", status), this.close();
-        return;
-      }
-      const decoder = new TextDecoder(), reader = body.getReader();
-      let open = true;
-      do {
-        const { done, value } = await reader.read();
-        value && __privateGet(this, _parser).feed(decoder.decode(value, { stream: !done })), done && (open = false, __privateGet(this, _parser).reset(), __privateMethod(this, _EventSource_instances, scheduleReconnect_fn).call(this));
-      } while (open);
-    }), __privateAdd(this, _onFetchError, (err) => {
-      __privateSet(this, _controller, void 0), !(err.name === "AbortError" || err.type === "aborted") && __privateMethod(this, _EventSource_instances, scheduleReconnect_fn).call(this, flattenError2(err));
-    }), __privateAdd(this, _onEvent, (event) => {
-      typeof event.id == "string" && __privateSet(this, _lastEventId, event.id);
-      const messageEvent = new MessageEvent(event.event || "message", {
-        data: event.data,
-        origin: __privateGet(this, _redirectUrl) ? __privateGet(this, _redirectUrl).origin : __privateGet(this, _url2).origin,
-        lastEventId: event.id || ""
-      });
-      __privateGet(this, _onMessage) && (!event.event || event.event === "message") && __privateGet(this, _onMessage).call(this, messageEvent), this.dispatchEvent(messageEvent);
-    }), __privateAdd(this, _onRetryChange, (value) => {
-      __privateSet(this, _reconnectInterval, value);
-    }), __privateAdd(this, _reconnect, () => {
-      __privateSet(this, _reconnectTimer, void 0), __privateGet(this, _readyState) === this.CONNECTING && __privateMethod(this, _EventSource_instances, connect_fn).call(this);
-    });
-    try {
-      if (url2 instanceof URL)
-        __privateSet(this, _url2, url2);
-      else if (typeof url2 == "string")
-        __privateSet(this, _url2, new URL(url2, getBaseURL()));
-      else
-        throw new Error("Invalid URL");
-    } catch {
-      throw syntaxError("An invalid or illegal string was specified");
-    }
-    __privateSet(this, _parser, createParser({
-      onEvent: __privateGet(this, _onEvent),
-      onRetry: __privateGet(this, _onRetryChange)
-    })), __privateSet(this, _readyState, this.CONNECTING), __privateSet(this, _reconnectInterval, 3e3), __privateSet(this, _fetch, (_a2 = eventSourceInitDict == null ? void 0 : eventSourceInitDict.fetch) != null ? _a2 : globalThis.fetch), __privateSet(this, _withCredentials, (_b = eventSourceInitDict == null ? void 0 : eventSourceInitDict.withCredentials) != null ? _b : false), __privateMethod(this, _EventSource_instances, connect_fn).call(this);
-  }
-  /**
-   * Returns the state of this EventSource object's connection. It can have the values described below.
-   *
-   * [MDN Reference](https://developer.mozilla.org/docs/Web/API/EventSource/readyState)
-   *
-   * Note: typed as `number` instead of `0 | 1 | 2` for compatibility with the `EventSource` interface,
-   * defined in the TypeScript `dom` library.
-   *
-   * @public
-   */
-  get readyState() {
-    return __privateGet(this, _readyState);
-  }
-  /**
-   * Returns the URL providing the event stream.
-   *
-   * [MDN Reference](https://developer.mozilla.org/docs/Web/API/EventSource/url)
-   *
-   * @public
-   */
-  get url() {
-    return __privateGet(this, _url2).href;
-  }
-  /**
-   * Returns true if the credentials mode for connection requests to the URL providing the event stream is set to "include", and false otherwise.
-   *
-   * [MDN Reference](https://developer.mozilla.org/docs/Web/API/EventSource/withCredentials)
-   */
-  get withCredentials() {
-    return __privateGet(this, _withCredentials);
-  }
-  /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/EventSource/error_event) */
-  get onerror() {
-    return __privateGet(this, _onError);
-  }
-  set onerror(value) {
-    __privateSet(this, _onError, value);
-  }
-  /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/EventSource/message_event) */
-  get onmessage() {
-    return __privateGet(this, _onMessage);
-  }
-  set onmessage(value) {
-    __privateSet(this, _onMessage, value);
-  }
-  /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/EventSource/open_event) */
-  get onopen() {
-    return __privateGet(this, _onOpen);
-  }
-  set onopen(value) {
-    __privateSet(this, _onOpen, value);
-  }
-  addEventListener(type, listener, options) {
-    const listen = listener;
-    super.addEventListener(type, listen, options);
-  }
-  removeEventListener(type, listener, options) {
-    const listen = listener;
-    super.removeEventListener(type, listen, options);
-  }
-  /**
-   * Aborts any instances of the fetch algorithm started for this EventSource object, and sets the readyState attribute to CLOSED.
-   *
-   * [MDN Reference](https://developer.mozilla.org/docs/Web/API/EventSource/close)
-   *
-   * @public
-   */
-  close() {
-    __privateGet(this, _reconnectTimer) && clearTimeout(__privateGet(this, _reconnectTimer)), __privateGet(this, _readyState) !== this.CLOSED && (__privateGet(this, _controller) && __privateGet(this, _controller).abort(), __privateSet(this, _readyState, this.CLOSED), __privateSet(this, _controller, void 0));
-  }
-};
-_readyState = /* @__PURE__ */ new WeakMap(), _url2 = /* @__PURE__ */ new WeakMap(), _redirectUrl = /* @__PURE__ */ new WeakMap(), _withCredentials = /* @__PURE__ */ new WeakMap(), _fetch = /* @__PURE__ */ new WeakMap(), _reconnectInterval = /* @__PURE__ */ new WeakMap(), _reconnectTimer = /* @__PURE__ */ new WeakMap(), _lastEventId = /* @__PURE__ */ new WeakMap(), _controller = /* @__PURE__ */ new WeakMap(), _parser = /* @__PURE__ */ new WeakMap(), _onError = /* @__PURE__ */ new WeakMap(), _onMessage = /* @__PURE__ */ new WeakMap(), _onOpen = /* @__PURE__ */ new WeakMap(), _EventSource_instances = /* @__PURE__ */ new WeakSet(), /**
-* Connect to the given URL and start receiving events
-*
-* @internal
-*/
-connect_fn = function() {
-  __privateSet(this, _readyState, this.CONNECTING), __privateSet(this, _controller, new AbortController()), __privateGet(this, _fetch)(__privateGet(this, _url2), __privateMethod(this, _EventSource_instances, getRequestOptions_fn).call(this)).then(__privateGet(this, _onFetchResponse)).catch(__privateGet(this, _onFetchError));
-}, _onFetchResponse = /* @__PURE__ */ new WeakMap(), _onFetchError = /* @__PURE__ */ new WeakMap(), /**
-* Get request options for the `fetch()` request
-*
-* @returns The request options
-* @internal
-*/
-getRequestOptions_fn = function() {
-  var _a2;
-  const init = {
-    // [spec] Let `corsAttributeState` be `Anonymous`…
-    // [spec] …will have their mode set to "cors"…
-    mode: "cors",
-    redirect: "follow",
-    headers: { Accept: "text/event-stream", ...__privateGet(this, _lastEventId) ? { "Last-Event-ID": __privateGet(this, _lastEventId) } : void 0 },
-    cache: "no-store",
-    signal: (_a2 = __privateGet(this, _controller)) == null ? void 0 : _a2.signal
-  };
-  return "window" in globalThis && (init.credentials = this.withCredentials ? "include" : "same-origin"), init;
-}, _onEvent = /* @__PURE__ */ new WeakMap(), _onRetryChange = /* @__PURE__ */ new WeakMap(), /**
-* Handles the process referred to in the EventSource specification as "failing a connection".
-*
-* @param error - The error causing the connection to fail
-* @param code - The HTTP status code, if available
-* @internal
-*/
-failConnection_fn = function(message, code) {
-  var _a2;
-  __privateGet(this, _readyState) !== this.CLOSED && __privateSet(this, _readyState, this.CLOSED);
-  const errorEvent = new ErrorEvent("error", { code, message });
-  (_a2 = __privateGet(this, _onError)) == null || _a2.call(this, errorEvent), this.dispatchEvent(errorEvent);
-}, /**
-* Schedules a reconnection attempt against the EventSource endpoint.
-*
-* @param message - The error causing the connection to fail
-* @param code - The HTTP status code, if available
-* @internal
-*/
-scheduleReconnect_fn = function(message, code) {
-  var _a2;
-  if (__privateGet(this, _readyState) === this.CLOSED)
-    return;
-  __privateSet(this, _readyState, this.CONNECTING);
-  const errorEvent = new ErrorEvent("error", { code, message });
-  (_a2 = __privateGet(this, _onError)) == null || _a2.call(this, errorEvent), this.dispatchEvent(errorEvent), __privateSet(this, _reconnectTimer, setTimeout(__privateGet(this, _reconnect), __privateGet(this, _reconnectInterval)));
-}, _reconnect = /* @__PURE__ */ new WeakMap(), /**
-* ReadyState representing an EventSource currently trying to connect
-*
-* @public
-*/
-EventSource.CONNECTING = 0, /**
-* ReadyState representing an EventSource connection that is open (eg connected)
-*
-* @public
-*/
-EventSource.OPEN = 1, /**
-* ReadyState representing an EventSource connection that is closed (eg disconnected)
-*
-* @public
-*/
-EventSource.CLOSED = 2;
-function getBaseURL() {
-  const doc = "document" in globalThis ? globalThis.document : void 0;
-  return doc && typeof doc == "object" && "baseURI" in doc && typeof doc.baseURI == "string" ? doc.baseURI : void 0;
-}
-
 // ../node_modules/@modelcontextprotocol/sdk/dist/esm/shared/transport.js
 function normalizeHeaders(headers) {
   if (!headers)
@@ -9728,24 +9331,158 @@ async function registerClient(authorizationServerUrl, { metadata, clientMetadata
   return OAuthClientInformationFullSchema.parse(await response.json());
 }
 
-// ../node_modules/@modelcontextprotocol/sdk/dist/esm/client/sse.js
-var SseError = class extends Error {
-  constructor(code, message, event) {
-    super(`SSE error: ${message}`);
-    this.code = code;
-    this.event = event;
+// ../node_modules/eventsource-parser/dist/index.js
+var ParseError = class extends Error {
+  constructor(message, options) {
+    super(message), this.name = "ParseError", this.type = options.type, this.field = options.field, this.value = options.value, this.line = options.line;
   }
 };
-var SSEClientTransport = class {
+function noop(_arg) {
+}
+function createParser(callbacks) {
+  if (typeof callbacks == "function")
+    throw new TypeError(
+      "`callbacks` must be an object, got a function instead. Did you mean `{onEvent: fn}`?"
+    );
+  const { onEvent = noop, onError = noop, onRetry = noop, onComment } = callbacks;
+  let incompleteLine = "", isFirstChunk = true, id, data = "", eventType = "";
+  function feed(newChunk) {
+    const chunk = isFirstChunk ? newChunk.replace(/^\xEF\xBB\xBF/, "") : newChunk, [complete, incomplete] = splitLines(`${incompleteLine}${chunk}`);
+    for (const line of complete)
+      parseLine(line);
+    incompleteLine = incomplete, isFirstChunk = false;
+  }
+  function parseLine(line) {
+    if (line === "") {
+      dispatchEvent();
+      return;
+    }
+    if (line.startsWith(":")) {
+      onComment && onComment(line.slice(line.startsWith(": ") ? 2 : 1));
+      return;
+    }
+    const fieldSeparatorIndex = line.indexOf(":");
+    if (fieldSeparatorIndex !== -1) {
+      const field = line.slice(0, fieldSeparatorIndex), offset = line[fieldSeparatorIndex + 1] === " " ? 2 : 1, value = line.slice(fieldSeparatorIndex + offset);
+      processField(field, value, line);
+      return;
+    }
+    processField(line, "", line);
+  }
+  function processField(field, value, line) {
+    switch (field) {
+      case "event":
+        eventType = value;
+        break;
+      case "data":
+        data = `${data}${value}
+`;
+        break;
+      case "id":
+        id = value.includes("\0") ? void 0 : value;
+        break;
+      case "retry":
+        /^\d+$/.test(value) ? onRetry(parseInt(value, 10)) : onError(
+          new ParseError(`Invalid \`retry\` value: "${value}"`, {
+            type: "invalid-retry",
+            value,
+            line
+          })
+        );
+        break;
+      default:
+        onError(
+          new ParseError(
+            `Unknown field "${field.length > 20 ? `${field.slice(0, 20)}\u2026` : field}"`,
+            { type: "unknown-field", field, value, line }
+          )
+        );
+        break;
+    }
+  }
+  function dispatchEvent() {
+    data.length > 0 && onEvent({
+      id,
+      event: eventType || void 0,
+      // If the data buffer's last character is a U+000A LINE FEED (LF) character,
+      // then remove the last character from the data buffer.
+      data: data.endsWith(`
+`) ? data.slice(0, -1) : data
+    }), id = void 0, data = "", eventType = "";
+  }
+  function reset(options = {}) {
+    incompleteLine && options.consume && parseLine(incompleteLine), isFirstChunk = true, id = void 0, data = "", eventType = "", incompleteLine = "";
+  }
+  return { feed, reset };
+}
+function splitLines(chunk) {
+  const lines = [];
+  let incompleteLine = "", searchIndex = 0;
+  for (; searchIndex < chunk.length; ) {
+    const crIndex = chunk.indexOf("\r", searchIndex), lfIndex = chunk.indexOf(`
+`, searchIndex);
+    let lineEnd = -1;
+    if (crIndex !== -1 && lfIndex !== -1 ? lineEnd = Math.min(crIndex, lfIndex) : crIndex !== -1 ? crIndex === chunk.length - 1 ? lineEnd = -1 : lineEnd = crIndex : lfIndex !== -1 && (lineEnd = lfIndex), lineEnd === -1) {
+      incompleteLine = chunk.slice(searchIndex);
+      break;
+    } else {
+      const line = chunk.slice(searchIndex, lineEnd);
+      lines.push(line), searchIndex = lineEnd + 1, chunk[searchIndex - 1] === "\r" && chunk[searchIndex] === `
+` && searchIndex++;
+    }
+  }
+  return [lines, incompleteLine];
+}
+
+// ../node_modules/eventsource-parser/dist/stream.js
+var EventSourceParserStream = class extends TransformStream {
+  constructor({ onError, onRetry, onComment } = {}) {
+    let parser;
+    super({
+      start(controller) {
+        parser = createParser({
+          onEvent: (event) => {
+            controller.enqueue(event);
+          },
+          onError(error2) {
+            onError === "terminate" ? controller.error(error2) : typeof onError == "function" && onError(error2);
+          },
+          onRetry,
+          onComment
+        });
+      },
+      transform(chunk) {
+        parser.feed(chunk);
+      }
+    });
+  }
+};
+
+// ../node_modules/@modelcontextprotocol/sdk/dist/esm/client/streamableHttp.js
+var DEFAULT_STREAMABLE_HTTP_RECONNECTION_OPTIONS = {
+  initialReconnectionDelay: 1e3,
+  maxReconnectionDelay: 3e4,
+  reconnectionDelayGrowFactor: 1.5,
+  maxRetries: 2
+};
+var StreamableHTTPError = class extends Error {
+  constructor(code, message) {
+    super(`Streamable HTTP error: ${message}`);
+    this.code = code;
+  }
+};
+var StreamableHTTPClientTransport = class {
   constructor(url2, opts) {
+    this._hasCompletedAuthFlow = false;
     this._url = url2;
     this._resourceMetadataUrl = void 0;
     this._scope = void 0;
-    this._eventSourceInit = opts?.eventSourceInit;
     this._requestInit = opts?.requestInit;
     this._authProvider = opts?.authProvider;
     this._fetch = opts?.fetch;
     this._fetchWithInit = createFetchWithInit(opts?.fetch, opts?.requestInit);
+    this._sessionId = opts?.sessionId;
+    this._reconnectionOptions = opts?.reconnectionOptions ?? DEFAULT_STREAMABLE_HTTP_RECONNECTION_OPTIONS;
   }
   async _authThenStart() {
     if (!this._authProvider) {
@@ -9766,7 +9503,7 @@ var SSEClientTransport = class {
     if (result !== "AUTHORIZED") {
       throw new UnauthorizedError();
     }
-    return await this._startOrAuth();
+    return await this._startOrAuthSse({ resumptionToken: void 0 });
   }
   async _commonHeaders() {
     const headers = {};
@@ -9775,6 +9512,9 @@ var SSEClientTransport = class {
       if (tokens) {
         headers["Authorization"] = `Bearer ${tokens.access_token}`;
       }
+    }
+    if (this._sessionId) {
+      headers["mcp-session-id"] = this._sessionId;
     }
     if (this._protocolVersion) {
       headers["mcp-protocol-version"] = this._protocolVersion;
@@ -9785,71 +9525,146 @@ var SSEClientTransport = class {
       ...extraHeaders
     });
   }
-  _startOrAuth() {
-    const fetchImpl = this?._eventSourceInit?.fetch ?? this._fetch ?? fetch;
-    return new Promise((resolve, reject) => {
-      this._eventSource = new EventSource(this._url.href, {
-        ...this._eventSourceInit,
-        fetch: async (url2, init) => {
-          const headers = await this._commonHeaders();
-          headers.set("Accept", "text/event-stream");
-          const response = await fetchImpl(url2, {
-            ...init,
-            headers
-          });
-          if (response.status === 401 && response.headers.has("www-authenticate")) {
-            const { resourceMetadataUrl, scope } = extractWWWAuthenticateParams(response);
-            this._resourceMetadataUrl = resourceMetadataUrl;
-            this._scope = scope;
-          }
-          return response;
-        }
+  async _startOrAuthSse(options) {
+    const { resumptionToken } = options;
+    try {
+      const headers = await this._commonHeaders();
+      headers.set("Accept", "text/event-stream");
+      if (resumptionToken) {
+        headers.set("last-event-id", resumptionToken);
+      }
+      const response = await (this._fetch ?? fetch)(this._url, {
+        method: "GET",
+        headers,
+        signal: this._abortController?.signal
       });
-      this._abortController = new AbortController();
-      this._eventSource.onerror = (event) => {
-        if (event.code === 401 && this._authProvider) {
-          this._authThenStart().then(resolve, reject);
+      if (!response.ok) {
+        await response.body?.cancel();
+        if (response.status === 401 && this._authProvider) {
+          return await this._authThenStart();
+        }
+        if (response.status === 405) {
           return;
         }
-        const error2 = new SseError(event.code, event.message, event);
-        reject(error2);
-        this.onerror?.(error2);
-      };
-      this._eventSource.onopen = () => {
-      };
-      this._eventSource.addEventListener("endpoint", (event) => {
-        const messageEvent = event;
-        try {
-          this._endpoint = new URL(messageEvent.data, this._url);
-          if (this._endpoint.origin !== this._url.origin) {
-            throw new Error(`Endpoint origin does not match connection origin: ${this._endpoint.origin}`);
-          }
-        } catch (error2) {
-          reject(error2);
-          this.onerror?.(error2);
-          void this.close();
-          return;
-        }
-        resolve();
+        throw new StreamableHTTPError(response.status, `Failed to open SSE stream: ${response.statusText}`);
+      }
+      this._handleSseStream(response.body, options, true);
+    } catch (error2) {
+      this.onerror?.(error2);
+      throw error2;
+    }
+  }
+  /**
+   * Calculates the next reconnection delay using  backoff algorithm
+   *
+   * @param attempt Current reconnection attempt count for the specific stream
+   * @returns Time to wait in milliseconds before next reconnection attempt
+   */
+  _getNextReconnectionDelay(attempt) {
+    if (this._serverRetryMs !== void 0) {
+      return this._serverRetryMs;
+    }
+    const initialDelay = this._reconnectionOptions.initialReconnectionDelay;
+    const growFactor = this._reconnectionOptions.reconnectionDelayGrowFactor;
+    const maxDelay = this._reconnectionOptions.maxReconnectionDelay;
+    return Math.min(initialDelay * Math.pow(growFactor, attempt), maxDelay);
+  }
+  /**
+   * Schedule a reconnection attempt using server-provided retry interval or backoff
+   *
+   * @param lastEventId The ID of the last received event for resumability
+   * @param attemptCount Current reconnection attempt count for this specific stream
+   */
+  _scheduleReconnection(options, attemptCount = 0) {
+    const maxRetries = this._reconnectionOptions.maxRetries;
+    if (attemptCount >= maxRetries) {
+      this.onerror?.(new Error(`Maximum reconnection attempts (${maxRetries}) exceeded.`));
+      return;
+    }
+    const delay = this._getNextReconnectionDelay(attemptCount);
+    this._reconnectionTimeout = setTimeout(() => {
+      this._startOrAuthSse(options).catch((error2) => {
+        this.onerror?.(new Error(`Failed to reconnect SSE stream: ${error2 instanceof Error ? error2.message : String(error2)}`));
+        this._scheduleReconnection(options, attemptCount + 1);
       });
-      this._eventSource.onmessage = (event) => {
-        const messageEvent = event;
-        let message;
-        try {
-          message = JSONRPCMessageSchema.parse(JSON.parse(messageEvent.data));
-        } catch (error2) {
-          this.onerror?.(error2);
-          return;
+    }, delay);
+  }
+  _handleSseStream(stream, options, isReconnectable) {
+    if (!stream) {
+      return;
+    }
+    const { onresumptiontoken, replayMessageId } = options;
+    let lastEventId;
+    let hasPrimingEvent = false;
+    let receivedResponse = false;
+    const processStream = async () => {
+      try {
+        const reader = stream.pipeThrough(new TextDecoderStream()).pipeThrough(new EventSourceParserStream({
+          onRetry: (retryMs) => {
+            this._serverRetryMs = retryMs;
+          }
+        })).getReader();
+        while (true) {
+          const { value: event, done } = await reader.read();
+          if (done) {
+            break;
+          }
+          if (event.id) {
+            lastEventId = event.id;
+            hasPrimingEvent = true;
+            onresumptiontoken?.(event.id);
+          }
+          if (!event.data) {
+            continue;
+          }
+          if (!event.event || event.event === "message") {
+            try {
+              const message = JSONRPCMessageSchema.parse(JSON.parse(event.data));
+              if (isJSONRPCResultResponse(message)) {
+                receivedResponse = true;
+                if (replayMessageId !== void 0) {
+                  message.id = replayMessageId;
+                }
+              }
+              this.onmessage?.(message);
+            } catch (error2) {
+              this.onerror?.(error2);
+            }
+          }
         }
-        this.onmessage?.(message);
-      };
-    });
+        const canResume = isReconnectable || hasPrimingEvent;
+        const needsReconnect = canResume && !receivedResponse;
+        if (needsReconnect && this._abortController && !this._abortController.signal.aborted) {
+          this._scheduleReconnection({
+            resumptionToken: lastEventId,
+            onresumptiontoken,
+            replayMessageId
+          }, 0);
+        }
+      } catch (error2) {
+        this.onerror?.(new Error(`SSE stream disconnected: ${error2}`));
+        const canResume = isReconnectable || hasPrimingEvent;
+        const needsReconnect = canResume && !receivedResponse;
+        if (needsReconnect && this._abortController && !this._abortController.signal.aborted) {
+          try {
+            this._scheduleReconnection({
+              resumptionToken: lastEventId,
+              onresumptiontoken,
+              replayMessageId
+            }, 0);
+          } catch (error3) {
+            this.onerror?.(new Error(`Failed to reconnect: ${error3 instanceof Error ? error3.message : String(error3)}`));
+          }
+        }
+      }
+    };
+    processStream();
   }
   async start() {
-    if (this._eventSource) {
-      throw new Error("SSEClientTransport already started! If using Client class, note that connect() calls start() automatically.");
+    if (this._abortController) {
+      throw new Error("StreamableHTTPClientTransport already started! If using Client class, note that connect() calls start() automatically.");
     }
-    return await this._startOrAuth();
+    this._abortController = new AbortController();
   }
   /**
    * Call this method after the user has finished authorizing via their user agent and is redirected back to the MCP client application. This will exchange the authorization code for an access token, enabling the next connection attempt to successfully auth.
@@ -9870,17 +9685,23 @@ var SSEClientTransport = class {
     }
   }
   async close() {
+    if (this._reconnectionTimeout) {
+      clearTimeout(this._reconnectionTimeout);
+      this._reconnectionTimeout = void 0;
+    }
     this._abortController?.abort();
-    this._eventSource?.close();
     this.onclose?.();
   }
-  async send(message) {
-    if (!this._endpoint) {
-      throw new Error("Not connected");
-    }
+  async send(message, options) {
     try {
+      const { resumptionToken, onresumptiontoken } = options || {};
+      if (resumptionToken) {
+        this._startOrAuthSse({ resumptionToken, replayMessageId: isJSONRPCRequest(message) ? message.id : void 0 }).catch((err) => this.onerror?.(err));
+        return;
+      }
       const headers = await this._commonHeaders();
       headers.set("content-type", "application/json");
+      headers.set("accept", "application/json, text/event-stream");
       const init = {
         ...this._requestInit,
         method: "POST",
@@ -9888,10 +9709,17 @@ var SSEClientTransport = class {
         body: JSON.stringify(message),
         signal: this._abortController?.signal
       };
-      const response = await (this._fetch ?? fetch)(this._endpoint, init);
+      const response = await (this._fetch ?? fetch)(this._url, init);
+      const sessionId = response.headers.get("mcp-session-id");
+      if (sessionId) {
+        this._sessionId = sessionId;
+      }
       if (!response.ok) {
         const text = await response.text().catch(() => null);
         if (response.status === 401 && this._authProvider) {
+          if (this._hasCompletedAuthFlow) {
+            throw new StreamableHTTPError(401, "Server returned 401 after successful authentication");
+          }
           const { resourceMetadataUrl, scope } = extractWWWAuthenticateParams(response);
           this._resourceMetadataUrl = resourceMetadataUrl;
           this._scope = scope;
@@ -9904,11 +9732,102 @@ var SSEClientTransport = class {
           if (result !== "AUTHORIZED") {
             throw new UnauthorizedError();
           }
+          this._hasCompletedAuthFlow = true;
           return this.send(message);
         }
-        throw new Error(`Error POSTing to endpoint (HTTP ${response.status}): ${text}`);
+        if (response.status === 403 && this._authProvider) {
+          const { resourceMetadataUrl, scope, error: error2 } = extractWWWAuthenticateParams(response);
+          if (error2 === "insufficient_scope") {
+            const wwwAuthHeader = response.headers.get("WWW-Authenticate");
+            if (this._lastUpscopingHeader === wwwAuthHeader) {
+              throw new StreamableHTTPError(403, "Server returned 403 after trying upscoping");
+            }
+            if (scope) {
+              this._scope = scope;
+            }
+            if (resourceMetadataUrl) {
+              this._resourceMetadataUrl = resourceMetadataUrl;
+            }
+            this._lastUpscopingHeader = wwwAuthHeader ?? void 0;
+            const result = await auth(this._authProvider, {
+              serverUrl: this._url,
+              resourceMetadataUrl: this._resourceMetadataUrl,
+              scope: this._scope,
+              fetchFn: this._fetch
+            });
+            if (result !== "AUTHORIZED") {
+              throw new UnauthorizedError();
+            }
+            return this.send(message);
+          }
+        }
+        throw new StreamableHTTPError(response.status, `Error POSTing to endpoint: ${text}`);
       }
+      this._hasCompletedAuthFlow = false;
+      this._lastUpscopingHeader = void 0;
+      if (response.status === 202) {
+        await response.body?.cancel();
+        if (isInitializedNotification(message)) {
+          this._startOrAuthSse({ resumptionToken: void 0 }).catch((err) => this.onerror?.(err));
+        }
+        return;
+      }
+      const messages = Array.isArray(message) ? message : [message];
+      const hasRequests = messages.filter((msg) => "method" in msg && "id" in msg && msg.id !== void 0).length > 0;
+      const contentType = response.headers.get("content-type");
+      if (hasRequests) {
+        if (contentType?.includes("text/event-stream")) {
+          this._handleSseStream(response.body, { onresumptiontoken }, false);
+        } else if (contentType?.includes("application/json")) {
+          const data = await response.json();
+          const responseMessages = Array.isArray(data) ? data.map((msg) => JSONRPCMessageSchema.parse(msg)) : [JSONRPCMessageSchema.parse(data)];
+          for (const msg of responseMessages) {
+            this.onmessage?.(msg);
+          }
+        } else {
+          await response.body?.cancel();
+          throw new StreamableHTTPError(-1, `Unexpected content type: ${contentType}`);
+        }
+      } else {
+        await response.body?.cancel();
+      }
+    } catch (error2) {
+      this.onerror?.(error2);
+      throw error2;
+    }
+  }
+  get sessionId() {
+    return this._sessionId;
+  }
+  /**
+   * Terminates the current session by sending a DELETE request to the server.
+   *
+   * Clients that no longer need a particular session
+   * (e.g., because the user is leaving the client application) SHOULD send an
+   * HTTP DELETE to the MCP endpoint with the Mcp-Session-Id header to explicitly
+   * terminate the session.
+   *
+   * The server MAY respond with HTTP 405 Method Not Allowed, indicating that
+   * the server does not allow clients to terminate sessions.
+   */
+  async terminateSession() {
+    if (!this._sessionId) {
+      return;
+    }
+    try {
+      const headers = await this._commonHeaders();
+      const init = {
+        ...this._requestInit,
+        method: "DELETE",
+        headers,
+        signal: this._abortController?.signal
+      };
+      const response = await (this._fetch ?? fetch)(this._url, init);
       await response.body?.cancel();
+      if (!response.ok && response.status !== 405) {
+        throw new StreamableHTTPError(response.status, `Failed to terminate session: ${response.statusText}`);
+      }
+      this._sessionId = void 0;
     } catch (error2) {
       this.onerror?.(error2);
       throw error2;
@@ -9916,6 +9835,22 @@ var SSEClientTransport = class {
   }
   setProtocolVersion(version2) {
     this._protocolVersion = version2;
+  }
+  get protocolVersion() {
+    return this._protocolVersion;
+  }
+  /**
+   * Resume an SSE stream from a previous event ID.
+   * Opens a GET SSE connection with Last-Event-ID header to replay missed events.
+   *
+   * @param lastEventId The event ID to resume from
+   * @param options Optional callback to receive new resumption tokens
+   */
+  async resumeStream(lastEventId, options) {
+    await this._startOrAuthSse({
+      resumptionToken: lastEventId,
+      onresumptiontoken: options?.onresumptiontoken
+    });
   }
 };
 
@@ -9927,16 +9862,8 @@ async function run() {
     console.error("Error: MCP_API_KEY environment variable is required.");
     process.exit(1);
   }
-  const sse = new SSEClientTransport(new URL(remoteUrl), {
+  const httpTransport = new StreamableHTTPClientTransport(new URL(remoteUrl), {
     requestInit: {
-      headers: {
-        "Authorization": `Bearer ${apiKey}`
-      }
-    },
-    eventSourceInit: {
-      // Note: Use standard object for custom headers based on EventSource implementations 
-      // though some fetch-based EventSources don't use headers property directly.
-      // But since the current Node.js EventSource or sdk polyfill might:
       headers: {
         "Authorization": `Bearer ${apiKey}`
       }
@@ -9945,32 +9872,32 @@ async function run() {
   const stdio = new StdioServerTransport();
   stdio.onmessage = async (msg) => {
     try {
-      await sse.send(msg);
+      await httpTransport.send(msg);
     } catch (e) {
       console.error("Failed to forward to remote:", e.message);
     }
   };
-  sse.onmessage = async (msg) => {
+  httpTransport.onmessage = async (msg) => {
     try {
       await stdio.send(msg);
     } catch (e) {
       console.error("Failed to forward to stdio:", e.message);
     }
   };
-  sse.onerror = (err) => {
+  httpTransport.onerror = (err) => {
     console.error("Remote transport error:", err);
   };
   stdio.onerror = (err) => {
     console.error("Stdio transport error:", err);
   };
-  sse.onclose = () => {
+  httpTransport.onclose = () => {
     process.exit(0);
   };
   stdio.onclose = () => {
-    sse.close();
+    httpTransport.close();
     process.exit(0);
   };
-  await sse.start();
+  await httpTransport.start();
   console.error(`Connected to remote MCP server at ${remoteUrl}`);
 }
 run().catch((e) => {

@@ -1,6 +1,6 @@
 {
   "name": "portfolio-mcp-raquibi",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Portfolio MCP Server by RAQUIBI ABDERRAHMANE",
   "main": "bin/mcp.js",
   "type": "module",
