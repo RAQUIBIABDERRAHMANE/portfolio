@@ -10,11 +10,13 @@ import { motion } from "framer-motion";
 import { User, Mail, Phone, LogOut, Bell, Clock, Briefcase, CheckCircle, AlertCircle, ExternalLink } from "lucide-react";
 
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import Link from "next/link";
 
 export default function ClientDashboard() {
     const [userData, setUserData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [applications, setApplications] = useState<any[]>([]);
+    const [joinedProjects, setJoinedProjects] = useState<any[]>([]);
     const [appsLoading, setAppsLoading] = useState(false);
     const router = useRouter();
 
@@ -41,6 +43,13 @@ export default function ClientDashboard() {
                 if (appsRes.ok) {
                     const appsData = await appsRes.json();
                     setApplications(appsData.submissions || []);
+                }
+
+                // Fetch user's joined contribution projects
+                const projectsRes = await fetch("/api/user/contributions");
+                if (projectsRes.ok) {
+                    const projectsData = await projectsRes.json();
+                    setJoinedProjects(projectsData || []);
                 }
             } catch (err) {
                 router.push("/login");
@@ -92,7 +101,7 @@ export default function ClientDashboard() {
                 >
                     <div className="flex flex-col md:flex-row gap-8 items-start">
                         {/* Sidebar / Profile Summary */}
-                        <Card className="w-full md:w-1/3 p-6 flex flex-col items-center text-center">
+                        <Card className="w-full md:w-1/4 p-6 flex flex-col items-center text-center">
                             <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-500 flex items-center justify-center mb-4 text-3xl font-bold">
                                 {userData?.fullName?.charAt(0) || "U"}
                             </div>
@@ -137,6 +146,7 @@ export default function ClientDashboard() {
                             <Card className="p-6 mb-6 border-white/10 bg-gradient-to-br from-gray-900/60 to-gray-800/80">
                                 <ApiKeyManager />
                             </Card>
+
 
                             {hasApplications && (
                                 <Card className="p-6 border-cyan-500/20 bg-gradient-to-br from-gray-900/60 via-gray-900 to-gray-800/80 shadow-lg shadow-cyan-500/10">
@@ -199,6 +209,42 @@ export default function ClientDashboard() {
                                         </div>
                                     </div>
                                 </div>
+                            </Card>
+
+                            {/* Joined Contributions Section */}
+                            <Card className="p-8">
+                                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                                    <Briefcase size={20} className="text-cyan-400" />
+                                    My Open Source Contributions
+                                </h2>
+                                
+                                {joinedProjects.length === 0 ? (
+                                    <div className="text-center py-8 border border-dashed border-gray-700 rounded-xl">
+                                        <p className="text-gray-400 mb-4">You haven&apos;t joined any project chats yet.</p>
+                                        <Link href="/contribute" className="inline-flex px-6 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 font-bold hover:shadow-[0_0_20px_rgba(0,255,249,0.3)] transition-all">
+                                            Explore Projects
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <div className="grid sm:grid-cols-2 gap-4">
+                                        {joinedProjects.map((project) => (
+                                            <div key={project.id} className="relative block group p-5 border border-gray-800 rounded-2xl bg-gray-900/50 overflow-hidden hover:border-cyan-500/30 transition-colors">
+                                                <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${project.color} opacity-40`} />
+                                                <h3 className="font-bold text-lg text-white mb-2">{project.title}</h3>
+                                                <div className="flex flex-wrap gap-2 mb-4">
+                                                    {(project.techStack || []).slice(0,3).map((tech: string) => (
+                                                        <span key={tech} className="text-[10px] font-black uppercase bg-gray-800 px-2 py-0.5 rounded text-gray-400">
+                                                            {tech}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                <Link href={`/contribute/${project.id}/chat`} className="inline-flex w-full items-center justify-center gap-2 py-2 rounded-xl bg-gray-800 text-sm font-bold text-cyan-400 hover:bg-gray-700 transition-colors">
+                                                    Open Chat
+                                                </Link>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </Card>
 
                             {hasApplications && (

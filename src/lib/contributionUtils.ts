@@ -168,3 +168,145 @@ export async function deleteContribution(id: number): Promise<boolean> {
     return false;
   }
 }
+
+// ------------------------------------------------------------------
+// CHAT & MEMBERS SYSTEM
+// ------------------------------------------------------------------
+
+export interface ContributionMember {
+  contribution_id: number;
+  user_id: number;
+  joined_at: string;
+}
+
+export interface ContributionMessage {
+  id: number;
+  contribution_id: number;
+  user_id: number;
+  message: string;
+  created_at: string;
+  user_email?: string;
+  user_role?: string;
+}
+
+async function ensureContributionChatTables() {
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS contribution_members (
+      contribution_id INTEGER,
+      user_id INTEGER,
+      joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (contribution_id, user_id)
+    )
+  `);
+  
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS contribution_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      contribution_id INTEGER,
+      user_id INTEGER,
+      message TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+}
+
+export async function addContributionMember(contributionId: number, userId: number): Promise<boolean> {
+  try {
+    await ensureContributionChatTables();
+    await db.execute({
+      sql: 'INSERT OR IGNORE INTO contribution_members (contribution_id, user_id) VALUES (?, ?)',
+      args: [contributionId, userId]
+    });
+    return true;
+  } catch (error) {
+    console.error('Error adding contribution member:', error);
+    return false;
+  }
+}
+
+export async function removeContributionMember(contributionId: number, userId: number): Promise<boolean> {
+  try {
+    await ensureContributionChatTables();
+    await db.execute({
+      sql: 'DELETE FROM contribution_members WHERE contribution_id = ? AND user_id = ?',
+      args: [contributionId, userId]
+    });
+    return true;
+  } catch (error) {
+    console.error('Error removing contribution member:', error);
+    return false;
+  }
+}
+
+export async function isContributionMember(contributionId: number, userId: number): Promise<boolean> {
+  try {
+    await ensureContributionChatTables();
+    const result = await db.execute({
+      sql: 'SELECT 1 FROM contribution_members WHERE contribution_id = ? AND user_id = ? LIMIT 1',
+      args: [contributionId, userId]
+    });
+    return result.rows.length > 0;
+  } catch (error) {
+    console.error('Error checking contribution member:', error);
+    return false;
+  }
+}
+
+export async function getContributionMessages(contributionId: number): Promise<ContributionMessage[]> {
+  try {
+    await ensureContributionChatTables();
+    const result = await db.execute({
+      sql: `
+        SELECT m.*, CASE WHEN m.user_id = 0 THEN 'admin@admin.com' ELSE u.email END as user_email, CASE WHEN m.user_id = 0 THEN 'admin' ELSE 'client' END as user_role 
+        FROM contribution_messages m
+        LEFT JOIN users u ON m.user_id = u.id
+        WHERE m.contribution_id = ?
+        ORDER BY m.created_at ASC
+      `,
+      args: [contributionId]
+    });
+    return result.rows.map(row => ({
+      id: Number(row.id),
+      contribution_id: Number(row.contribution_id),
+      user_id: Number(row.user_id),
+      message: String(row.message),
+      created_at: String(row.created_at),
+      user_email: row.user_email ? String(row.user_email) : 'Unknown User',
+      user_role: row.user_role ? String(row.user_role) : 'client'
+    }));
+  } catch (error) {
+    console.error('Error fetching contribution messages:', error);
+    return [];
+  }
+}
+
+export async function addContributionMessage(contributionId: number, userId: number, message: string): Promise<boolean> {
+  try {
+    await ensureContributionChatTables();
+    await db.execute({
+      sql: 'INSERT INTO contribution_messages (contribution_id, user_id, message) VALUES (?, ?, ?)',
+      args: [contributionId, userId, message]
+    });
+    return true;
+  } catch (error) {
+    console.error('Error adding contribution message:', error);
+    return false;
+  }
+}
+
+export async function deleteContributionMessage(messageId: number, userId: number, isAdmin: boolean): Promise<boolean> {
+  try {
+    await ensureContributionChatTables();
+    if (isAdmin) {
+      await db.execute({ sql: 'DELETE FROM contribution_messages WHERE id = ?', args: [messageId] });
+      return true;
+    } else {
+      const res = await db.execute({ sql: 'DELETE FROM contribution_messages WHERE id = ? AND user_id = ?', args: [messageId, userId] });
+      return res.rowsAffected > 0;
+    }
+  } catch (error) {
+    console.error('Error deleting message:', error);
+    return false;
+  }
+}
+

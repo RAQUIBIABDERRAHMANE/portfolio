@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from
 import { Header } from "@/sections/Header";
 import { Footer } from "@/sections/Footer";
 import { PageGuard } from "@/components/PageGuard";
+import { ContributionChatModal } from "./ContributionChatModal";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
@@ -227,11 +228,13 @@ function ContributionCard({
   project,
   index,
   onReadme,
+  onChat,
   isLive = false,
 }: {
   project: Contribution;
   index: number;
   onReadme: (p: Contribution) => void;
+  onChat: (p: Contribution) => void;
   isLive?: boolean;
 }) {
   return (
@@ -239,7 +242,8 @@ function ContributionCard({
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1, type: "spring", stiffness: 100, damping: 15 }}
-      className="h-full"
+      className="h-full z-10 relative cursor-pointer"
+      onClick={() => onChat(project)}
       style={{ perspective: "1200px" }}
     >
       <TiltCard className="h-full group">
@@ -330,17 +334,15 @@ function ContributionCard({
             </div>
 
             {/* Action buttons */}
-            <div className="grid grid-cols-2 gap-3 mt-auto">
+            <div className="grid grid-cols-2 gap-3 mt-auto relative z-20">
               {/* View README */}
               <button
-                onClick={() => onReadme(project)}
+                onClick={(e) => { e.stopPropagation(); onReadme(project); }}
                 className="relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-gray-700 text-gray-300 text-sm font-bold overflow-hidden
                   hover:border-cyan-500/60 hover:text-cyan-400 hover:bg-cyan-500/5 transition-all duration-300"
               >
                 <BookOpen size={15} />
                 <span>README</span>
-                {/* Shimmer */}
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
               </button>
 
               {/* Contribute */}
@@ -348,6 +350,7 @@ function ContributionCard({
                 href={project.link}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
                 className={`relative flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-black text-gray-950 bg-gradient-to-r ${project.color}
                   hover:shadow-[0_0_25px_rgba(0,255,249,0.4)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 overflow-hidden`}
               >
@@ -398,6 +401,7 @@ export default function ContributePage() {
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeReadme, setActiveReadme] = useState<Contribution | null>(null);
+  const [activeChat, setActiveChat] = useState<Contribution | null>(null);
   const [ghStats, setGhStats] = useState<Record<number, GhStats>>({});
 
   useEffect(() => {
@@ -541,6 +545,7 @@ export default function ContributePage() {
                     project={displayProject}
                     index={idx}
                     onReadme={setActiveReadme}
+                    onChat={setActiveChat}
                     isLive={!!live?.live}
                   />
                 );
@@ -582,6 +587,13 @@ export default function ContributePage() {
       <AnimatePresence>
         {activeReadme && (
           <ReadmeModal project={activeReadme} onClose={() => setActiveReadme(null)} />
+        )}
+      </AnimatePresence>
+
+      {/* ── CHAT Modal ─────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {activeChat && (
+          <ContributionChatModal project={activeChat} onClose={() => setActiveChat(null)} />
         )}
       </AnimatePresence>
     </PageGuard>

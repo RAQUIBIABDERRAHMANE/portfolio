@@ -16,6 +16,7 @@ import { getAllContributions, getContributionById, addContribution, updateContri
 import db from '../src/lib/sqlite';
 
 export const createServer = (user?: any) => {
+  console.log('createServer called with user:', user);
   const server = new Server({
     name: 'portfolio-mcp-server',
     version: '1.0.0',
@@ -463,8 +464,24 @@ const run = async () => {
       if (rows && rows.length > 0) {
         user = rows[0];
       } else {
-        console.error("Invalid MCP_API_KEY.");
-        process.exit(1);
+        // Try admin_settings
+        try {
+          const adminResult = await db.execute({
+            sql: "SELECT value FROM admin_settings WHERE key = 'api_key'",
+            args: []
+          });
+          const adminRows = Array.isArray(adminResult) ? adminResult[0] : (adminResult as any).rows;
+          if (adminRows && adminRows.length > 0 && adminRows[0].value === process.env.MCP_API_KEY) {
+            user = { id: 0, email: process.env.ADMIN_EMAIL ?? 'admin', role: 'admin', api_key: process.env.MCP_API_KEY };
+          }
+        } catch (e) {
+          // ignore
+        }
+
+        if (!user) {
+          console.error("Invalid MCP_API_KEY.");
+          process.exit(1);
+        }
       }
     } catch (e) {
       console.error("Error validating MCP_API_KEY:", e);
