@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 
         const result = await db.execute("SELECT * FROM page_settings ORDER BY page_name ASC");
         
-        const pages = result.rows.map(row => ({
+        const pages = result.rows.map((row: any) => ({
             id: Number(row.id),
             page_path: String(row.page_path),
             page_name: String(row.page_name),

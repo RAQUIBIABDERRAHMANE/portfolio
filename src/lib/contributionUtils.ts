@@ -59,7 +59,7 @@ export async function getActiveContributions(): Promise<Contribution[]> {
     const result = await db.execute(
       'SELECT * FROM contributions WHERE is_active != 0 ORDER BY sort_order ASC, created_at DESC'
     );
-    return result.rows.map(mapRow);
+    return result.rows.map((row: any) => mapRow(row));
   } catch (error) {
     console.error('Error fetching active contributions:', error);
     return [];
@@ -73,7 +73,7 @@ export async function getAllContributions(): Promise<Contribution[]> {
     const result = await db.execute(
       'SELECT * FROM contributions ORDER BY sort_order ASC, created_at DESC'
     );
-    return result.rows.map(mapRow);
+    return result.rows.map((row: any) => mapRow(row));
   } catch (error) {
     console.error('Error fetching all contributions:', error);
     return [];

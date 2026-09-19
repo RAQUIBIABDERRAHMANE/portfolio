@@ -1,93 +1,28 @@
 "use client";
 import { motion } from "framer-motion";
-import Image from "next/image";
 
 export const CyberBackground = () => {
-  // Generate random positions for robots/drones
-  const robots = Array.from({ length: 6 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    delay: Math.random() * 5,
-    duration: 15 + Math.random() * 10,
-  }));
+  // Deterministic particle positions to prevent SSR/client hydration mismatch
+  const particles = [
+    { left: 8, top: 18, dur: 5.2, del: 0.3 },
+    { left: 22, top: 42, dur: 6.1, del: 1.1 },
+    { left: 38, top: 14, dur: 4.8, del: 1.8 },
+    { left: 52, top: 68, dur: 6.9, del: 0.6 },
+    { left: 68, top: 32, dur: 5.4, del: 1.4 },
+    { left: 82, top: 58, dur: 6.3, del: 2.1 },
+    { left: 94, top: 22, dur: 4.2, del: 0.4 },
+    { left: 14, top: 78, dur: 5.7, del: 1.6 },
+    { left: 32, top: 58, dur: 6.0, del: 0.8 },
+    { left: 62, top: 82, dur: 4.9, del: 2.5 },
+    { left: 45, top: 88, dur: 5.5, del: 1.0 },
+    { left: 76, top: 16, dur: 4.6, del: 2.0 },
+    { left: 88, top: 74, dur: 5.8, del: 0.7 },
+    { left: 28, top: 28, dur: 6.4, del: 1.9 },
+    { left: 58, top: 48, dur: 5.1, del: 1.3 },
+  ];
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-      {/* Giant AI Robot Head - Using actual image with background removed */}
-      <motion.div
-        className="absolute -top-32 -right-10 w-[100px] h-[100px] md:w-[900px] md:h-[900px]"
-        initial={{ opacity: 0, scale: 0.7, x: 100 }}
-        animate={{ 
-          opacity: [0.3, 0.4, 0.3], 
-          scale: 1,
-          y: [0, -30, 0],
-        }}
-        transition={{ 
-          opacity: { duration: 4, repeat: Infinity, ease: "easeInOut" },
-          scale: { duration: 2 },
-          y: { duration: 10, repeat: Infinity, ease: "easeInOut" }
-        }}
-      >
-        <div className="relative w-full h-full">
-          <Image 
-            src="/image.png" 
-            alt="AI Robot" 
-            width={900} 
-            height={900}
-            className="w-full h-full object-contain"
-            style={{
-              mixBlendMode: 'screen',
-              filter: 'brightness(1.2) contrast(1.3) drop-shadow(0 0 40px rgba(0, 255, 249, 0.6))',
-            }}
-            priority
-          />
-          
-          {/* Cyan/Blue color overlay to match theme */}
-          <div 
-            className="absolute inset-0"
-            style={{
-              background: 'radial-gradient(circle, rgba(0, 255, 249, 0.3) 0%, rgba(0, 212, 255, 0.2) 50%, transparent 70%)',
-              mixBlendMode: 'overlay',
-            }}
-          />
-        </div>
-        
-        {/* Additional glow effect around the head */}
-        <motion.div
-          className="absolute inset-0 rounded-full"
-          style={{
-            background: 'radial-gradient(circle, rgba(0, 255, 249, 0.3) 0%, rgba(0, 212, 255, 0.2) 40%, transparent 70%)',
-            filter: 'blur(60px)',
-          }}
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.4, 0.7, 0.4],
-          }}
-          transition={{
-            duration: 5,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        
-        {/* Animated scanning lines over the robot */}
-        <motion.div
-          className="absolute inset-0"
-          style={{
-            background: 'linear-gradient(180deg, transparent 0%, rgba(0, 255, 249, 0.4) 50%, transparent 100%)',
-            height: '100px',
-          }}
-          animate={{
-            y: [-100, 900],
-          }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        />
-      </motion.div>
-
       {/* Cyber city skyline with towers */}
       <div className="absolute bottom-0 left-0 right-0 h-[40vh] opacity-20">
         {/* Buildings/Towers */}
@@ -252,116 +187,15 @@ export const CyberBackground = () => {
         </svg>
       </div>
 
-      {/* Flying robots/drones in the sky */}
+      {/* Atmospheric particles */}
       <div className="absolute inset-0">
-        {robots.map((robot) => (
-          <motion.div
-            key={robot.id}
-            className="absolute"
-            style={{
-              left: `${robot.x}%`,
-              top: '20%',
-            }}
-            initial={{ x: -100, y: 0, opacity: 0 }}
-            animate={{
-              x: [0, 1400],
-              y: [0, -50, 0, 50, 0],
-              opacity: [0, 0.6, 0.6, 0.6, 0],
-            }}
-            transition={{
-              duration: robot.duration,
-              delay: robot.delay,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          >
-            {/* Robot/Drone SVG */}
-            <svg width="40" height="40" viewBox="0 0 40 40">
-              <defs>
-                <filter id={`glow-${robot.id}`}>
-                  <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-                  <feMerge>
-                    <feMergeNode in="coloredBlur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              {/* Drone body */}
-              <ellipse
-                cx="20"
-                cy="20"
-                rx="8"
-                ry="6"
-                fill="#00fff9"
-                opacity="0.3"
-                filter={`url(#glow-${robot.id})`}
-              />
-              {/* Propellers */}
-              <motion.line
-                x1="10"
-                y1="15"
-                x2="10"
-                y2="25"
-                stroke="#00fff9"
-                strokeWidth="2"
-                opacity="0.6"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 0.5, repeat: Infinity, ease: "linear" }}
-                style={{ originX: '10px', originY: '20px' }}
-              />
-              <motion.line
-                x1="30"
-                y1="15"
-                x2="30"
-                y2="25"
-                stroke="#00fff9"
-                strokeWidth="2"
-                opacity="0.6"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 0.5, repeat: Infinity, ease: "linear" }}
-                style={{ originX: '30px', originY: '20px' }}
-              />
-              {/* Lights */}
-              <circle cx="15" cy="20" r="1.5" fill="#00fff9">
-                <animate
-                  attributeName="opacity"
-                  values="1;0.3;1"
-                  dur="0.8s"
-                  repeatCount="indefinite"
-                />
-              </circle>
-              <circle cx="25" cy="20" r="1.5" fill="#00d4ff">
-                <animate
-                  attributeName="opacity"
-                  values="0.3;1;0.3"
-                  dur="0.8s"
-                  repeatCount="indefinite"
-                />
-              </circle>
-              {/* Antenna */}
-              <line x1="20" y1="14" x2="20" y2="10" stroke="#00fff9" strokeWidth="1" opacity="0.7" />
-              <circle cx="20" cy="10" r="1" fill="#00fff9" opacity="0.9">
-                <animate
-                  attributeName="opacity"
-                  values="0.9;0.4;0.9"
-                  dur="1s"
-                  repeatCount="indefinite"
-                />
-              </circle>
-            </svg>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Additional atmospheric particles */}
-      <div className="absolute inset-0">
-        {[...Array(30)].map((_, i) => (
+        {particles.map((p, i) => (
           <motion.div
             key={`particle-${i}`}
             className="absolute w-0.5 h-0.5 bg-neon-cyan rounded-full"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
+              left: `${p.left}%`,
+              top: `${p.top}%`,
             }}
             animate={{
               y: [0, -100, 0],
@@ -369,9 +203,9 @@ export const CyberBackground = () => {
               scale: [0, 1.5, 0],
             }}
             transition={{
-              duration: 4 + Math.random() * 3,
+              duration: p.dur,
               repeat: Infinity,
-              delay: Math.random() * 5,
+              delay: p.del,
             }}
           />
         ))}

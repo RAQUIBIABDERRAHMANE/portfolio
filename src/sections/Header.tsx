@@ -22,6 +22,7 @@ import {
   Smartphone,
   Calendar,
   Code,
+  BookOpen,
 } from "lucide-react";
 
 const navVariants = {
@@ -148,6 +149,7 @@ export const Header = () => {
               { label: "Services", href: "/#services" },
               { label: "Technologies", href: "/#technologies" },
               { label: "Projects", href: "/#projects" },
+              { label: "Blog", href: "/blog" },
               { label: "About", href: "/#about" },
               { label: "Booking", href: "/booking" },
               { label: "Contribute", href: "/contribute" },
@@ -275,6 +277,7 @@ export const Header = () => {
                   { label: "Services", href: "/#services", icon: <Briefcase size={22} /> },
                   { label: "Technologies", href: "/#technologies", icon: <Cpu size={22} /> },
                   { label: "Projects", href: "/#projects", icon: <MessageSquare size={22} /> },
+                  { label: "Blog", href: "/blog", icon: <BookOpen size={22} /> },
                   { label: "About Me", href: "/#about", icon: <User size={22} /> },
                   { label: "Booking", href: "/booking", icon: <Calendar size={22} /> },
                   { label: "Contribute", href: "/contribute", icon: <Code size={22} /> },

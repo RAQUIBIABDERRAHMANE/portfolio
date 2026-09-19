@@ -83,8 +83,8 @@ export async function getPublishedProjects(): Promise<Project[]> {
     const result = await db.execute(
       'SELECT * FROM projects WHERE is_published != 0 ORDER BY sort_order ASC, created_at DESC'
     );
-    console.log('[getPublishedProjects] found', result.rows.length, 'rows');
-    return result.rows.map(mapRow);
+    console.error('[getPublishedProjects] found', result.rows.length, 'rows');
+    return result.rows.map((row: any) => mapRow(row));
   } catch (error) {
     console.error('Error fetching published projects:', error);
     return [];
@@ -98,7 +98,7 @@ export async function getAllProjects(): Promise<Project[]> {
     const result = await db.execute(
       'SELECT * FROM projects ORDER BY sort_order ASC, created_at DESC'
     );
-    return result.rows.map(mapRow);
+    return result.rows.map((row: any) => mapRow(row));
   } catch (error) {
     console.error('Error fetching all projects:', error);
     return [];

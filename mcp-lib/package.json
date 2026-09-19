@@ -1,0 +1,24 @@
+{
+  "name": "raquibi-portfolio-mcp",
+  "version": "1.0.0",
+  "description": "MCP Server connecté à l'API du Portfolio Raquibi",
+  "main": "index.js",
+  "bin": {
+    "raquibi-mcp": "index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "portfolio",
+    "ai"
+  ],
+  "author": "Raquibi",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.2.1",
+    "node-fetch": "^2.6.7"
+  }
+}

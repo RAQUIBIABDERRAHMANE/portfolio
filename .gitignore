@@ -38,3 +38,5 @@ next-env.d.ts
 
 # uploaded files (ephemeral on Vercel, not stored in git)
 /public/uploads/
+database/*.json
+database/*.sql

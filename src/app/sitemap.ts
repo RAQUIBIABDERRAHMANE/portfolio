@@ -1,11 +1,12 @@
 import { MetadataRoute } from "next";
+import { getPublishedBlogs } from "@/lib/blogUtils";
 
 const BASE_URL = "https://raquibi.com";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
-  return [
+  const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: BASE_URL,
       lastModified: now,
@@ -67,4 +68,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     },
   ];
+
+  let dynamicBlogRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const blogs = await getPublishedBlogs();
+    dynamicBlogRoutes = blogs.map((b) => ({
+      url: `${BASE_URL}/blog/${b.slug}`,
+      lastModified: b.updated_at ? new Date(b.updated_at) : now,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    }));
+  } catch (e) {
+    // If DB is not available at build time, fallback to static routes
+  }
+
+  return [...staticRoutes, ...dynamicBlogRoutes];
 }

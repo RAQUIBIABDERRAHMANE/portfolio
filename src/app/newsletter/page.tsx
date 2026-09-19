@@ -3,6 +3,8 @@ import { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
 import { HeaderSection } from "@/components/HeaderSection";
 import { Card } from "@/components/Card";
+import { Header } from "@/sections/Header";
+import { Footer } from "@/sections/Footer";
 
 export default function NewsletterPage() {
   const [formData, setFormData] = useState({
@@ -55,8 +57,10 @@ export default function NewsletterPage() {
   };
 
   return (
-    <div className="min-h-screen py-16 lg:py-24">
-      <div className="container max-w-3xl">
+    <>
+      <Header />
+      <div className="min-h-screen pt-28 pb-16 lg:pb-24">
+        <div className="container max-w-3xl">
         <HeaderSection
           eyebrow="Stay Connected"
           title="Join Our Newsletter"
@@ -192,5 +196,7 @@ export default function NewsletterPage() {
         </motion.div>
       </div>
     </div>
+    <Footer />
+  </>
   );
 }

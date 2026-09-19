@@ -11,6 +11,7 @@ import { TestimonialsSection } from "@/sections/Testimonials";
 import { Metadata } from "next";
 import { ServicesSection } from "@/sections/Services";
 import { BackToTop } from "@/components/BackToTop";
+import { CyberBackground } from "@/components/CyberBackground";
 
 export const metadata: Metadata = {
   title: "Abdo Raquibi | Full-Stack Developer",
@@ -19,7 +20,8 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
+    <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative">
+      <CyberBackground />
       <div className="fixed inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
       <div className="relative">
         <Header />
@@ -37,10 +39,10 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 to-purple-500/10 blur-3xl"></div>
             <ProjectsSection />
           </section>
-          {/* <section aria-label="Blog" id="blog" className="relative">
+          <section aria-label="Blog" id="blog" className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-blue-500/10 blur-3xl"></div>
             <BlogSection />
-          </section> */}
+          </section>
           <section aria-label="Featured Work" id="featured" className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 blur-3xl"></div>
             <TapeSection />

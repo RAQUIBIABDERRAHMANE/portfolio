@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
       sql: `SELECT country, country_code, COUNT(*) as views
             FROM analytics_pageviews
             WHERE created_at >= ${since} AND country IS NOT NULL AND country != 'Unknown'
-            GROUP BY country ORDER BY views DESC LIMIT 10`,
+            GROUP BY country, country_code ORDER BY views DESC LIMIT 10`,
       args: [],
     });
     const topCountries = topCountriesR.rows.map((r: any) => ({

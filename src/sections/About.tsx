@@ -6,15 +6,6 @@ import { useRef } from "react";
 import { Card } from "@/components/Card";
 import { CardHeader } from "@/components/CardHeader";
 import { ToolBoxItems } from "@/components/ToolBoxItems";
-import GitHubIcon from "@/assets/icons/github.svg";
-import ReactIcon from "@/assets/icons/react.svg";
-import CssIcon from "@/assets/icons/css3.svg";
-import HtmlIcon from "@/assets/icons/html5.svg";
-import LaravelIcon from "@/assets/icons/laravel.svg";
-import JsIcon from "@/assets/icons/square-js.svg";
-import DockerIcon from "@/assets/icons/docker.svg";
-import PHPIcon from "@/assets/icons/php.svg";
-import NodeJsIcon from "@/assets/icons/node-js.svg";
 
 const toolBoxItems = [
   { title: "HTML5", iconType: "/icons/html5.svg" },

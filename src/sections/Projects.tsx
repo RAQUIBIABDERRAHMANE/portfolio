@@ -57,7 +57,7 @@ const staticProjects = [
       { title: "Improved site speed by 50%" },
       { title: "Increased mobile traffic by 35%" },
     ],
-    link: "https://buymeacoffee.com/anaser_25/e/297849",
+    link: "https://buymeacoffee.com/abderrahmar/e/297849",
     image: VirtualRLandingPage as any,
     text: "Get Source Code",
     color: "from-purple-500 to-pink-500",
@@ -122,22 +122,26 @@ export const ProjectsSection = () => {
   // Build unified project list: DB projects if any, otherwise static fallback
   const portfolioProjects = loaded && dbProjects.length > 0
     ? dbProjects.map((p) => {
-        let results: { title: string }[] = [];
-        try { results = JSON.parse(p.results); } catch { results = []; }
-        let downloads: { name: string; url: string; filename: string }[] = [];
-        try { downloads = JSON.parse(p.download_files || '[]'); } catch { downloads = []; }
-        return {
-          company: p.company,
-          year: p.year,
-          title: p.title,
-          results,
-          link: p.link,
-          image: p.image_url || null,
-          text: p.link_text,
-          color: p.color,
-          downloads,
-        };
-      })
+      let results: { title: string }[] = [];
+      try { results = JSON.parse(p.results); } catch { results = []; }
+      let downloads: { name: string; url: string; filename: string }[] = [];
+      try { downloads = JSON.parse(p.download_files || '[]'); } catch { downloads = []; }
+      let imageUrl = p.image_url || null;
+      if (imageUrl && imageUrl.includes("raquibi.com/images/")) {
+        imageUrl = imageUrl.replace(/^https?:\/\/(www\.)?raquibi\.com/, "");
+      }
+      return {
+        company: p.company,
+        year: p.year,
+        title: p.title,
+        results,
+        link: p.link,
+        image: imageUrl,
+        text: p.link_text,
+        color: p.color,
+        downloads,
+      };
+    })
     : staticProjects.map(p => ({ ...p, downloads: [] as { name: string; url: string; filename: string }[] }));
 
   return (
@@ -167,179 +171,180 @@ export const ProjectsSection = () => {
             ))}
           </div>
         ) : (
-        <div className="mt-10 md:mt-20 grid grid-cols-1 gap-8 md:grid-cols-2">
-          {portfolioProjects.map((project, projectIndex) => (
-            <motion.div
-              key={project.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: projectIndex * 0.1 }}
-            >
-              <Card className="group relative overflow-hidden h-full">
-                {/* Animated border effect */}
-                <motion.div
-                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 pointer-events-none"
-                  style={{
-                    background: 'linear-gradient(90deg, #00fff9, #00d4ff, #a855f7, #00fff9)',
-                    backgroundSize: '200% 200%',
-                  }}
-                  animate={{
-                    backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "linear"
-                  }}
-                />
-                <div className="absolute inset-[1px] bg-cyber-card rounded-2xl z-10" />
-                
-                {/* Holographic effect overlay */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20"
-                  style={{
-                    background: 'radial-gradient(circle at 50% 50%, rgba(0, 255, 249, 0.1) 0%, transparent 70%)',
-                  }}
-                />
-                
-                <div className="relative z-30 p-6 md:p-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <motion.div 
-                      className="font-bold uppercase tracking-widest text-sm gap-2 font-mono"
-                      style={{
-                        background: 'linear-gradient(90deg, #00fff9, #00d4ff)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text',
-                        textShadow: '0 0 10px rgba(0, 255, 249, 0.5)',
-                      }}
-                      whileHover={{
-                        textShadow: '0 0 20px rgba(0, 255, 249, 0.8)',
-                      }}
-                    >
-                      <span>{project.company}</span>
-                      <span className="mx-2">•</span>
-                      <span>{project.year}</span>
-                    </motion.div>
-                  </div>
-                  <h3 className="font-serif text-2xl md:text-3xl mb-6 glow-text">
-                    {project.title}
-                  </h3>
-                  <div className="relative aspect-video mb-6 overflow-hidden rounded-lg group/image">
-                    <div className="absolute inset-0 z-10 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300"
-                      style={{
-                        background: 'linear-gradient(135deg, rgba(0, 255, 249, 0.2) 0%, transparent 50%)',
-                      }}
-                    />
-                    {project.image ? (
-                      <Image
-                        src={project.image}
-                        alt={project.title}
-                        className="object-cover transition-transform duration-300 group-hover:scale-110"
-                        fill
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        loading={projectIndex < 2 ? "eager" : "lazy"}
-                        priority={projectIndex < 2}
-                      />
-                    ) : (
-                      <div className={`absolute inset-0 bg-gradient-to-br ${project.color} opacity-20 flex items-center justify-center`}>
-                        <span className="text-white/30 text-4xl font-black uppercase tracking-widest">{project.company?.charAt(0)}</span>
-                      </div>
-                    )}
-                    {/* Corner accents */}
-                    <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-neon-cyan opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-neon-cyan opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-neon-cyan opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-neon-cyan opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
-                  </div>
-                  <ul className="space-y-3 mb-6">
-                    {project.results.map((result, idx) => (
-                      <motion.li
-                        key={result.title}
-                        className="flex items-start gap-3 text-sm md:text-base text-white/70 group/item"
-                        whileHover={{ x: 5 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                        initial={{ opacity: 0, x: -20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
+          <div className="mt-10 md:mt-20 grid grid-cols-1 gap-8 md:grid-cols-2">
+            {portfolioProjects.map((project, projectIndex) => (
+              <motion.div
+                key={project.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: projectIndex * 0.1 }}
+              >
+                <Card className="group relative overflow-hidden h-full">
+                  {/* Animated border effect */}
+                  <motion.div
+                    className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 pointer-events-none"
+                    style={{
+                      background: 'linear-gradient(90deg, #00fff9, #00d4ff, #a855f7, #00fff9)',
+                      backgroundSize: '200% 200%',
+                    }}
+                    animate={{
+                      backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "linear"
+                    }}
+                  />
+                  <div className="absolute inset-[1px] bg-cyber-card rounded-2xl z-10" />
+
+                  {/* Holographic effect overlay */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20"
+                    style={{
+                      background: 'radial-gradient(circle at 50% 50%, rgba(0, 255, 249, 0.1) 0%, transparent 70%)',
+                    }}
+                  />
+
+                  <div className="relative z-30 p-6 md:p-8">
+                    <div className="flex items-center justify-between mb-4">
+                      <motion.div
+                        className="font-bold uppercase tracking-widest text-sm gap-2 font-mono"
                         style={{
-                          transitionDelay: `${idx * 0.1}s`,
+                          background: 'linear-gradient(90deg, #00fff9, #00d4ff)',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          backgroundClip: 'text',
+                          textShadow: '0 0 10px rgba(0, 255, 249, 0.5)',
+                        }}
+                        whileHover={{
+                          textShadow: '0 0 20px rgba(0, 255, 249, 0.8)',
                         }}
                       >
-                        <motion.div
-                          whileHover={{
-                            rotate: 360,
-                            scale: 1.2,
-                          }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <CheckIcon className="size-5 md:size-6 flex-shrink-0 mt-0.5" style={{ color: '#00fff9' }} />
-                        </motion.div>
-                        <span className="group-hover/item:text-neon-cyan transition-colors duration-300">{result.title}</span>
-                      </motion.li>
-                    ))}
-                  </ul>
-                  <motion.a
-                    href={project.link}
-                    target="_blank"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-lg relative overflow-hidden group/btn"
-                    style={{
-                      background: 'rgba(0, 255, 249, 0.1)',
-                      border: '1px solid rgba(0, 255, 249, 0.5)',
-                    }}
-                    whileHover={{ 
-                      scale: 1.02,
-                      boxShadow: '0 0 20px rgba(0, 255, 249, 0.4)',
-                    }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <span className="relative z-10 text-neon-cyan font-medium">{project.text}</span>
-                    <ArrowUpRightIcon className="size-4 relative z-10" style={{ color: '#00fff9' }} />
-                    <motion.div
-                      className="absolute inset-0"
-                      style={{ background: 'rgba(0, 255, 249, 0.2)' }}
-                      initial={{ x: '-100%' }}
-                      whileHover={{ x: 0 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </motion.a>
-
-                  {/* Download buttons */}
-                  {project.downloads && project.downloads.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {project.downloads.map((dl) => (
-                        <motion.a
-                          key={dl.url}
-                          href={`/api/download?path=${encodeURIComponent(dl.url.replace(/^\//, ''))}`}
-                          download={dl.filename || dl.name || true}
-                          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg relative overflow-hidden group/dl"
-                          style={{
-                            background: 'rgba(168, 85, 247, 0.08)',
-                            border: '1px solid rgba(168, 85, 247, 0.4)',
-                          }}
-                          whileHover={{
-                            scale: 1.02,
-                            boxShadow: '0 0 16px rgba(168, 85, 247, 0.35)',
-                          }}
-                          whileTap={{ scale: 0.97 }}
-                        >
-                          <Download size={14} className="text-purple-400 relative z-10 flex-shrink-0" />
-                          <span className="relative z-10 text-purple-300 font-medium text-sm">{dl.name}</span>
-                          <motion.div
-                            className="absolute inset-0"
-                            style={{ background: 'rgba(168, 85, 247, 0.15)' }}
-                            initial={{ x: '-100%' }}
-                            whileHover={{ x: 0 }}
-                            transition={{ duration: 0.3 }}
-                          />
-                        </motion.a>
-                      ))}
+                        <span>{project.company}</span>
+                        <span className="mx-2">•</span>
+                        <span>{project.year}</span>
+                      </motion.div>
                     </div>
-                  )}
-                </div>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+                    <h3 className="font-serif text-2xl md:text-3xl mb-6 glow-text">
+                      {project.title}
+                    </h3>
+                    <div className="relative aspect-video mb-6 overflow-hidden rounded-lg group/image">
+                      <div className="absolute inset-0 z-10 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(0, 255, 249, 0.2) 0%, transparent 50%)',
+                        }}
+                      />
+                      {project.image ? (
+                        <Image
+                          src={project.image}
+                          alt={project.title}
+                          className="object-cover transition-transform duration-300 group-hover:scale-110"
+                          fill
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          loading={projectIndex < 2 ? "eager" : "lazy"}
+                          priority={projectIndex < 2}
+                          unoptimized={typeof project.image === 'string' && project.image.startsWith('http')}
+                        />
+                      ) : (
+                        <div className={`absolute inset-0 bg-gradient-to-br ${project.color} opacity-20 flex items-center justify-center`}>
+                          <span className="text-white/30 text-4xl font-black uppercase tracking-widest">{project.company?.charAt(0)}</span>
+                        </div>
+                      )}
+                      {/* Corner accents */}
+                      <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-neon-cyan opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-neon-cyan opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-neon-cyan opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-neon-cyan opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
+                    </div>
+                    <ul className="space-y-3 mb-6">
+                      {project.results.map((result, idx) => (
+                        <motion.li
+                          key={result.title}
+                          className="flex items-start gap-3 text-sm md:text-base text-white/70 group/item"
+                          whileHover={{ x: 5 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                          initial={{ opacity: 0, x: -20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          style={{
+                            transitionDelay: `${idx * 0.1}s`,
+                          }}
+                        >
+                          <motion.div
+                            whileHover={{
+                              rotate: 360,
+                              scale: 1.2,
+                            }}
+                            transition={{ duration: 0.5 }}
+                          >
+                            <CheckIcon className="size-5 md:size-6 flex-shrink-0 mt-0.5" style={{ color: '#00fff9' }} />
+                          </motion.div>
+                          <span className="group-hover/item:text-neon-cyan transition-colors duration-300">{result.title}</span>
+                        </motion.li>
+                      ))}
+                    </ul>
+                    <motion.a
+                      href={project.link}
+                      target="_blank"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-lg relative overflow-hidden group/btn"
+                      style={{
+                        background: 'rgba(0, 255, 249, 0.1)',
+                        border: '1px solid rgba(0, 255, 249, 0.5)',
+                      }}
+                      whileHover={{
+                        scale: 1.02,
+                        boxShadow: '0 0 20px rgba(0, 255, 249, 0.4)',
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <span className="relative z-10 text-neon-cyan font-medium">{project.text}</span>
+                      <ArrowUpRightIcon className="size-4 relative z-10" style={{ color: '#00fff9' }} />
+                      <motion.div
+                        className="absolute inset-0"
+                        style={{ background: 'rgba(0, 255, 249, 0.2)' }}
+                        initial={{ x: '-100%' }}
+                        whileHover={{ x: 0 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    </motion.a>
+
+                    {/* Download buttons */}
+                    {project.downloads && project.downloads.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {project.downloads.map((dl) => (
+                          <motion.a
+                            key={dl.url}
+                            href={`/api/download?path=${encodeURIComponent(dl.url.replace(/^\//, ''))}`}
+                            download={dl.filename || dl.name || true}
+                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg relative overflow-hidden group/dl"
+                            style={{
+                              background: 'rgba(168, 85, 247, 0.08)',
+                              border: '1px solid rgba(168, 85, 247, 0.4)',
+                            }}
+                            whileHover={{
+                              scale: 1.02,
+                              boxShadow: '0 0 16px rgba(168, 85, 247, 0.35)',
+                            }}
+                            whileTap={{ scale: 0.97 }}
+                          >
+                            <Download size={14} className="text-purple-400 relative z-10 flex-shrink-0" />
+                            <span className="relative z-10 text-purple-300 font-medium text-sm">{dl.name}</span>
+                            <motion.div
+                              className="absolute inset-0"
+                              style={{ background: 'rgba(168, 85, 247, 0.15)' }}
+                              initial={{ x: '-100%' }}
+                              whileHover={{ x: 0 }}
+                              transition={{ duration: 0.3 }}
+                            />
+                          </motion.a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
         )}
       </div>
     </section>

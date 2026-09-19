@@ -20,6 +20,8 @@ const MIME_TYPES: Record<string, string> = {
   '.war': 'application/java-archive',
 };
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);

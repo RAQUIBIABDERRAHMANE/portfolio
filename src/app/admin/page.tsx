@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/Card";
 import { ContributionsTab } from "./ContributionsTab";
 import { MessagesTab } from "./MessagesTab";
+import { MCPKeysTab } from "./MCPKeysTab";
 import {
     Send,
     Users,
@@ -30,6 +31,7 @@ import {
     XCircle,
     ExternalLink,
     Mail,
+    Key,
     Phone,
     Calendar,
     CalendarDays,
@@ -881,6 +883,7 @@ export default function AdminDashboard() {
                         { id: "booking", label: "Booking", icon: <CalendarDays size={20} />, badge: reservations.filter(r => r.status === 'pending').length },
                         { id: "analytics", label: "Analytics", icon: <BarChart2 size={20} /> },
                         { id: "push", label: "Comms", icon: <Bell size={20} /> },
+                        { id: "mcp", label: "MCP Keys", icon: <Key size={20} /> },
                     ] as Array<{ id: string; label: string; icon: JSX.Element; badge?: number }>).map((item) => (
                         <button
                             key={item.id}
@@ -946,6 +949,7 @@ export default function AdminDashboard() {
                 <div className="p-10 space-y-10">
                     {activeTab === "contributions" && <ContributionsTab />}
                     {activeTab === "messages" && <MessagesTab />}
+                    {activeTab === "mcp" && <MCPKeysTab />}
 
                     {activeTab === "overview" && (
                         <>

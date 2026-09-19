@@ -194,7 +194,7 @@ export const HeroSection = () => {
               
               <motion.a
                 href="/cv.pdf"
-                download
+                download="Abderrahmane_Raquibi_CV.pdf"
                 className="group px-8 py-4 rounded-lg font-medium backdrop-blur-sm relative overflow-hidden flex items-center gap-2"
                 style={{
                   background: 'rgba(168, 85, 247, 0.08)',

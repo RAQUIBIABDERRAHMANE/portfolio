@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { Inter } from "next/font/google";
 
@@ -118,6 +119,27 @@ export default function RootLayout({
             }),
           }}
         />
+        <Script id="google-tag-manager" strategy="afterInteractive">
+          {`
+            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer','GTM-KDDQ6RLX');
+          `}
+        </Script>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-CQ4F903N9X"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-CQ4F903N9X');
+          `}
+        </Script>
       </head>
       <body className={inter.className}>
         <PageLoader />
@@ -125,6 +147,17 @@ export default function RootLayout({
         <NotificationManager />
         <AnalyticsTracker />
         {children}
+
+        {/* ElevenLabs ConvAI Widget */}
+        {/* <div
+          dangerouslySetInnerHTML={{
+            __html: '<elevenlabs-convai agent-id="agent_1301k4n2f78kf7q8wzz0m7n9mdee"></elevenlabs-convai>'
+          }}
+        />
+        <Script
+          src="https://unpkg.com/@elevenlabs/convai-widget-embed"
+          strategy="afterInteractive"
+        /> */}
       </body>
     </html>
   );

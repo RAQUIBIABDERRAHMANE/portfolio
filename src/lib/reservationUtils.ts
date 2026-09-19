@@ -101,7 +101,7 @@ function mapReservation(row: any): Reservation {
 export async function getAllSlots(): Promise<AvailabilitySlot[]> {
   await ensureTables();
   const r = await db.execute('SELECT * FROM availability_slots ORDER BY day_of_week ASC, start_time ASC');
-  return r.rows.map(mapSlot);
+  return r.rows.map((row: any) => mapSlot(row));
 }
 
 export async function addSlot(day_of_week: number, start_time: string, duration_minutes = 45): Promise<AvailabilitySlot | null> {
@@ -135,23 +135,23 @@ export async function getAvailableSlotsForDate(date: string): Promise<string[]> 
     sql: 'SELECT * FROM availability_slots WHERE day_of_week = ? AND is_active = 1 ORDER BY start_time ASC',
     args: [dayOfWeek],
   });
-  const allSlots = slotsRes.rows.map(r => String(r.start_time));
+  const allSlots = slotsRes.rows.map((r: any) => String(r.start_time));
 
   // Get already booked slots for that date (confirmed or pending)
   const bookedRes = await db.execute({
     sql: "SELECT time_slot FROM reservations WHERE date = ? AND status != 'cancelled'",
     args: [date],
   });
-  const booked = new Set(bookedRes.rows.map(r => String(r.time_slot)));
+  const booked = new Set(bookedRes.rows.map((r: any) => String(r.time_slot)));
 
-  return allSlots.filter(t => !booked.has(t));
+  return allSlots.filter((t: string) => !booked.has(t));
 }
 
 // ─── Reservations ─────────────────────────────────────────────────────────────
 export async function getAllReservations(): Promise<Reservation[]> {
   await ensureTables();
   const r = await db.execute('SELECT * FROM reservations ORDER BY date DESC, time_slot ASC');
-  return r.rows.map(mapReservation);
+  return r.rows.map((row: any) => mapReservation(row));
 }
 
 export async function getReservationById(id: number): Promise<Reservation | null> {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, X, Bell } from "lucide-react";
@@ -10,46 +10,31 @@ export const NotificationManager = () => {
     const [showDeniedPopup, setShowDeniedPopup] = useState(false);
     const [userDismissed, setUserDismissed] = useState(false);
 
+    const checkedRef = useRef(false);
+
     useEffect(() => {
+        if (checkedRef.current) return;
+        checkedRef.current = true;
+
         const handlePermission = async () => {
             if (!("Notification" in window)) return;
-            if (userDismissed) return; // Don't show if user dismissed it
+            if (userDismissed) return;
 
-            // Function to request permission and handle the result
-            const requestLoop = async () => {
-                try {
+            try {
+                if (Notification.permission === 'granted') {
+                    subscribeToPush(true);
+                } else if (Notification.permission === 'default') {
                     const permission = await Notification.requestPermission();
                     if (permission === 'granted') {
                         subscribeToPush(true);
-                        setShowDeniedPopup(false);
-                    } else if (permission === 'default') {
-                        console.log("Notification permission dismissed. Retrying in 20s...");
-                        setTimeout(requestLoop, 20000);
-                    } else {
-                        // User denied
-                        console.log("Notification permission denied.");
-                        if (!userDismissed) {
-                            setShowDeniedPopup(true);
-                            // Hide after 10 seconds
-                            setTimeout(() => setShowDeniedPopup(false), 10000);
-                        }
                     }
-                } catch (err) {
-                    console.error("Error requesting notification permission:", err);
-                    setTimeout(requestLoop, 20000);
-                }
-            };
-
-            // Initial check
-            if (Notification.permission === 'default') {
-                requestLoop();
-            } else if (Notification.permission === 'granted') {
-                subscribeToPush(true);
-            } else if (Notification.permission === 'denied') {
-                if (!userDismissed) {
+                } else if (Notification.permission === 'denied' && !userDismissed) {
                     setShowDeniedPopup(true);
-                    setTimeout(() => setShowDeniedPopup(false), 10000);
+                    const timer = setTimeout(() => setShowDeniedPopup(false), 10000);
+                    return () => clearTimeout(timer);
                 }
+            } catch (err) {
+                console.error("Error with notification permission:", err);
             }
         };
 

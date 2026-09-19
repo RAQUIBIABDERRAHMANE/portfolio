@@ -27,6 +27,15 @@ export const createServer = (user?: any) => {
     }
   });
 
+  const checkPermission = (requiredScope: string) => {
+    if (!user) return;
+    if (user.role === 'admin' || user.permissions?.includes('admin')) return;
+    const permissions: string[] = user.permissions || (user.role === 'admin' ? ['admin'] : ['read_only']);
+    if (!permissions.includes(requiredScope) && !permissions.includes('admin')) {
+      throw new McpError(ErrorCode.InvalidRequest, `Permission denied: required scope '${requiredScope}'`);
+    }
+  };
+
   // Resources implementation
   server.setRequestHandler(ListResourcesRequestSchema, async () => {
   const blogs = await getAllBlogs();
@@ -63,6 +72,7 @@ export const createServer = (user?: any) => {
 });
 
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  checkPermission('read_only');
   const uri = request.params.uri;
   
   if (uri.startsWith('blog:///')) {
@@ -330,10 +340,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> =>
     switch (name) {
       // Blogs
       case 'list_blogs': {
+        checkPermission('read_only');
         const blogs = await getAllBlogs();
         return { content: [{ type: 'text', text: JSON.stringify(blogs, null, 2) }] };
       }
       case 'add_blog': {
+        checkPermission('write_blogs');
         const blogData = args as { title: string, slug: string, content: string, excerpt?: string, author?: string, published?: boolean };
         const newBlog = await addBlog({
           title: blogData.title,
@@ -354,11 +366,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> =>
         return { content: [{ type: 'text', text: JSON.stringify(newBlog, null, 2) }] };
       }
       case 'update_blog': {
+        checkPermission('write_blogs');
         const { id, ...updates } = args as any;
         const updatedBlog = await updateBlog(id, updates);
         return { content: [{ type: 'text', text: JSON.stringify(updatedBlog, null, 2) }] };
       }
       case 'delete_blog': {
+        checkPermission('write_blogs');
         const { id } = args as { id: number };
         const success = await deleteBlog(id);
         return { content: [{ type: 'text', text: `Deleted blog ${id}: ${success}` }] };
@@ -366,10 +380,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> =>
 
       // Projects
       case 'list_projects': {
+        checkPermission('read_only');
         const projects = await getAllProjects();
         return { content: [{ type: 'text', text: JSON.stringify(projects, null, 2) }] };
       }
       case 'add_project': {
+        checkPermission('write_projects');
         const projectData = args as { title: string, company: string, year: string, description: string, results?: string, link?: string, is_published?: boolean };
         const newProject = await addProject({
           title: projectData.title,
@@ -389,11 +405,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> =>
         return { content: [{ type: 'text', text: JSON.stringify(newProject, null, 2) }] };
       }
       case 'update_project': {
+        checkPermission('write_projects');
         const { id, ...updates } = args as any;
         const updatedProject = await updateProject(id, updates);
         return { content: [{ type: 'text', text: JSON.stringify(updatedProject, null, 2) }] };
       }
       case 'delete_project': {
+        checkPermission('write_projects');
         const { id } = args as { id: number };
         const success = await deleteProject(id);
         return { content: [{ type: 'text', text: `Deleted project ${id}: ${success}` }] };
@@ -401,10 +419,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> =>
 
       // Contributions
       case 'list_contributions': {
+        checkPermission('read_only');
         const contributions = await getAllContributions();
         return { content: [{ type: 'text', text: JSON.stringify(contributions, null, 2) }] };
       }
       case 'add_contribution': {
+        checkPermission('write_contributions');
         const contribData = args as { title: string, description: string, techStack?: string, stars?: number, forks?: number, link: string, color: string, is_active?: boolean, sort_order?: number };
         const newContrib = await addContribution({
           title: contribData.title,
@@ -420,11 +440,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> =>
         return { content: [{ type: 'text', text: JSON.stringify(newContrib, null, 2) }] };
       }
       case 'update_contribution': {
+        checkPermission('write_contributions');
         const { id, ...updates } = args as any;
         const updatedContrib = await updateContribution(id, updates);
         return { content: [{ type: 'text', text: JSON.stringify(updatedContrib, null, 2) }] };
       }
       case 'delete_contribution': {
+        checkPermission('write_contributions');
         const { id } = args as { id: number };
         const success = await deleteContribution(id);
         return { content: [{ type: 'text', text: `Deleted contribution ${id}: ${success}` }] };

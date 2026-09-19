@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getFeaturedBlogs } from '@/lib/blogUtils';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     // Get featured blogs (limited to 6 for homepage)

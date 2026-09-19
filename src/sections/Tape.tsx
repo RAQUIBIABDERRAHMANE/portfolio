@@ -14,7 +14,7 @@ const words = [
   "Scalable",
   "Communication",
   "Modular",
-  "Maitainable",
+  "Maintainable",
   "Interactive",
   "Advanced",
   "Reliable",

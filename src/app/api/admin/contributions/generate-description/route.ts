@@ -22,7 +22,7 @@ export async function POST(request: Request) {
 
     const owner = match[1];
     let repo = match[2];
-    
+
     // Remove .git if present
     repo = repo.replace(/\.git$/, '');
 
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama3-8b-8192',
+        model: 'openai/gpt-oss-20b',
         messages: [
           {
             role: 'system',
